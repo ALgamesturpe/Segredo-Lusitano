@@ -8,13 +8,18 @@ define('DB_PASS', '');
 define('DB_NAME', 'segredo_lusitano');
 define('SITE_NAME', 'Segredo Lusitano');
 
-// SITE_URL automático — baseia-se no nome da pasta do projeto
-// config.php está em /includes/, por isso dirname(__DIR__) = pasta raiz do projeto
-$_protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
-$_host     = $_SERVER['HTTP_HOST'] ?? 'localhost';
-$_folder   = basename(dirname(__DIR__)); // nome da pasta: "segredo_lusitano"
-define('SITE_URL', $_protocol . '://' . $_host . '/' . $_folder);
-unset($_protocol, $_host, $_folder);
+// Automatically detect SITE_URL based on current script location
+if (!defined('SITE_URL')) {
+    $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
+    $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+    $scriptPath = dirname($_SERVER['SCRIPT_NAME']);
+
+    // Remove trailing subdirectories (includes, pages, admin) to get project root
+    $basePath = $scriptPath;
+    $basePath = preg_replace('#/(includes|pages|admin)$#', '', $basePath);
+
+    define('SITE_URL', $protocol . $host . $basePath);
+}
 
 define('UPLOAD_DIR', __DIR__ . '/../uploads/locais/');
 define('PONTOS_LOCAL',      20);
@@ -25,8 +30,7 @@ define('PONTOS_LIKE',       2);
 // GOOGLE SIGN-IN
 // Obtém em: https://console.cloud.google.com → APIs → Credenciais
 // ============================================================
-define('GOOGLE_CLIENT_ID',     'O_TEU_CLIENT_ID_AQUI.apps.googleusercontent.com');
-define('GOOGLE_CLIENT_SECRET', 'O_TEU_CLIENT_SECRET_AQUI');
+define('GOOGLE_CLIENT_ID', '912763585849-sh3s7jrhi36toua034jgci2ktp3cge3k.apps.googleusercontent.com');
 // ============================================================
 // CONFIGURAÇÃO DE EMAIL (SMTP)
 // Preenche com os dados do teu email

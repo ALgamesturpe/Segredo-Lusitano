@@ -13,6 +13,7 @@ $stats_regioes = 7;
 include __DIR__ . '/includes/header.php';
 ?>
 
+
 <main>
   <!-- HERO -->
   <section class="hero" style="background: url('<?= SITE_URL ?>/assets/images/hero_bg.jpg?v=15') center/cover no-repeat;">

@@ -24,20 +24,18 @@ SET FOREIGN_KEY_CHECKS = 1;
 -- TABELA: utilizadores
 -- ============================================================
 CREATE TABLE utilizadores (
-    id                INT AUTO_INCREMENT PRIMARY KEY,
-    nome              VARCHAR(100)         NOT NULL,
-    username          VARCHAR(50)          NOT NULL UNIQUE,
-    email             VARCHAR(150)         NOT NULL UNIQUE,
-    password          VARCHAR(255)         NOT NULL,
-    google_id         VARCHAR(100)         DEFAULT NULL UNIQUE,
-    google_avatar_url VARCHAR(255)         DEFAULT NULL,
-    avatar            VARCHAR(255)         DEFAULT NULL,
-    bio               TEXT                 DEFAULT NULL,
-    pontos            INT                  DEFAULT 0,
-    role              ENUM('user','admin') DEFAULT 'user',
-    ativo             TINYINT(1)           DEFAULT 1,
-    verificado        TINYINT(1)           DEFAULT 0,
-    criado_em         DATETIME             DEFAULT CURRENT_TIMESTAMP
+    id          INT AUTO_INCREMENT PRIMARY KEY,
+    nome        VARCHAR(100)        NOT NULL,
+    username    VARCHAR(50)         NOT NULL UNIQUE,
+    email       VARCHAR(150)        NOT NULL UNIQUE,
+    password    VARCHAR(255)        NOT NULL,
+    avatar      VARCHAR(255)        DEFAULT NULL,
+    bio         TEXT                DEFAULT NULL,
+    pontos      INT                 DEFAULT 0,
+    role        ENUM('user','admin') DEFAULT 'user',
+    ativo       TINYINT(1)          DEFAULT 1,
+    verificado  TINYINT(1)          DEFAULT 0,
+    criado_em   DATETIME            DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
 -- ============================================================

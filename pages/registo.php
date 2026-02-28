@@ -27,6 +27,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             // Gerar e enviar código de verificação
             require_once dirname(__DIR__) . '/includes/mailer.php';
+
+            // Verificar se PHPMailer está disponível
+            if (!class_exists('PHPMailer\PHPMailer\PHPMailer')) {
+                // PHPMailer não instalado - auto-verificar e fazer login direto
+                db()->prepare('UPDATE utilizadores SET verificado = 1 WHERE id = ?')->execute([$res['id']]);
+                $_SESSION['user_id'] = $res['id'];
+                add_pontos($res['id'], PONTOS_LOCAL); // Bónus de boas-vindas
+                flash('success', 'Conta criada com sucesso! Bem-vindo ao Segredo Lusitano! 🎉 (Email não configurado - conta verificada automaticamente)');
+                header('Location: ' . SITE_URL . '/index.php');
+                exit;
+            }
+
             $codigo = gerar_e_guardar_codigo($res['id'], 'registo');
             $enviado = enviar_codigo_verificacao($email, $nome, $codigo, 'registo');
 
@@ -35,8 +47,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['verificar_tipo'] = 'registo';
 
             if (!$enviado) {
-                flash('success', 'Conta criada! Não foi possível enviar o email — contacta o administrador.');
+                // Falha no envio - auto-verificar também
+                db()->prepare('UPDATE utilizadores SET verificado = 1 WHERE id = ?')->execute([$res['id']]);
+                $_SESSION['user_id'] = $res['id'];
+                add_pontos($res['id'], PONTOS_LOCAL);
+                flash('success', 'Conta criada! Email não enviado (erro SMTP) - conta verificada automaticamente.');
+                header('Location: ' . SITE_URL . '/index.php');
+                exit;
             }
+
             header('Location: ' . SITE_URL . '/pages/verificar.php');
             exit;
         }
@@ -48,10 +67,9 @@ include dirname(__DIR__) . '/includes/header.php';
 ?>
 
 <div class="page-content" style="display:flex; align-items:center; justify-content:center; padding:2rem; min-height:calc(100vh - 72px);">
-  <div class="form-container" style="width:100%;max-width:600px;">
+  <div class="form-container" style="max-width:600px;">
     <div style="text-align:center; margin-bottom:2rem;">
-      <img src="<?= SITE_URL ?>/assets/images/logo_icon.png" alt="Segredo Lusitano"
-           style="height:90px;width:90px;display:inline-block;object-fit:contain;filter:drop-shadow(0 0 12px rgba(201,168,76,.6));">
+      <img src="<?= SITE_URL ?>/assets/images/logo_icon.png" alt="Segredo Lusitano" style="height:80px;width:80px;object-fit:contain;filter:drop-shadow(0 0 10px rgba(201,168,76,.5));">
     </div>
     <h1 class="form-title" style="text-align:center;">Torna-te um Explorador</h1>
     <p class="form-subtitle" style="text-align:center;">Junta-te à comunidade de Segredos Lusitanos</p>
@@ -94,6 +112,7 @@ include dirname(__DIR__) . '/includes/header.php';
       </button>
     </form>
 
+    <?php if (GOOGLE_CLIENT_ID && GOOGLE_CLIENT_ID !== ''): ?>
     <div class="form-divider">ou entra com</div>
 
     <!-- Google Sign-In (Google Identity Services - 2024) -->
@@ -115,6 +134,7 @@ include dirname(__DIR__) . '/includes/header.php';
       </div>
       <p id="google-msg" style="color:#c0392b;font-size:.85rem;display:none;"></p>
     </div>
+    <?php endif; ?>
 
     <p style="text-align:center; font-size:.9rem;">
       Já tens conta? <a href="<?= SITE_URL ?>/pages/login.php" class="form-link">Iniciar sessão</a>
@@ -123,6 +143,7 @@ include dirname(__DIR__) . '/includes/header.php';
 </div>
 
 <!-- Google Identity Services (nova biblioteca 2024) -->
+<?php if (GOOGLE_CLIENT_ID && GOOGLE_CLIENT_ID !== ''): ?>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script>
 function handleGoogleSignIn(response) {
@@ -147,5 +168,6 @@ function handleGoogleSignIn(response) {
   });
 }
 </script>
+<?php endif; ?>
 
 <?php include dirname(__DIR__) . '/includes/footer.php'; ?>

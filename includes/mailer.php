@@ -13,46 +13,55 @@ use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\SMTP;
 use PHPMailer\PHPMailer\Exception;
 
-// Autoload do Composer (se instalado)
-$composerAutoload = __DIR__ . '/../vendor/autoload.php';
+$phpmailer_disponivel = false;
+
+// 1) Composer autoload (pasta raiz do projeto)
+$composerAutoload = dirname(__DIR__) . '/vendor/autoload.php';
 if (file_exists($composerAutoload)) {
     require_once $composerAutoload;
-} else {
-    // Fallback manual: a pasta lib/PHPMailer deve conter os ficheiros src/Exception.php, PHPMailer.php, SMTP.php
-    $phplib = __DIR__ . '/../lib/PHPMailer/src';
-    if (file_exists($phplib . '/Exception.php')) {
-        require_once $phplib . '/Exception.php';
-        require_once $phplib . '/PHPMailer.php';
-        require_once $phplib . '/SMTP.php';
+    $phpmailer_disponivel = class_exists(PHPMailer::class);
+}
+
+// 2) Fallback manual (lib/PHPMailer/src)
+if (!$phpmailer_disponivel) {
+    $caminhosManuais = [
+        dirname(__DIR__) . '/lib/PHPMailer/src',
+        __DIR__ . '/lib/PHPMailer/src',
+    ];
+
+    foreach ($caminhosManuais as $srcPath) {
+        if (
+            file_exists($srcPath . '/Exception.php') &&
+            file_exists($srcPath . '/PHPMailer.php') &&
+            file_exists($srcPath . '/SMTP.php')
+        ) {
+            require_once $srcPath . '/Exception.php';
+            require_once $srcPath . '/PHPMailer.php';
+            require_once $srcPath . '/SMTP.php';
+            $phpmailer_disponivel = class_exists(PHPMailer::class);
+            if ($phpmailer_disponivel) {
+                break;
+            }
+        }
     }
 }
 
-// --- stub classes when PHPMailer is not available --------------------------------------
-if (!class_exists('PHPMailer\PHPMailer\PHPMailer')) {
-    // minimal replacements, with aliases to the expected namespace so 'use' statements still work
-    class PHPMailerStub {
-        public function __construct($exceptions = false) {}
-        public function isSMTP() { return $this; }
-        public function setFrom(...$args) { return $this; }
-        public function addAddress(...$args) { return $this; }
-        public function send() {
-            error_log('PHPMailer não instalado: email não enviado');
-            return false;
-        }
-        public function __call($name, $args) { return $this; }
-    }
-    class SMTPStub {}
-
-    // aliases into the PHPMailer\PHPMailer namespace
-    class_alias('PHPMailerStub', 'PHPMailer\\PHPMailer\\PHPMailer');
-    class_alias('SMTPStub', 'PHPMailer\\PHPMailer\\SMTP');
-    class_alias('\\Exception', 'PHPMailer\\PHPMailer\\Exception');
+if (!$phpmailer_disponivel) {
+    error_log('PHPMailer nao encontrado. Instala com: composer require phpmailer/phpmailer');
 }
 
 /**
  * Envia email com código de verificação
  */
 function enviar_codigo_verificacao(string $email, string $nome, string $codigo, string $tipo = 'registo'): bool {
+    if (!class_exists(PHPMailer::class)) {
+        error_log('ERRO CRITICO: PHPMailer nao encontrado. Instala com: composer require phpmailer/phpmailer');
+        // Set a session warning for the user
+        if (session_status() === PHP_SESSION_NONE) session_start();
+        $_SESSION['flash']['error'] = 'Sistema de email não configurado. Contacta o administrador.';
+        return false;
+    }
+
     $mail = new PHPMailer(true);
     try {
         // Configuração SMTP
@@ -84,6 +93,8 @@ function enviar_codigo_verificacao(string $email, string $nome, string $codigo, 
         return true;
     } catch (Exception $e) {
         error_log('Erro ao enviar email: ' . $mail->ErrorInfo);
+        if (session_status() === PHP_SESSION_NONE) session_start();
+        $_SESSION['flash']['error'] = 'Erro ao enviar email. Verifica as configurações SMTP.';
         return false;
     }
 }

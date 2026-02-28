@@ -13,7 +13,15 @@ function get_locais(array $filtros = [], int $limite = 12, int $offset = 0): arr
     if (!empty($filtros['categoria'])) { $where[] = 'l.categoria_id = ?'; $params[] = $filtros['categoria']; }
     if (!empty($filtros['dificuldade'])) { $where[] = 'l.dificuldade = ?'; $params[] = $filtros['dificuldade']; }
     if (!empty($filtros['pesquisa'])) { $where[] = 'l.nome LIKE ?'; $params[] = '%' . $filtros['pesquisa'] . '%'; }
-    $order = match($filtros['ordem'] ?? '') {
+
+    // Whitelist allowed ordering options to prevent SQL injection
+    $ordem_input = $filtros['ordem'] ?? 'recente';
+    $ordem_permitida = ['likes', 'vistas', 'recente'];
+    if (!in_array($ordem_input, $ordem_permitida, true)) {
+        $ordem_input = 'recente';
+    }
+
+    $order = match($ordem_input) {
         'likes'  => '(SELECT COUNT(*) FROM likes WHERE local_id = l.id) DESC',
         'vistas' => 'l.vistas DESC',
         default  => 'l.criado_em DESC'
