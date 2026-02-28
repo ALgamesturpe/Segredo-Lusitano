@@ -1,0 +1,13 @@
+Options -Indexes
+
+# Impedir acesso direto à pasta uploads
+<FilesMatch "\.(php|phtml)$">
+  Order allow,deny
+  Deny from all
+</FilesMatch>
+
+# Proteção de ficheiros sensíveis
+<FilesMatch "(config\.php|auth\.php|functions\.php)$">
+  Order allow,deny
+  Deny from all
+</FilesMatch>
