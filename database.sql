@@ -18,6 +18,7 @@ DROP TABLE IF EXISTS locais;
 DROP TABLE IF EXISTS regioes;
 DROP TABLE IF EXISTS categorias;
 DROP TABLE IF EXISTS utilizadores;
+DROP TABLE IF EXISTS codigos_verificacao;
 SET FOREIGN_KEY_CHECKS = 1;
 
 -- ============================================================
