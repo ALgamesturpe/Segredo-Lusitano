@@ -50,7 +50,6 @@ include dirname(__DIR__) . '/includes/header.php';
       <a href="<?= SITE_URL ?>/admin/locais.php"><i class="fas fa-map-pin"></i> Locais</a>
       <a href="<?= SITE_URL ?>/admin/utilizadores.php"><i class="fas fa-users"></i> Utilizadores</a>
       <div class="nav-section">Moderação</div>
-      <a href="#pendentes"><i class="fas fa-clock"></i> Pendentes <span style="background:#e74c3c;color:#fff;padding:.1rem .4rem;border-radius:50px;font-size:.7rem;margin-left:.25rem;"><?= $total_pendentes ?></span></a>
       <a href="#denuncias"><i class="fas fa-flag"></i> Denúncias <span style="background:#e74c3c;color:#fff;padding:.1rem .4rem;border-radius:50px;font-size:.7rem;margin-left:.25rem;"><?= $total_denuncias ?></span></a>
       <div class="nav-section">Site</div>
       <a href="<?= SITE_URL ?>/index.php"><i class="fas fa-external-link-alt"></i> Ver Site</a>
@@ -67,10 +66,6 @@ include dirname(__DIR__) . '/includes/header.php';
         <div class="num"><?= $total_locais ?></div>
         <div class="lbl">Locais Aprovados</div>
       </div>
-      <div class="admin-stat-card" style="border-color:#e67e22;">
-        <div class="num" style="color:#e67e22;"><?= $total_pendentes ?></div>
-        <div class="lbl">Pendentes</div>
-      </div>
       <div class="admin-stat-card" style="border-color:var(--dourado);">
         <div class="num" style="color:var(--dourado);"><?= $total_users ?></div>
         <div class="lbl">Utilizadores</div>
@@ -84,45 +79,6 @@ include dirname(__DIR__) . '/includes/header.php';
         <div class="lbl">Denúncias Abertas</div>
       </div>
     </div>
-
-    <!-- LOCAIS PENDENTES -->
-    <h2 style="font-size:1.3rem; margin-bottom:1rem;" id="pendentes">
-      <i class="fas fa-clock"></i> Locais Pendentes de Aprovação
-    </h2>
-    <?php if ($pendentes): ?>
-    <table class="data-table" style="margin-bottom:2.5rem;">
-      <thead>
-        <tr>
-          <th>Nome</th><th>Utilizador</th><th>Categoria</th><th>Região</th><th>Data</th><th>Ações</th>
-        </tr>
-      </thead>
-      <tbody>
-        <?php foreach ($pendentes as $p): ?>
-        <tr>
-          <td><a href="<?= SITE_URL ?>/pages/local.php?id=<?= $p['id'] ?>" style="color:var(--verde);font-weight:600;"><?= h($p['nome']) ?></a></td>
-          <td><?= h($p['username']) ?></td>
-          <td><?= h($p['categoria_nome']) ?></td>
-          <td><?= h($p['regiao_nome']) ?></td>
-          <td><?= date('d/m/Y', strtotime($p['criado_em'])) ?></td>
-          <td>
-            <form method="POST" style="display:inline;">
-              <input type="hidden" name="local_id" value="<?= $p['id'] ?>">
-              <input type="hidden" name="estado" value="aprovado">
-              <button type="submit" name="moderar" class="btn btn-sm btn-verde"><i class="fas fa-check"></i> Aprovar</button>
-            </form>
-            <form method="POST" style="display:inline;">
-              <input type="hidden" name="local_id" value="<?= $p['id'] ?>">
-              <input type="hidden" name="estado" value="rejeitado">
-              <button type="submit" name="moderar" class="btn btn-sm btn-danger" data-confirm="Rejeitar este local?"><i class="fas fa-times"></i> Rejeitar</button>
-            </form>
-          </td>
-        </tr>
-        <?php endforeach; ?>
-      </tbody>
-    </table>
-    <?php else: ?>
-      <div class="empty-state" style="padding:2rem;"><i class="fas fa-check-circle"></i><h3>Sem locais pendentes</h3></div>
-    <?php endif; ?>
 
     <!-- DENÚNCIAS -->
     <h2 style="font-size:1.3rem; margin-bottom:1rem;" id="denuncias">

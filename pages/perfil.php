@@ -62,7 +62,7 @@ include dirname(__DIR__) . '/includes/header.php';
     <?php endif; ?>
   </div>
   <h1 class="perfil-nome"><?= h($perfil['nome']) ?></h1>
-  <p class="perfil-username">@<?= h($perfil['username']) ?> &middot; Explorador #<?= $rank_pos ?></p>
+  <p class="perfil-username">@<?= h($perfil['username']) ?> &middot; Explorador nº <?= $rank_pos ?></p>
   <?php if ($perfil['bio']): ?>
     <p class="perfil-bio"><?= h($perfil['bio']) ?></p>
   <?php endif; ?>
@@ -70,7 +70,7 @@ include dirname(__DIR__) . '/includes/header.php';
     <div class="stat-item"><span class="stat-num"><?= count($locais_perfil) ?></span><span class="stat-label">Locais</span></div>
     <div class="stat-item"><span class="stat-num"><?= $total_likes ?></span><span class="stat-label">Likes Recebidos</span></div>
     <div class="stat-item"><span class="stat-num"><?= number_format($perfil['pontos']) ?></span><span class="stat-label">Pontos</span></div>
-    <div class="stat-item"><span class="stat-num">#<?= $rank_pos ?></span><span class="stat-label">Ranking</span></div>
+    <div class="stat-item"><span class="stat-num"><?= $rank_pos ?>º</span><span class="stat-label">Ranking</span></div>
   </div>
 </div>
 

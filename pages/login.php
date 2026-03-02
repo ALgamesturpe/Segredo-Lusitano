@@ -27,7 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // PHPMailer não instalado - auto-verificar e fazer login
                 db()->prepare('UPDATE utilizadores SET verificado = 1 WHERE id = ?')->execute([$res['id']]);
                 $_SESSION['user_id'] = $res['id'];
-                flash('success', 'Conta verificada automaticamente (email não configurado). Bem-vindo!');
+                flash('success', 'email não configurado. Bem-vindo!');
                 $redirect = $_GET['redirect'] ?? (SITE_URL . '/index.php');
                 header('Location: ' . $redirect);
                 exit;
@@ -44,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // Falha no envio - auto-verificar
                 db()->prepare('UPDATE utilizadores SET verificado = 1 WHERE id = ?')->execute([$res['id']]);
                 $_SESSION['user_id'] = $res['id'];
-                flash('success', 'Conta verificada automaticamente (erro ao enviar email).');
+                flash('success', 'erro ao enviar email');
                 $redirect = $_GET['redirect'] ?? (SITE_URL . '/index.php');
                 header('Location: ' . $redirect);
                 exit;

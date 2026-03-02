@@ -167,11 +167,11 @@ CREATE TABLE codigos_verificacao (
 -- Admin: password = admin123
 INSERT INTO utilizadores (nome, username, email, password, pontos, role, verificado) VALUES
   ('Administrador', 'admin', 'admin@segredolusitano.pt',
-   '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 9999, 'admin', 1);
+   'admin123', 9999, 'admin', 1);
 
 INSERT INTO utilizadores (nome, username, email, password, pontos, role, verificado) VALUES
   ('João Explorador', 'joao', 'joao@exemplo.pt',
-   '$2y$10$TKh8H1.PkssRqmgl.gHPZuEDVbMla7At7M8nnSf8YjZoxsQPYubiC', 150, 'user', 1);
+   'joao123', 150, 'user', 1);
 
 -- Locais de exemplo
 INSERT INTO locais (utilizador_id, categoria_id, regiao_id, nome, descricao, latitude, longitude, dificuldade, estado) VALUES
