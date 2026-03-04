@@ -36,11 +36,22 @@ define('GOOGLE_CLIENT_ID', '912763585849-sh3s7jrhi36toua034jgci2ktp3cge3k.apps.g
 // Preenche com os dados do teu email
 // ============================================================
 define('MAIL_HOST',     'smtp.gmail.com');   // servidor SMTP
-define('MAIL_PORT',     587);                // porta (587 = TLS)
-define('MAIL_USER',     'o.teu@gmail.com');  // ← o teu email
-define('MAIL_PASS',     'a_tua_password');   // ← password de app Gmail
-define('MAIL_FROM',     'o.teu@gmail.com');  // remetente
+define('MAIL_PORT', 587);                // porta (587 = TLS)
+define('MAIL_USER',     'gvg.pt0123@gmail.com');  // ← o teu email
+define('MAIL_PASS',     'klbg lhoh pwwc tztv');   // ← password de app Gmail
+define('MAIL_FROM',     'gvg.pt0123@gmail.com');  // remetente
 define('MAIL_FROM_NAME','Segredo Lusitano'); // nome do remetente
+
+// ============================================================
+// CONFIGURAÇÃO DE SMS (Twilio) - OPCIONAL
+// Descarrega: composer require twilio/sdk
+// Obtém em: https://www.twilio.com → Account → API Keys
+// ============================================================
+define('SMS_ENABLED',           false);              // true = ativar SMS
+define('SMS_DEFAULT_COUNTRY',   'PT');               // código país (PT, BR, etc)
+define('TWILIO_ACCOUNT_SID',    'ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'); // ← Seu SID
+define('TWILIO_AUTH_TOKEN',     '0a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p'); // ← Seu Token
+define('TWILIO_PHONE',          '+12345678901');     // ← Seu número Twilio
 
 function db(): PDO {
     static $pdo = null;

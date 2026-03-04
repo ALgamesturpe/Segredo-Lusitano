@@ -1,7 +1,7 @@
 <?php
-// ============================================================
-// SEGREDO LUSITANO — Admin: Gerir Locais
-// ============================================================
+
+//SEGREDO LUSITANO — Admin: Gerir Locais
+
 require_once dirname(__DIR__) . '/includes/functions.php';
 require_admin();
 

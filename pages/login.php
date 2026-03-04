@@ -4,6 +4,12 @@
 // ============================================================
 require_once dirname(__DIR__) . '/includes/auth.php';
 
+// Limpar códigos expirados (limpeza periódica)
+if (file_exists(dirname(__DIR__) . '/includes/mailer.php')) {
+    require_once dirname(__DIR__) . '/includes/mailer.php';
+    limpar_codigos_expirados();
+}
+
 if (auth_user()) { header('Location: ' . SITE_URL . '/index.php'); exit; }
 
 $erro = '';

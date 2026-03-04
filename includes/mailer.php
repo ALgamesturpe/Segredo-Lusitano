@@ -1,10 +1,10 @@
 <?php
 // ============================================================
-// SEGREDO LUSITANO - Envio de Email (PHPMailer)
+// SEGREDO LUSITANO - Envio de Email + SMS
 // ============================================================
-// Instalar PHPMailer: na pasta do projeto, executar:
-//   composer require phpmailer/phpmailer
-// Ou descarregar manualmente de: https://github.com/PHPMailer/PHPMailer
+// PHPMailer (já configurado): composer require phpmailer/phpmailer
+// SMS (opcional): composer require twilio/sdk
+// Vê CONFIGURACAO_MAILER.md para passo a passo completo
 // ============================================================
 
 require_once __DIR__ . '/config.php';
@@ -31,9 +31,7 @@ if (!$phpmailer_disponivel) {
 
     foreach ($caminhosManuais as $srcPath) {
         if (
-            file_exists($srcPath . '/Exception.php') &&
-            file_exists($srcPath . '/PHPMailer.php') &&
-            file_exists($srcPath . '/SMTP.php')
+            file_exists($srcPath . '/Exception.php') && file_exists($srcPath . '/PHPMailer.php') && file_exists($srcPath . '/SMTP.php')
         ) {
             require_once $srcPath . '/Exception.php';
             require_once $srcPath . '/PHPMailer.php';
@@ -50,9 +48,32 @@ if (!$phpmailer_disponivel) {
     error_log('PHPMailer nao encontrado. Instala com: composer require phpmailer/phpmailer');
 }
 
-/**
- * Envia email com código de verificação
- */
+// ============================================================
+// VERIFICAÇÃO DE TWILIO (SMS) - OPCIONAL
+// ============================================================
+$twilio_disponivel = false;
+$twilio_client = null;
+
+if (SMS_ENABLED) {
+    $composerAutoloadTwilio = dirname(__DIR__) . '/vendor/autoload.php';
+    if (file_exists($composerAutoloadTwilio)) {
+        require_once $composerAutoloadTwilio;
+        if (class_exists('Twilio\Rest\Client')) {
+            try {
+                $twilio_client = new \Twilio\Rest\Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN);
+                $twilio_disponivel = true;
+            } catch (Exception $e) {
+                error_log('Erro ao inicializar Twilio: ' . $e->getMessage());
+            }
+        }
+    }
+    
+    if (!$twilio_disponivel) {
+        error_log('SMS ativado mas Twilio nao encontrado. Instala com: composer require twilio/sdk');
+    }
+}
+
+/*Envia email com código de verificação*/
 function enviar_codigo_verificacao(string $email, string $nome, string $codigo, string $tipo = 'registo'): bool {
     if (!class_exists(PHPMailer::class)) {
         error_log('ERRO CRITICO: PHPMailer nao encontrado. Instala com: composer require phpmailer/phpmailer');
@@ -210,4 +231,120 @@ function email_template(string $nome, string $codigo, string $tipo): string {
   </table>
 </body>
 </html>";
+}
+// ============================================================
+// FUNÇÕES DE SMS (Twilio)
+// ============================================================
+
+/**
+ * Normaliza número de telemóvel para formato +CC...
+ * Exemplo: "912345678" → "+351912345678"
+ */
+function formatar_numero_telefone(string $numero, string $pais = 'PT'): string {
+    // Remove espaços, hífens, parênteses
+    $numero = preg_replace('/[\s\-\(\)]+/', '', $numero);
+    
+    // Se já tem +, apenas remove caracteres inválidos
+    if (strpos($numero, '+') === 0) {
+        return $numero;
+    }
+    
+    // Indicativos de país comuns
+    $indicativos = [
+        'PT' => '351',  // Portugal
+        'BR' => '55',   // Brasil
+        'AO' => '244',  // Angola
+        'MZ' => '258',  // Moçambique
+        'CV' => '238',  // Cabo Verde
+    ];
+    
+    $codigo = $indicativos[$pais] ?? '351'; // Default para Portugal
+    
+    // Se começa com 0, remove (formato local PT)
+    if (strpos($numero, '0') === 0) {
+        $numero = substr($numero, 1);
+    }
+    
+    // Adiciona +indicativo
+    return '+' . $codigo . $numero;
+}
+
+/**
+ * Envia código de verificação por SMS (Twilio)
+ */
+function enviar_codigo_sms(string $numero_telemovel, string $codigo, string $tipo = 'registo'): bool {
+    global $twilio_client, $twilio_disponivel;
+    
+    if (!SMS_ENABLED) {
+        error_log('SMS não está ativado. Ativa em config.php: SMS_ENABLED = true');
+        if (session_status() === PHP_SESSION_NONE) session_start();
+        $_SESSION['flash']['error'] = 'SMS não está disponível neste momento.';
+        return false;
+    }
+    
+    if (!$twilio_disponivel || !$twilio_client) {
+        error_log('Twilio não está disponível. Instala com: composer require twilio/sdk');
+        if (session_status() === PHP_SESSION_NONE) session_start();
+        $_SESSION['flash']['error'] = 'Sistema de SMS não configurado. Contacta o administrador.';
+        return false;
+    }
+    
+    try {
+        // Formata o número de telemóvel
+        $numero = formatar_numero_telefone($numero_telemovel, SMS_DEFAULT_COUNTRY);
+        
+        // Mensagem do SMS
+        $titulo_tipo = ($tipo === 'login') ? 'acesso' : 'confirmação de conta';
+        $mensagem = "Segredo Lusitano - Código de $titulo_tipo: $codigo (válido 15 min)";
+        
+        // Envia SMS via Twilio
+        $message = $twilio_client->messages->create(
+            $numero,  // Para (destinatário)
+            [
+                'from' => TWILIO_PHONE,
+                'body' => $mensagem
+            ]
+        );
+        
+        error_log('SMS enviado com sucesso. SID: ' . $message->sid);
+        return true;
+        
+    } catch (\Twilio\Exceptions\TwilioException $e) {
+        error_log('Erro ao enviar SMS: ' . $e->getMessage());
+        if (session_status() === PHP_SESSION_NONE) session_start();
+        $_SESSION['flash']['error'] = 'Erro ao enviar SMS. Verifica o número de telemóvel.';
+        return false;
+    } catch (Exception $e) {
+        error_log('Erro geral ao enviar SMS: ' . $e->getMessage());
+        if (session_status() === PHP_SESSION_NONE) session_start();
+        $_SESSION['flash']['error'] = 'Erro ao enviar SMS. Tenta novamente.';
+        return false;
+    }
+}
+
+/**
+ * Helper: envia código por EMAIL ou SMS
+ * Uso: enviar_codigo($email, $nome, $numero_sms, $codigo, 'email')
+ */
+function enviar_codigo(
+    string $email,
+    string $nome,
+    string $numero_sms,
+    string $codigo,
+    string $metodo = 'email',
+    string $tipo = 'registo'
+): bool {
+    if ($metodo === 'sms') {
+        return enviar_codigo_sms($numero_sms, $codigo, $tipo);
+    } else {
+        return enviar_codigo_verificacao($email, $nome, $codigo, $tipo);
+    }
+}
+
+/**
+ * Limpa códigos de verificação expirados (executar periodicamente)
+ * Chamada automática no início de registo/login
+ */
+function limpar_codigos_expirados(): void {
+    db()->prepare('DELETE FROM codigos_verificacao WHERE expira_em < NOW()')->execute();
 }

@@ -3,6 +3,10 @@
 // SEGREDO LUSITANO — Registo
 // ============================================================
 require_once dirname(__DIR__) . '/includes/auth.php';
+require_once dirname(__DIR__) . '/includes/mailer.php';
+
+// Limpar códigos expirados (limpeza periódica)
+limpar_codigos_expirados();
 
 if (auth_user()) { header('Location: ' . SITE_URL . '/index.php'); exit; }
 

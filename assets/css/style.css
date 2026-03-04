@@ -729,9 +729,7 @@ main { flex: 1; }
 .upload-area:hover, .upload-area.drag { border-color: var(--verde-claro); background: rgba(64,145,108,.05); }
 .upload-area i { font-size: 2.5rem; color: var(--verde-claro); margin-bottom: .75rem; }
 
-/* ============================================================
-   SECÇÃO STATS HOME
-   ============================================================ */
+/*SECÇÃO STATS HOME*/
 .stats-row {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
@@ -746,9 +744,7 @@ main { flex: 1; }
 }
 .stats-row .lbl { font-size: .85rem; color: rgba(245,239,230,.65); text-transform: uppercase; letter-spacing: .06em; }
 
-/* ============================================================
-   COMO FUNCIONA
-   ============================================================ */
+/*COMO FUNCIONA*/
 .steps-grid {
   display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 2rem;
@@ -771,9 +767,7 @@ main { flex: 1; }
 .step-card h3 { font-size: 1.1rem; margin-bottom: .5rem; }
 .step-card p { font-size: .9rem; color: var(--texto-muted); }
 
-/* ============================================================
-   RESPONSIVE
-   ============================================================ */
+/*RESPONSIVE*/
 @media (max-width: 900px) {
   .detalhe-grid { grid-template-columns: 1fr; }
   .admin-wrapper { flex-direction: column; }
@@ -814,9 +808,7 @@ main { flex: 1; }
 /* Página com nav padding */
 .page-content { padding-top: var(--nav-h); }
 
-/* ============================================================
-   FOOTER
-   ============================================================ */
+/*FOOTER*/
 .site-footer {
   background: var(--verde-escuro);
   padding: 2.5rem 1.5rem;

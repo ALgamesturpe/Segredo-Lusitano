@@ -42,7 +42,7 @@ function login(string $email, string $password): array {
     $st = db()->prepare('SELECT * FROM utilizadores WHERE email = ? AND ativo = 1');
     $st->execute([$email]);
     $user = $st->fetch();
-    if (!$user || $password !== $user['password']) {
+    if (!$user || !password_verify($password, $user['password'])) {
         return ['ok' => false, 'msg' => 'Email ou password incorretos.'];
     }
     // Verificar se a conta está verificada
@@ -65,9 +65,10 @@ function register(string $nome, string $username, string $email, string $passwor
     if ($st->fetch()) {
         return ['ok' => false, 'msg' => 'Email ou username já registado.'];
     }
-    // Guardar password em texto plano (sem hashing)
+    // Hash da password com bcrypt (seguro)
+    $password_hash = password_hash($password, PASSWORD_BCRYPT, ['cost' => 12]);
     $st = db()->prepare('INSERT INTO utilizadores (nome, username, email, password, verificado) VALUES (?,?,?,?,0)');
-    $st->execute([$nome, $username, $email, $password]);
+    $st->execute([$nome, $username, $email, $password_hash]);
     return ['ok' => true, 'id' => (int) db()->lastInsertId()];
 }
 
