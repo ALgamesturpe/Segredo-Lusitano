@@ -62,7 +62,7 @@ include dirname(__DIR__) . '/includes/header.php';
     <?php endif; ?>
   </div>
   <h1 class="perfil-nome"><?= h($perfil['nome']) ?></h1>
-  <p class="perfil-username">@<?= h($perfil['username']) ?> &middot; Explorador nº <?= $rank_pos ?></p>
+  <p class="perfil-username"><?= h($perfil['username']) ?> &middot; Explorador nº <?= $rank_pos ?></p>
   <?php if ($perfil['bio']): ?>
     <p class="perfil-bio"><?= h($perfil['bio']) ?></p>
   <?php endif; ?>
