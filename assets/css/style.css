@@ -318,10 +318,8 @@ main { flex: 1; }
 .btn-danger:hover { background: #a93226; }
 .btn-sm { padding: .45rem 1rem; font-size: .85rem; }
 
-/* ============================================================
-   SECÇÕES GERAIS
-   ============================================================ */
-.section { padding: 5rem 1.5rem; background: var(--creme); }
+/*SECÇÕES GERAIS*/
+.section { padding: 2rem 1.5rem; background: var(--creme); }
 .section-dark { background: var(--creme-escuro); }
 .section-alt  { background: rgba(245,239,230,.95); }
 .container { max-width: 1200px; margin: 0 auto; }
@@ -338,9 +336,7 @@ main { flex: 1; }
 .section-header p { color: var(--texto-muted); max-width: 520px; margin: 0 auto; }
 .section-dark .section-header p { color: var(--texto-muted); }
 
-/* ============================================================
-   CARDS DE LOCAIS
-   ============================================================ */
+/*CARDS DE LOCAIS*/
 .cards-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));

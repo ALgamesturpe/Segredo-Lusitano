@@ -33,7 +33,6 @@ include dirname(__DIR__) . '/includes/header.php';
 <section class="section">
   <div class="container-lg">
     <div class="section-header">
-      <span class="label">Explorar</span>
       <h2>Segredos de Portugal</h2>
       <p><?= $total ?> locais secretos descobertos pela nossa comunidade</p>
     </div>

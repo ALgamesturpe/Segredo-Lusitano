@@ -30,35 +30,11 @@ include __DIR__ . '/includes/header.php';
     </div>
   </section>
 
-  <!-- STATS -->
-  <section class="section section-dark">
-    <div class="container">
-      <div class="stats-row">
-        <div class="stat">
-          <span class="num"><?= $stats_locais ?>+</span>
-          <span class="lbl">Locais Secretos</span>
-        </div>
-        <div class="stat">
-          <span class="num"><?= $stats_users ?>+</span>
-          <span class="lbl">Exploradores</span>
-        </div>
-        <div class="stat">
-          <span class="num"><?= $stats_regioes ?></span>
-          <span class="lbl">Regiões</span>
-        </div>
-        <div class="stat">
-          <span class="num">∞</span>
-          <span class="lbl">Descobertas</span>
-        </div>
-      </div>
-    </div>
-  </section>
-
   <!-- LOCAIS EM DESTAQUE -->
   <section class="section">
     <div class="container">
       <div class="section-header">
-        <span class="label">Mais Populares</span>
+        <br>
         <h2>Locais em Destaque</h2>
         <p>Os segredos mais amados pela nossa comunidade de exploradores.</p>
       </div>
