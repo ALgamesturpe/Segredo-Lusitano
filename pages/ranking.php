@@ -14,7 +14,6 @@ include dirname(__DIR__) . '/includes/header.php';
   <div class="container" style="max-width:90%;">
     <div class="section-header">
       <h2>Ranking de Exploradores</h2>
-      <p>Os descobridores mais ativos do Portugal secreto.</p>
     </div>
     <div>
       <div class="row">
