@@ -31,6 +31,9 @@ $page_title = $page_title ?? SITE_NAME;
 <!-- CSS próprio -->
 <link rel="stylesheet" href="<?= SITE_URL ?>/assets/css/style.css">
 
+<!-- Bootstrap -->
+<link rel="stylesheet" href="<?= SITE_URL ?>/assets/css/bootstrap.min.css">
+
 <?= $extra_head ?? '' ?>
 </head>
 <body>

@@ -11,35 +11,35 @@ include dirname(__DIR__) . '/includes/header.php';
 
 <div class="page-content">
 <section class="section">
-  <div class="container" style="max-width:800px;">
+  <div class="container" style="max-width:90%;">
     <div class="section-header">
       <h2>Ranking de Exploradores</h2>
       <p>Os descobridores mais ativos do Portugal secreto.</p>
     </div>
-    <div class="container">
+    <div>
       <div class="row">
-        <div class="col-6"> <!--das 12 divisões estou a usar 6 (do lado esquerdo), que é o "col-6"-->
+        <div class="col-12 col-lg-3"> <!--das 12 divisões estou a usar 6 (do lado esquerdo), que é o "col-6"-->
           <!-- Sistema de pontos -->
           <div style="background:var(--branco); border-radius:var(--radius-lg); padding:1.75rem; box-shadow:var(--sombra-sm); margin-top:2rem;">
             <h3 style="margin-bottom:1.25rem;"><i class="fas fa-star"></i> Como Ganhar Pontos</h3>
-            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(150px,1fr)); gap:1rem; text-align:center;">
-              <div style="padding:1rem; background:var(--creme); border-radius:var(--radius);">
+            <div style="display:flex; flex-direction:column; gap:1rem;">
+              <div style="padding:1rem; background:var(--creme); border-radius:var(--radius); text-align:center;">
                 <div style="font-size:1.8rem; color:var(--dourado); font-family:'Playfair Display',serif;"><?= PONTOS_LOCAL ?></div>
                 <div style="font-size:.85rem; color:var(--texto-muted);">por Local Aprovado</div>
               </div>
-              <div style="padding:1rem; background:var(--creme); border-radius:var(--radius);">
+              <div style="padding:1rem; background:var(--creme); border-radius:var(--radius); text-align:center;">
                 <div style="font-size:1.8rem; color:var(--dourado); font-family:'Playfair Display',serif;"><?= PONTOS_COMENTARIO ?></div>
                 <div style="font-size:.85rem; color:var(--texto-muted);">por Comentário</div>
               </div>
-              <div style="padding:1rem; background:var(--creme); border-radius:var(--radius);">
+              <div style="padding:1rem; background:var(--creme); border-radius:var(--radius); text-align:center;">
                 <div style="font-size:1.8rem; color:var(--dourado); font-family:'Playfair Display',serif;"><?= PONTOS_LIKE ?></div>
                 <div style="font-size:.85rem; color:var(--texto-muted);">por Like Dado</div>
               </div>
             </div>
           </div>
         </div>
-        <div>
-          <div style="background:var(--branco); border-radius:var(--radius-lg); overflow:hidden; box-shadow:var(--sombra-md);">
+        <div class="col-12 col-lg-6">
+          <div style="background:var(--branco); border-radius:var(--radius-lg); overflow:hidden; box-shadow:var(--sombra-md); margin-top:2rem; margin-left:auto; margin-right:auto;">
             <table class="ranking-table">
               <thead>
                 <tr>
@@ -85,7 +85,8 @@ include dirname(__DIR__) . '/includes/header.php';
               </tbody>
             </table>
           </div>
-        </div>       
+        </div>
+        <div class="col-12 col-lg-3"></div>
       </div>
     </div>
   </div>
