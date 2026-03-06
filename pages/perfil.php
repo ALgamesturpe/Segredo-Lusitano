@@ -41,7 +41,13 @@ $rank_pos = (int)$st3->fetchColumn();
 
 // Apagar conta (só o próprio)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['apagar_conta']) && $user_auth && $user_auth['id'] == $id) {
-    db()->prepare('UPDATE utilizadores SET ativo = 0 WHERE id = ?')->execute([$id]);
+    // Reatribuir conteúdo ao user [deleted] (ID: 1)
+    db()->prepare('UPDATE locais SET utilizador_id = 1 WHERE utilizador_id = ?')->execute([$id]);
+    db()->prepare('UPDATE comentarios SET utilizador_id = 1 WHERE utilizador_id = ?')->execute([$id]);
+    db()->prepare('UPDATE fotos SET utilizador_id = 1 WHERE utilizador_id = ?')->execute([$id]);
+    
+    // Eliminar permanentemente o utilizador
+    db()->prepare('DELETE FROM utilizadores WHERE id = ?')->execute([$id]);
     logout();
 }
 

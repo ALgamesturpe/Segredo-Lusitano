@@ -1,7 +1,5 @@
 <?php
-// ============================================================
 // SEGREDO LUSITANO — Apagar Local
-// ============================================================
 require_once dirname(__DIR__) . '/includes/functions.php';
 require_login();
 

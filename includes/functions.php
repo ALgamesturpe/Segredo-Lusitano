@@ -16,7 +16,7 @@ function get_locais(array $filtros = [], int $limite = 12, int $offset = 0): arr
 
     // Whitelist allowed ordering options to prevent SQL injection
     $ordem_input = $filtros['ordem'] ?? 'recente';
-    $ordem_permitida = ['likes', 'vistas', 'recente'];
+    $ordem_permitida = ['likes', 'vistas', 'recente', 'antigo'];
     if (!in_array($ordem_input, $ordem_permitida, true)) {
         $ordem_input = 'recente';
     }
@@ -24,6 +24,7 @@ function get_locais(array $filtros = [], int $limite = 12, int $offset = 0): arr
     $order = match($ordem_input) {
         'likes'  => '(SELECT COUNT(*) FROM likes WHERE local_id = l.id) DESC',
         'vistas' => 'l.vistas DESC',
+        'antigo' => 'l.criado_em ASC',
         default  => 'l.criado_em DESC'
     };
     $sql = 'SELECT l.*, c.nome AS categoria_nome, c.icone AS categoria_icone,

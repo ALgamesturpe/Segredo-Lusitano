@@ -148,7 +148,11 @@ CREATE TABLE codigos_verificacao (
 ) ENGINE=InnoDB;
 
 -- EXEMPLO
--- Dados do Admin
+-- User fantasma para conteúdo de utilizadores eliminados (ID: 1)
+INSERT INTO utilizadores (id, nome, username, email, password, pontos, role, ativo, verificado) VALUES
+  (1, '[deleted]', '[deleted]', '[deleted]', '¯\_(ツ)_/¯', NULL, '[deleted]', 1, 1);
+
+-- Dados do Admin (ID: 2)
 INSERT INTO utilizadores (nome, username, email, password, pontos, role, verificado) VALUES
   ('Administrador', 'admin', 'admin@segredolusitano.pt', 'admin123', 9999, 'admin', 1);
 
