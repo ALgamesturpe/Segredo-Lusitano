@@ -57,7 +57,7 @@ include dirname(__DIR__) . '/includes/header.php';
                       <?php if ($i === 0): ?>🥇
                       <?php elseif ($i === 1): ?>🥈
                       <?php elseif ($i === 2): ?>🥉
-                      <?php else: echo 'º' . ($i+1); ?>
+                      <?php else: echo ($i+1) . 'º'; ?>
                       <?php endif; ?>
                     </span>
                   </td>

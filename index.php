@@ -1,7 +1,5 @@
 <?php
-// ============================================================
 // SEGREDO LUSITANO — Página Inicial
-// ============================================================
 require_once __DIR__ . '/includes/functions.php';
 
 $page_title = 'Início';
