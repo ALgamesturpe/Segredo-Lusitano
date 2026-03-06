@@ -245,7 +245,7 @@ include dirname(__DIR__) . '/includes/header.php';
             <div>
               <div style="font-weight:700;"><?= h($local['autor_nome']) ?></div>
               <a href="<?= SITE_URL ?>/pages/perfil.php?id=<?= $local['utilizador_id'] ?>"
-                 style="color:var(--verde); font-size:.85rem;">@<?= h($local['username']) ?></a>
+                 style="color:var(--verde); font-size:.85rem;"><?= h($local['username']) ?></a>
             </div>
           </div>
         </div>
