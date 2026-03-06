@@ -63,9 +63,8 @@ include __DIR__ . '/includes/header.php';
   <section class="section section-alt">
     <div class="container">
       <div class="section-header">
-        <span class="label">Como Funciona</span>
         <h2>Simples como um trilho</h2>
-        <p>Em três passos descobres e partilhas os melhores segredos de Portugal.</p>
+        <span class="label">Como Funciona</span>
       </div>
       <div class="steps-grid">
         <div class="step-card">
