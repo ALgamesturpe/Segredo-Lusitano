@@ -5,6 +5,59 @@
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/auth.php';
 
+// ---------- DENUNCIAS / MODERACAO ----------
+function motivos_denuncia(): array {
+    return [
+        'spam' => 'Spam',
+        'discurso_odio' => 'Discurso de odio',
+        'conteudo_sexual' => 'Conteudo sexual',
+        'informacao_falsa' => 'Informacao falsa',
+    ];
+}
+
+function motivo_denuncia_label(string $motivo): string {
+    $motivos = motivos_denuncia();
+    return $motivos[$motivo] ?? $motivo;
+}
+
+function local_nome_publico(array $local): string {
+    return ((int)($local['bloqueado'] ?? 0) === 1) ? '[removed]' : (string)$local['nome'];
+}
+
+function local_descricao_publica(array $local): string {
+    return ((int)($local['bloqueado'] ?? 0) === 1) ? '[removed]' : (string)$local['descricao'];
+}
+
+function comentario_autor_publico(array $comentario): string {
+    return ((int)($comentario['denunciado'] ?? 0) === 1) ? '[removed]' : (string)$comentario['autor_nome'];
+}
+
+function comentario_texto_publico(array $comentario): string {
+    return ((int)($comentario['denunciado'] ?? 0) === 1) ? '[removed]' : (string)$comentario['texto'];
+}
+
+function ensure_moderacao_schema(): void {
+    static $checked = false;
+    if ($checked) return;
+    $checked = true;
+
+    try {
+        $col = db()->query("SHOW COLUMNS FROM locais LIKE 'bloqueado'")->fetch();
+        if (!$col) {
+            db()->exec('ALTER TABLE locais ADD COLUMN bloqueado TINYINT(1) DEFAULT 0 AFTER estado');
+        }
+
+        $idx = db()->query("SHOW INDEX FROM denuncias WHERE Key_name = 'idx_denuncias_abertas'")->fetch();
+        if (!$idx) {
+            db()->exec('ALTER TABLE denuncias ADD INDEX idx_denuncias_abertas (resolvida, tipo, referencia_id)');
+        }
+    } catch (Throwable $e) {
+        // Falha de permissao/migracao nao deve derrubar a aplicacao inteira.
+    }
+}
+
+ensure_moderacao_schema();
+
 // ---------- LOCAIS ----------
 function get_locais(array $filtros = [], int $limite = 12, int $offset = 0): array {
     $where = ['l.estado = "aprovado"'];
@@ -129,7 +182,7 @@ function get_comentarios(int $local_id): array {
         'SELECT cm.*, u.username, u.nome AS autor_nome, u.avatar
          FROM comentarios cm
          JOIN utilizadores u ON u.id = cm.utilizador_id
-         WHERE cm.local_id = ? AND cm.denunciado = 0
+         WHERE cm.local_id = ?
          ORDER BY cm.criado_em ASC'
     );
     $st->execute([$local_id]);
@@ -198,14 +251,73 @@ function moderar_local(int $id, string $estado): void {
 }
 
 function get_denuncias(): array {
-    $st = db()->prepare('SELECT * FROM denuncias WHERE resolvida = 0 ORDER BY criado_em DESC');
+    $st = db()->prepare(
+        'SELECT d.*, u.username AS denunciante_username,
+                CASE
+                    WHEN d.tipo = "local" THEN COALESCE(l.bloqueado, 0)
+                    WHEN d.tipo = "comentario" THEN COALESCE(c.denunciado, 0)
+                    ELSE 0
+                END AS alvo_bloqueado,
+                CASE
+                    WHEN d.tipo = "local" THEN COALESCE(l.nome, "[indisponivel]")
+                    WHEN d.tipo = "comentario" THEN COALESCE(c.texto, "[indisponivel]")
+                    ELSE "[indisponivel]"
+                END AS alvo_conteudo
+         FROM denuncias d
+         JOIN utilizadores u ON u.id = d.utilizador_id
+         LEFT JOIN locais l ON d.tipo = "local" AND l.id = d.referencia_id
+         LEFT JOIN comentarios c ON d.tipo = "comentario" AND c.id = d.referencia_id
+         WHERE d.resolvida = 0
+         ORDER BY d.criado_em DESC'
+    );
     $st->execute();
     return $st->fetchAll();
 }
 
-function reportar(string $tipo, int $ref_id, int $user_id, string $motivo): void {
+function reportar(string $tipo, int $ref_id, int $user_id, string $motivo): bool {
+    $tipos_validos = ['local', 'comentario'];
+    if (!in_array($tipo, $tipos_validos, true)) return false;
+
+    $motivos_validos = array_keys(motivos_denuncia());
+    if (!in_array($motivo, $motivos_validos, true)) return false;
+
+    if ($tipo === 'local') {
+        $stAlvo = db()->prepare('SELECT utilizador_id FROM locais WHERE id = ?');
+    } else {
+        $stAlvo = db()->prepare('SELECT utilizador_id FROM comentarios WHERE id = ?');
+    }
+    $stAlvo->execute([$ref_id]);
+    $alvo = $stAlvo->fetch();
+    if (!$alvo) return false;
+
+    // Nao permite denunciar o proprio conteudo.
+    if ((int)$alvo['utilizador_id'] === $user_id) return false;
+
+    // Nao permite denuncia aberta duplicada para o mesmo item pelo mesmo user.
+    $stDup = db()->prepare('SELECT id FROM denuncias WHERE tipo=? AND referencia_id=? AND utilizador_id=? AND resolvida=0 LIMIT 1');
+    $stDup->execute([$tipo, $ref_id, $user_id]);
+    if ($stDup->fetch()) return false;
+
     $st = db()->prepare('INSERT INTO denuncias (tipo,referencia_id,utilizador_id,motivo) VALUES (?,?,?,?)');
     $st->execute([$tipo, $ref_id, $user_id, $motivo]);
+    return true;
+}
+
+function moderar_denuncias_item(string $tipo, int $ref_id, bool $bloquear): bool {
+    if (!in_array($tipo, ['local', 'comentario'], true)) return false;
+
+    if ($tipo === 'local') {
+        $st = db()->prepare('UPDATE locais SET bloqueado=? WHERE id=?');
+    } else {
+        $st = db()->prepare('UPDATE comentarios SET denunciado=? WHERE id=?');
+    }
+    $st->execute([$bloquear ? 1 : 0, $ref_id]);
+
+    if ($st->rowCount() === 0) return false;
+
+    // Ao moderar um item, todas as denuncias abertas desse item ficam resolvidas.
+    db()->prepare('UPDATE denuncias SET resolvida=1 WHERE tipo=? AND referencia_id=? AND resolvida=0')->execute([$tipo, $ref_id]);
+    return true;
 }
 
 // ---------- LISTAS ----------

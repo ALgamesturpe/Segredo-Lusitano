@@ -95,7 +95,7 @@ include dirname(__DIR__) . '/includes/header.php';
             <article class="card" style="<?= $local['estado'] !== 'aprovado' ? 'opacity:.75' : '' ?>">
               <a href="<?= SITE_URL ?>/pages/local.php?id=<?= $local['id'] ?>" class="card-img" style="display:block;">
                 <?php if ($local['foto_capa']): ?>
-                  <img src="<?= SITE_URL ?>/uploads/locais/<?= h($local['foto_capa']) ?>" alt="<?= h($local['nome']) ?>">
+                  <img src="<?= SITE_URL ?>/uploads/locais/<?= h($local['foto_capa']) ?>" alt="<?= h(local_nome_publico($local)) ?>">
                 <?php else: ?>
                   <div class="card-img-placeholder"><i class="<?= h($local['categoria_icone']) ?>"></i></div>
                 <?php endif; ?>
@@ -104,7 +104,7 @@ include dirname(__DIR__) . '/includes/header.php';
                 </div>
               </a>
               <div class="card-body">
-                <h3 class="card-title"><a href="<?= SITE_URL ?>/pages/local.php?id=<?= $local['id'] ?>"><?= h($local['nome']) ?></a></h3>
+                <h3 class="card-title"><a href="<?= SITE_URL ?>/pages/local.php?id=<?= $local['id'] ?>"><?= h(local_nome_publico($local)) ?></a></h3>
                 <div class="card-meta">
                   <span style="font-size:.82rem;color:var(--texto-muted);"><?= h($local['regiao_nome']) ?></span>
                   <div class="card-meta-stats">

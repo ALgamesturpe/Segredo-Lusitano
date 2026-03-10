@@ -10,7 +10,7 @@ $locais = get_locais([], 500); // todos os aprovados para o mapa
 // Codificar para JSON de forma segura
 $locais_json = json_encode(array_map(fn($l) => [
     'id'             => $l['id'],
-    'nome'           => $l['nome'],
+    'nome'           => local_nome_publico($l),
     'latitude'       => $l['latitude'],
     'longitude'      => $l['longitude'],
     'categoria_nome' => $l['categoria_nome'],

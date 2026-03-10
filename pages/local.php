@@ -18,6 +18,7 @@ $user       = auth_user();
 $comentarios = get_comentarios($id);
 $fotos      = get_fotos($id);
 $liked      = $user ? user_liked($id, $user['id']) : false;
+$motivos_denuncia = motivos_denuncia();
 
 // --- POST: Comentário ---
 $erro_com = '';
@@ -58,13 +59,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['fotos'])) {
 // --- POST: Denúncia ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['denunciar'])) {
     if (!$user) { header('Location: ' . SITE_URL . '/pages/login.php'); exit; }
-    reportar($_POST['tipo'], (int)$_POST['ref_id'], $user['id'], $_POST['motivo'] ?? '');
-    flash('success', 'Denúncia registada. Obrigado!');
+
+    $ok = reportar(
+        (string)($_POST['tipo'] ?? ''),
+        (int)($_POST['ref_id'] ?? 0),
+        $user['id'],
+        (string)($_POST['motivo'] ?? '')
+    );
+
+    if ($ok) {
+        flash('success', 'Denuncia registada. Obrigado!');
+    } else {
+        flash('error', 'Nao foi possivel registar a denuncia (duplicada, invalida ou proibida).');
+    }
     header('Location: ' . SITE_URL . '/pages/local.php?id=' . $id);
     exit;
 }
 
-$page_title = $local['nome'];
+$page_title = local_nome_publico($local);
 $extra_scripts = '<script>const SITE_URL = "' . SITE_URL . '";</script>';
 
 include dirname(__DIR__) . '/includes/header.php';
@@ -75,7 +87,7 @@ include dirname(__DIR__) . '/includes/header.php';
 <!-- HERO DO LOCAL -->
 <div class="detalhe-hero">
   <?php if ($local['foto_capa']): ?>
-    <img src="<?= SITE_URL ?>/uploads/locais/<?= h($local['foto_capa']) ?>" alt="<?= h($local['nome']) ?>">
+    <img src="<?= SITE_URL ?>/uploads/locais/<?= h($local['foto_capa']) ?>" alt="<?= h(local_nome_publico($local)) ?>">
   <?php endif; ?>
   <div class="detalhe-hero-content">
     <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.75rem;">
@@ -86,11 +98,11 @@ include dirname(__DIR__) . '/includes/header.php';
       ?>
       <span class="badge <?= $dif_class ?>"><?= $dif_label ?></span>
     </div>
-    <h1><?= h($local['nome']) ?></h1>
+    <h1><?= h(local_nome_publico($local)) ?></h1>
   </div>
 </div>
 
-<!-- CONTEÚDO -->
+<!-- CONTEUDO -->
 <section class="section" style="padding-top:2.5rem;">
   <div class="container">
     <div class="detalhe-grid">
@@ -117,7 +129,7 @@ include dirname(__DIR__) . '/includes/header.php';
             </a>
           <?php endif; ?>
           <?php if ($user && $user['id'] != $local['utilizador_id']): ?>
-            <button onclick="document.getElementById('modal-denuncia').style.display='flex'"
+            <button onclick="abrirModalDenuncia('local', <?= $id ?>, 'Local')"
                     class="btn btn-sm" style="color:var(--texto-muted);border:1px solid var(--creme-escuro);border-radius:50px;">
               <i class="fas fa-flag"></i> Denunciar
             </button>
@@ -127,7 +139,7 @@ include dirname(__DIR__) . '/includes/header.php';
         <!-- Descrição -->
         <div class="info-card" style="margin-bottom:1.5rem;">
           <h3><i class="fas fa-align-left"></i> Descrição</h3>
-          <p style="line-height:1.8; color:var(--texto);"><?= nl2br(h($local['descricao'])) ?></p>
+          <p style="line-height:1.8; color:var(--texto);"><?= nl2br(h(local_descricao_publica($local))) ?></p>
         </div>
 
         <!-- Galeria de Fotos -->
@@ -185,16 +197,25 @@ include dirname(__DIR__) . '/includes/header.php';
           <?php if ($comentarios): ?>
             <div>
               <?php foreach ($comentarios as $com): ?>
+                <?php $comentario_bloqueado = ((int)$com['denunciado'] === 1); ?>
                 <div class="comentario">
                   <div class="comentario-avatar">
-                    <?= mb_strtoupper(mb_substr($com['username'],0,1)) ?>
+                    <?= $comentario_bloqueado ? '!' : mb_strtoupper(mb_substr($com['username'],0,1)) ?>
                   </div>
                   <div class="comentario-body">
-                    <div class="comentario-meta">
-                      <strong><?= h($com['autor_nome']) ?></strong>
+                    <div class="comentario-meta" style="display:flex;align-items:center;gap:.45rem;flex-wrap:wrap;">
+                      <strong><?= h(comentario_autor_publico($com)) ?></strong>
                       &bull; <?= date('d M Y', strtotime($com['criado_em'])) ?>
+                      <?php if ($user && !$comentario_bloqueado && $user['id'] !== (int)$com['utilizador_id']): ?>
+                        <button type="button"
+                                onclick="abrirModalDenuncia('comentario', <?= (int)$com['id'] ?>, 'Comentario')"
+                                class="btn btn-sm"
+                                style="margin-left:.35rem;padding:.2rem .55rem;border:1px solid var(--creme-escuro);color:var(--texto-muted);border-radius:999px;">
+                          <i class="fas fa-flag"></i> Denunciar
+                        </button>
+                      <?php endif; ?>
                     </div>
-                    <div class="comentario-texto"><?= nl2br(h($com['texto'])) ?></div>
+                    <div class="comentario-texto"><?= nl2br(h(comentario_texto_publico($com))) ?></div>
                   </div>
                 </div>
               <?php endforeach; ?>
@@ -268,20 +289,27 @@ include dirname(__DIR__) . '/includes/header.php';
   </div>
 </section>
 
-<!-- MODAL DENÚNCIA -->
+<!-- MODAL DENUNCIA -->
 <div id="modal-denuncia" style="display:none; position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:3000;align-items:center;justify-content:center;padding:1rem;">
   <div style="background:#fff;border-radius:var(--radius-lg);padding:2rem;max-width:460px;width:100%;">
-    <h3 style="margin-bottom:1rem;"><i class="fas fa-flag"></i> Denunciar Local</h3>
+    <h3 style="margin-bottom:1rem;"><i class="fas fa-flag"></i> <span id="denuncia-titulo">Denunciar</span></h3>
     <form method="POST">
       <input type="hidden" name="denunciar" value="1">
-      <input type="hidden" name="tipo" value="local">
-      <input type="hidden" name="ref_id" value="<?= $id ?>">
-      <div class="form-group">
-        <label>Motivo</label>
-        <textarea name="motivo" rows="4" placeholder="Descreve o problema..." style="width:100%;padding:.75rem;border:1.5px solid var(--creme-escuro);border-radius:10px;"></textarea>
+      <input type="hidden" name="tipo" id="denuncia-tipo" value="local">
+      <input type="hidden" name="ref_id" id="denuncia-ref-id" value="<?= $id ?>">
+
+      <div class="form-group" style="margin-bottom:1rem;">
+        <label style="display:block;margin-bottom:.45rem;">Motivo</label>
+        <?php foreach ($motivos_denuncia as $valor => $rotulo): ?>
+          <label style="display:flex;align-items:center;gap:.5rem;margin-bottom:.35rem;">
+            <input type="radio" name="motivo" value="<?= h($valor) ?>" required>
+            <span><?= h($rotulo) ?></span>
+          </label>
+        <?php endforeach; ?>
       </div>
+
       <div style="display:flex;gap:.75rem;">
-        <button type="submit" class="btn btn-danger">Enviar Denúncia</button>
+        <button type="submit" class="btn btn-danger">Enviar Denuncia</button>
         <button type="button" onclick="document.getElementById('modal-denuncia').style.display='none'" class="btn" style="border:1px solid var(--creme-escuro);color:var(--texto-muted);">Cancelar</button>
       </div>
     </form>
@@ -292,6 +320,17 @@ include dirname(__DIR__) . '/includes/header.php';
 <!-- Mapa mini sidebar -->
 <script>
 const SITE_URL = "<?= SITE_URL ?>";
+function abrirModalDenuncia(tipo, refId, alvo) {
+  document.getElementById('denuncia-titulo').textContent = 'Denunciar ' + alvo;
+  document.getElementById('denuncia-tipo').value = tipo;
+  document.getElementById('denuncia-ref-id').value = refId;
+
+  const radios = document.querySelectorAll('#modal-denuncia input[name="motivo"]');
+  radios.forEach((r) => { r.checked = false; });
+
+  document.getElementById('modal-denuncia').style.display = 'flex';
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   const map2 = L.map('mini-map-detalhe', { zoomControl:false, dragging:false, scrollWheelZoom:false })
     .setView([<?= $local['latitude'] ?>, <?= $local['longitude'] ?>], 13);

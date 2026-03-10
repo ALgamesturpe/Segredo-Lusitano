@@ -75,6 +75,7 @@ CREATE TABLE locais (
     dificuldade ENUM('facil','medio','dificil') DEFAULT 'medio',
     foto_capa VARCHAR(255) DEFAULT NULL,
     estado ENUM('pendente','aprovado','rejeitado') DEFAULT 'aprovado',
+    bloqueado TINYINT(1) DEFAULT 0,
     vistas INT DEFAULT 0,
     criado_em DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (utilizador_id) REFERENCES utilizadores(id) ON DELETE CASCADE,
@@ -129,6 +130,7 @@ CREATE TABLE denuncias (
     motivo TEXT,
     resolvida TINYINT(1) DEFAULT 0,
     criado_em DATETIME DEFAULT CURRENT_TIMESTAMP,
+    KEY idx_denuncias_abertas (resolvida, tipo, referencia_id),
     FOREIGN KEY (utilizador_id) REFERENCES utilizadores(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 

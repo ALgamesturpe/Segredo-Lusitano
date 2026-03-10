@@ -26,8 +26,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     if (isset($_POST['resolver_denuncia'])) {
         db()->prepare('UPDATE denuncias SET resolvida=1 WHERE id=?')->execute([(int)$_POST['den_id']]);
-        flash('success', 'Denúncia resolvida!');
+        flash('success', 'Denuncia resolvida!');
         header('Location: ' . SITE_URL . '/admin/index.php');
+        exit;
+    }
+
+    if (isset($_POST['moderar_denuncia_item'])) {
+        $tipo = (string)($_POST['tipo'] ?? '');
+        $ref_id = (int)($_POST['ref_id'] ?? 0);
+        $acao = (string)($_POST['acao'] ?? '');
+        $ok = moderar_denuncias_item($tipo, $ref_id, $acao === 'bloquear');
+
+        if ($ok) {
+            flash('success', $acao === 'bloquear' ? 'Conteudo bloqueado e denuncias resolvidas.' : 'Conteudo permitido e denuncias resolvidas.');
+        } else {
+            flash('error', 'Nao foi possivel moderar este item.');
+        }
+        header('Location: ' . SITE_URL . '/admin/index.php#denuncias');
         exit;
     }
 }
@@ -86,18 +101,29 @@ include dirname(__DIR__) . '/includes/header.php';
     </h2>
     <?php if ($denuncias): ?>
     <table class="data-table">
-      <thead><tr><th>Tipo</th><th>Ref. ID</th><th>Motivo</th><th>Data</th><th>Ação</th></tr></thead>
+      <thead><tr><th>Tipo</th><th>Ref. ID</th><th>Alvo</th><th>Motivo</th><th>Estado</th><th>Data</th><th>Acao</th></tr></thead>
       <tbody>
         <?php foreach ($denuncias as $den): ?>
+        <?php $bloqueado = ((int)$den['alvo_bloqueado'] === 1); ?>
         <tr>
           <td><span class="badge badge-cat"><?= h($den['tipo']) ?></span></td>
           <td>#<?= $den['referencia_id'] ?></td>
-          <td><?= h(mb_substr($den['motivo'] ?? '',0,80)) ?>...</td>
+          <td><?= h(mb_substr($den['alvo_conteudo'] ?? '[indisponivel]', 0, 60)) ?></td>
+          <td><?= h(motivo_denuncia_label((string)$den['motivo'])) ?></td>
+          <td>
+            <span class="badge <?= $bloqueado ? 'badge-rejeitado' : 'badge-aprovado' ?>">
+              <?= $bloqueado ? 'Bloqueado' : 'Permitido' ?>
+            </span>
+          </td>
           <td><?= date('d/m/Y', strtotime($den['criado_em'])) ?></td>
           <td>
             <form method="POST" style="display:inline;">
-              <input type="hidden" name="den_id" value="<?= $den['id'] ?>">
-              <button type="submit" name="resolver_denuncia" class="btn btn-sm btn-verde">Resolver</button>
+              <input type="hidden" name="tipo" value="<?= h($den['tipo']) ?>">
+              <input type="hidden" name="ref_id" value="<?= (int)$den['referencia_id'] ?>">
+              <input type="hidden" name="acao" value="<?= $bloqueado ? 'permitir' : 'bloquear' ?>">
+              <button type="submit" name="moderar_denuncia_item" class="btn btn-sm <?= $bloqueado ? 'btn-verde' : 'btn-danger' ?>">
+                <?= $bloqueado ? 'Permitir' : 'Bloquear' ?>
+              </button>
             </form>
           </td>
         </tr>

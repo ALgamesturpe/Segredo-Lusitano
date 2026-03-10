@@ -19,7 +19,7 @@ $dif_label = [
   <a href="<?= SITE_URL ?>/pages/local.php?id=<?= $local['id'] ?>" class="card-img" style="display:block;">
     <?php if ($local['foto_capa']): ?>
       <img src="<?= SITE_URL ?>/uploads/locais/<?= h($local['foto_capa']) ?>"
-           alt="<?= h($local['nome']) ?>" loading="lazy">
+           alt="<?= h(local_nome_publico($local)) ?>" loading="lazy">
     <?php else: ?>
       <div class="card-img-placeholder"><i class="<?= h($local['categoria_icone']) ?>"></i></div>
     <?php endif; ?>
@@ -31,9 +31,9 @@ $dif_label = [
   <div class="card-body">
     <div class="card-region"><i class="fas fa-map-marker-alt"></i> <?= h($local['regiao_nome']) ?></div>
     <h3 class="card-title">
-      <a href="<?= SITE_URL ?>/pages/local.php?id=<?= $local['id'] ?>"><?= h($local['nome']) ?></a>
+      <a href="<?= SITE_URL ?>/pages/local.php?id=<?= $local['id'] ?>"><?= h(local_nome_publico($local)) ?></a>
     </h3>
-    <p class="card-desc"><?= h($local['descricao']) ?></p>
+    <p class="card-desc"><?= h(local_descricao_publica($local)) ?></p>
     <div class="card-meta">
       <span style="font-size:.82rem;">
         <a href="<?= SITE_URL ?>/pages/perfil.php?id=<?= $local['utilizador_id'] ?>" style="color:var(--verde);font-weight:600;">
