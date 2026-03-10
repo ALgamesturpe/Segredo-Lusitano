@@ -5,7 +5,7 @@
 require_once dirname(__DIR__) . '/includes/functions.php';
 
 $page_title = 'Mapa';
-$locais = get_locais([], 500); // todos os aprovados para o mapa
+$locais = get_locais(['excluir_bloqueados' => 1], 500); // aprovados e nao bloqueados para o mapa
 
 // Codificar para JSON de forma segura
 $locais_json = json_encode(array_map(fn($l) => [

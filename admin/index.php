@@ -108,7 +108,19 @@ include dirname(__DIR__) . '/includes/header.php';
         <tr>
           <td><span class="badge badge-cat"><?= h($den['tipo']) ?></span></td>
           <td>#<?= $den['referencia_id'] ?></td>
-          <td><?= h(mb_substr($den['alvo_conteudo'] ?? '[indisponivel]', 0, 60)) ?></td>
+          <td>
+            <button type="button"
+                    class="btn btn-sm"
+                    style="padding:.2rem .55rem;border:1px solid var(--creme-escuro);color:var(--texto-muted);"
+                    onclick="abrirConteudoDenuncia(this)"
+                    data-tipo="<?= h($den['tipo']) ?>"
+                    data-ref="#<?= (int)$den['referencia_id'] ?>"
+                    data-preview="<?= h((string)($den['alvo_conteudo'] ?? '[indisponivel]')) ?>"
+                    data-conteudo="<?= h((string)($den['alvo_conteudo_completo'] ?? '[indisponivel]')) ?>"
+                    data-link="<?= !empty($den['alvo_local_id']) ? h(SITE_URL . '/pages/local.php?id=' . (int)$den['alvo_local_id']) : '' ?>">
+              Ver Conteudo
+            </button>
+          </td>
           <td><?= h(motivo_denuncia_label((string)$den['motivo'])) ?></td>
           <td>
             <span class="badge <?= $bloqueado ? 'badge-rejeitado' : 'badge-aprovado' ?>">
@@ -136,5 +148,54 @@ include dirname(__DIR__) . '/includes/header.php';
   </main>
 </div>
 </div>
+
+<div id="modal-conteudo-denuncia" style="display:none; position:fixed; inset:0; z-index:4000; background:rgba(0,0,0,.45); align-items:center; justify-content:center; padding:1rem;">
+  <div style="background:#fff; border-radius:var(--radius-lg); width:100%; max-width:720px; padding:1.2rem 1.2rem 1rem;">
+    <div style="display:flex; align-items:center; justify-content:space-between; gap:1rem; margin-bottom:.6rem;">
+      <h3 style="margin:0;"><i class="fas fa-file-alt"></i> Conteudo denunciado</h3>
+      <button type="button" class="btn btn-sm" style="border:1px solid var(--creme-escuro);" onclick="fecharConteudoDenuncia()">Fechar</button>
+    </div>
+    <div style="font-size:.86rem; color:var(--texto-muted); margin-bottom:.6rem;" id="denuncia-meta"></div>
+    <div style="background:var(--creme); border:1px solid var(--creme-escuro); border-radius:10px; padding:.9rem; margin-bottom:.8rem;">
+      <div style="font-size:.85rem; color:var(--texto-muted); margin-bottom:.35rem;">Resumo</div>
+      <div id="denuncia-preview" style="white-space:pre-wrap;"></div>
+    </div>
+    <div style="background:var(--creme); border:1px solid var(--creme-escuro); border-radius:10px; padding:.9rem; margin-bottom:.8rem;">
+      <div style="font-size:.85rem; color:var(--texto-muted); margin-bottom:.35rem;">Conteudo completo</div>
+      <div id="denuncia-conteudo" style="white-space:pre-wrap;"></div>
+    </div>
+    <a id="denuncia-link" href="#" target="_blank" rel="noopener" class="btn btn-sm btn-verde" style="display:none;">
+      <i class="fas fa-external-link-alt"></i> Abrir post
+    </a>
+  </div>
+</div>
+
+<script>
+function abrirConteudoDenuncia(btn) {
+  const tipo = btn.getAttribute('data-tipo') || '';
+  const ref = btn.getAttribute('data-ref') || '';
+  const preview = btn.getAttribute('data-preview') || '[indisponivel]';
+  const conteudo = btn.getAttribute('data-conteudo') || '[indisponivel]';
+  const link = btn.getAttribute('data-link') || '';
+
+  document.getElementById('denuncia-meta').textContent = tipo + ' ' + ref;
+  document.getElementById('denuncia-preview').textContent = preview;
+  document.getElementById('denuncia-conteudo').textContent = conteudo;
+
+  const linkEl = document.getElementById('denuncia-link');
+  if (link) {
+    linkEl.href = link;
+    linkEl.style.display = 'inline-flex';
+  } else {
+    linkEl.style.display = 'none';
+  }
+
+  document.getElementById('modal-conteudo-denuncia').style.display = 'flex';
+}
+
+function fecharConteudoDenuncia() {
+  document.getElementById('modal-conteudo-denuncia').style.display = 'none';
+}
+</script>
 
 <?php include dirname(__DIR__) . '/includes/footer.php'; ?>

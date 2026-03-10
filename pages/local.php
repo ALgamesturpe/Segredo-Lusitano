@@ -19,11 +19,17 @@ $comentarios = get_comentarios($id);
 $fotos      = get_fotos($id);
 $liked      = $user ? user_liked($id, $user['id']) : false;
 $motivos_denuncia = motivos_denuncia();
+$local_bloqueado = ((int)($local['bloqueado'] ?? 0) === 1);
 
 // --- POST: Comentário ---
 $erro_com = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['comentario'])) {
     if (!$user) { header('Location: ' . SITE_URL . '/pages/login.php'); exit; }
+    if ($local_bloqueado) {
+        flash('error', 'Este post esta bloqueado e nao aceita novos comentarios.');
+        header('Location: ' . SITE_URL . '/pages/local.php?id=' . $id . '#comentarios');
+        exit;
+    }
     $texto = trim($_POST['comentario']);
     if (strlen($texto) < 3) {
         $erro_com = 'O comentário é muito curto.';
@@ -39,6 +45,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['comentario'])) {
 $erro_foto = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['fotos'])) {
     if (!$user) { header('Location: ' . SITE_URL . '/pages/login.php'); exit; }
+    if ($local_bloqueado) {
+        flash('error', 'Este post esta bloqueado e nao aceita novas imagens.');
+        header('Location: ' . SITE_URL . '/pages/local.php?id=' . $id);
+        exit;
+    }
     $files = $_FILES['fotos'];
     $count = count($files['name']);
     for ($i = 0; $i < $count; $i++) {
@@ -158,7 +169,7 @@ include dirname(__DIR__) . '/includes/header.php';
         <?php endif; ?>
 
         <!-- Upload de Fotos -->
-        <?php if ($user): ?>
+        <?php if ($user && !$local_bloqueado): ?>
         <div class="info-card" style="margin-bottom:1.5rem;">
           <h3><i class="fas fa-camera"></i> Adicionar Fotos</h3>
           <form method="POST" enctype="multipart/form-data">
@@ -179,10 +190,15 @@ include dirname(__DIR__) . '/includes/header.php';
         <div class="info-card" id="comentarios">
           <h3><i class="fas fa-comments"></i> Comentários <span style="color:var(--texto-muted);font-size:.9rem;">(<?= count($comentarios) ?>)</span></h3>
 
-          <?php if ($user): ?>
+          <?php if ($local_bloqueado): ?>
+            <p style="margin-bottom:1.5rem; color:var(--texto-muted); font-size:.9rem;">
+              Este post esta bloqueado. Novos comentarios estao desativados.
+            </p>
+          <?php elseif ($user): ?>
             <form method="POST" style="margin-bottom:1.5rem;">
               <div class="form-group" style="margin-bottom:.75rem;">
-                <textarea name="comentario" rows="3" placeholder="Partilha a tua experiência neste local..."
+                <label for="comentario-local" style="display:none;">Comentario</label>
+                <textarea id="comentario-local" name="comentario" rows="3" placeholder="Partilha a tua experiência neste local..."
                           style="width:100%;padding:.75rem 1rem;border:1.5px solid var(--creme-escuro);border-radius:10px;background:var(--creme);resize:vertical;"><?= h($_POST['comentario'] ?? '') ?></textarea>
                 <?php if ($erro_com): ?><div class="form-error"><?= h($erro_com) ?></div><?php endif; ?>
               </div>

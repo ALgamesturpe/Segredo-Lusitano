@@ -36,6 +36,64 @@ function comentario_texto_publico(array $comentario): string {
     return ((int)($comentario['denunciado'] ?? 0) === 1) ? '[removed]' : (string)$comentario['texto'];
 }
 
+function apagar_upload_local(string $ficheiro): void {
+    if ($ficheiro === '') return;
+    $path = UPLOAD_DIR . $ficheiro;
+    if (is_file($path)) {
+        @unlink($path);
+    }
+}
+
+function limpar_imagens_local(int $local_id): void {
+    $stCapa = db()->prepare('SELECT foto_capa FROM locais WHERE id = ?');
+    $stCapa->execute([$local_id]);
+    $capa = $stCapa->fetchColumn();
+    if (is_string($capa) && $capa !== '') {
+        apagar_upload_local($capa);
+    }
+
+    $stFotos = db()->prepare('SELECT ficheiro FROM fotos WHERE local_id = ?');
+    $stFotos->execute([$local_id]);
+    foreach ($stFotos->fetchAll() as $row) {
+        apagar_upload_local((string)($row['ficheiro'] ?? ''));
+    }
+
+    db()->prepare('DELETE FROM fotos WHERE local_id = ?')->execute([$local_id]);
+    db()->prepare('UPDATE locais SET foto_capa = NULL WHERE id = ?')->execute([$local_id]);
+}
+
+function local_bloqueado(int $local_id): bool {
+    $st = db()->prepare('SELECT bloqueado FROM locais WHERE id = ?');
+    $st->execute([$local_id]);
+    $val = $st->fetchColumn();
+    return ((int)$val) === 1;
+}
+
+function local_bloqueado_deve_ser_eliminado(int $local_id): bool {
+    $st = db()->prepare(
+        'SELECT
+            COUNT(*) AS total,
+            SUM(CASE WHEN denunciado = 0 THEN 1 ELSE 0 END) AS ativos
+         FROM comentarios
+         WHERE local_id = ?'
+    );
+    $st->execute([$local_id]);
+    $row = $st->fetch();
+    $ativos = (int)($row['ativos'] ?? 0);
+    return $ativos === 0;
+}
+
+function resolver_denuncias_local_e_comentarios(int $local_id): void {
+    db()->prepare('UPDATE denuncias SET resolvida=1 WHERE tipo="local" AND referencia_id=? AND resolvida=0')->execute([$local_id]);
+    db()->prepare(
+        'UPDATE denuncias
+         SET resolvida=1
+         WHERE tipo="comentario"
+           AND referencia_id IN (SELECT id FROM comentarios WHERE local_id = ?)
+           AND resolvida=0'
+    )->execute([$local_id]);
+}
+
 function ensure_moderacao_schema(): void {
     static $checked = false;
     if ($checked) return;
@@ -66,6 +124,7 @@ function get_locais(array $filtros = [], int $limite = 12, int $offset = 0): arr
     if (!empty($filtros['categoria'])) { $where[] = 'l.categoria_id = ?'; $params[] = $filtros['categoria']; }
     if (!empty($filtros['dificuldade'])) { $where[] = 'l.dificuldade = ?'; $params[] = $filtros['dificuldade']; }
     if (!empty($filtros['pesquisa'])) { $where[] = 'l.nome LIKE ?'; $params[] = '%' . $filtros['pesquisa'] . '%'; }
+    if (!empty($filtros['excluir_bloqueados'])) { $where[] = 'l.bloqueado = 0'; }
 
     // Whitelist allowed ordering options to prevent SQL injection
     $ordem_input = $filtros['ordem'] ?? 'recente';
@@ -141,6 +200,7 @@ function save_local(array $data, ?int $id = null): int|false {
 }
 
 function delete_local(int $id): void {
+    limpar_imagens_local($id);
     db()->prepare('DELETE FROM locais WHERE id = ?')->execute([$id]);
 }
 
@@ -190,6 +250,9 @@ function get_comentarios(int $local_id): array {
 }
 
 function add_comentario(int $local_id, int $user_id, string $texto): int {
+    if (local_bloqueado($local_id)) {
+        return 0;
+    }
     $st = db()->prepare('INSERT INTO comentarios (local_id,utilizador_id,texto) VALUES (?,?,?)');
     $st->execute([$local_id, $user_id, $texto]);
     add_pontos($user_id, PONTOS_COMENTARIO);
@@ -204,6 +267,7 @@ function get_fotos(int $local_id): array {
 }
 
 function upload_foto(array $file, int $local_id, int $user_id): string|false {
+    if (local_bloqueado($local_id)) return false;
     $allowed = ['image/jpeg','image/png','image/webp'];
     if (!in_array($file['type'], $allowed)) return false;
     $ext  = pathinfo($file['name'], PATHINFO_EXTENSION);
@@ -262,7 +326,17 @@ function get_denuncias(): array {
                     WHEN d.tipo = "local" THEN COALESCE(l.nome, "[indisponivel]")
                     WHEN d.tipo = "comentario" THEN COALESCE(c.texto, "[indisponivel]")
                     ELSE "[indisponivel]"
-                END AS alvo_conteudo
+                END AS alvo_conteudo,
+                CASE
+                    WHEN d.tipo = "local" THEN COALESCE(l.descricao, "[indisponivel]")
+                    WHEN d.tipo = "comentario" THEN COALESCE(c.texto, "[indisponivel]")
+                    ELSE "[indisponivel]"
+                END AS alvo_conteudo_completo,
+                CASE
+                    WHEN d.tipo = "local" THEN l.id
+                    WHEN d.tipo = "comentario" THEN c.local_id
+                    ELSE NULL
+                END AS alvo_local_id
          FROM denuncias d
          JOIN utilizadores u ON u.id = d.utilizador_id
          LEFT JOIN locais l ON d.tipo = "local" AND l.id = d.referencia_id
@@ -307,16 +381,42 @@ function moderar_denuncias_item(string $tipo, int $ref_id, bool $bloquear): bool
     if (!in_array($tipo, ['local', 'comentario'], true)) return false;
 
     if ($tipo === 'local') {
-        $st = db()->prepare('UPDATE locais SET bloqueado=? WHERE id=?');
-    } else {
-        $st = db()->prepare('UPDATE comentarios SET denunciado=? WHERE id=?');
+        $stLocal = db()->prepare('SELECT id FROM locais WHERE id = ?');
+        $stLocal->execute([$ref_id]);
+        if (!$stLocal->fetch()) return false;
+
+        db()->prepare('UPDATE locais SET bloqueado=? WHERE id=?')->execute([$bloquear ? 1 : 0, $ref_id]);
+
+        if ($bloquear) {
+            limpar_imagens_local($ref_id);
+            if (local_bloqueado_deve_ser_eliminado($ref_id)) {
+                resolver_denuncias_local_e_comentarios($ref_id);
+                delete_local($ref_id);
+                return true;
+            }
+        }
+
+        db()->prepare('UPDATE denuncias SET resolvida=1 WHERE tipo=? AND referencia_id=? AND resolvida=0')->execute([$tipo, $ref_id]);
+        return true;
     }
-    $st->execute([$bloquear ? 1 : 0, $ref_id]);
 
-    if ($st->rowCount() === 0) return false;
+    $stCom = db()->prepare('SELECT id, local_id FROM comentarios WHERE id = ?');
+    $stCom->execute([$ref_id]);
+    $comentario = $stCom->fetch();
+    if (!$comentario) return false;
 
-    // Ao moderar um item, todas as denuncias abertas desse item ficam resolvidas.
+    db()->prepare('UPDATE comentarios SET denunciado=? WHERE id=?')->execute([$bloquear ? 1 : 0, $ref_id]);
+
     db()->prepare('UPDATE denuncias SET resolvida=1 WHERE tipo=? AND referencia_id=? AND resolvida=0')->execute([$tipo, $ref_id]);
+
+    if ($bloquear) {
+        $localId = (int)$comentario['local_id'];
+        if ($localId > 0 && local_bloqueado($localId) && local_bloqueado_deve_ser_eliminado($localId)) {
+            resolver_denuncias_local_e_comentarios($localId);
+            delete_local($localId);
+        }
+    }
+
     return true;
 }
 
