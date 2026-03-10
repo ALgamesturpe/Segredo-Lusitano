@@ -50,7 +50,6 @@ include dirname(__DIR__) . '/includes/header.php';
       <div style="display:flex;gap:.5rem;">
         <a href="?" class="btn btn-sm <?= !$estado ? 'btn-verde' : '' ?>" style="<?= $estado ? 'border:1px solid var(--creme-escuro);color:var(--texto-muted);' : '' ?>">Todos</a>
         <a href="?estado=aprovado"  class="btn btn-sm <?= $estado==='aprovado' ? 'btn-verde' : '' ?>" style="<?= $estado!=='aprovado' ? 'border:1px solid var(--creme-escuro);color:var(--texto-muted);' : '' ?>">Aprovados</a>
-        <a href="?estado=pendente"  class="btn btn-sm <?= $estado==='pendente' ? 'btn-primary' : '' ?>" style="<?= $estado!=='pendente' ? 'border:1px solid var(--creme-escuro);color:var(--texto-muted);' : '' ?>">Pendentes</a>
         <a href="?estado=rejeitado" class="btn btn-sm <?= $estado==='rejeitado' ? 'btn-danger' : '' ?>" style="<?= $estado!=='rejeitado' ? 'border:1px solid var(--creme-escuro);color:var(--texto-muted);' : '' ?>">Rejeitados</a>
       </div>
     </div>

@@ -95,7 +95,6 @@ include __DIR__ . '/includes/header.php';
       <div class="section-header">
         <span class="label">Começa já</span>
         <h2>Tens um segredo lusitano?</h2>
-        <p>Partilha-o com milhares de viajantes curiosos e ajuda a preservar o que torna Portugal único.</p>
       </div>
       <?php if (!auth_user()): ?>
       <a href="<?= SITE_URL ?>/pages/registo.php" class="btn btn-primary" style="font-size:1.05rem;">
