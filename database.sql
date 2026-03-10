@@ -1,7 +1,5 @@
 -- SEGREDO LUSITANO - Base de Dados
-CREATE DATABASE IF NOT EXISTS segredo_lusitano
-  CHARACTER SET utf8mb4
-  COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE IF NOT EXISTS segredo_lusitano CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 USE segredo_lusitano;
 
@@ -30,7 +28,7 @@ CREATE TABLE utilizadores (
     avatar VARCHAR(255) DEFAULT NULL,
     bio TEXT DEFAULT NULL,
     pontos INT DEFAULT 0,
-    role ENUM('user','admin') DEFAULT 'user',
+    role ENUM('user','admin', '[deleted]') DEFAULT 'user',
     ativo TINYINT(1) DEFAULT 1,
     verificado TINYINT(1) DEFAULT 0,
     criado_em DATETIME DEFAULT CURRENT_TIMESTAMP
