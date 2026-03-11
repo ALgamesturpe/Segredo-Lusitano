@@ -53,8 +53,8 @@ $page_title = 'Editar Perfil';
 include dirname(__DIR__) . '/includes/header.php';
 ?>
 
-<div class="page-content" style="padding:2rem 0;">
-  <section class="section" style="padding-top:0;">
+<div class="page-content" style="padding:calc(var(--nav-h) + 2rem) 0 4rem;">
+  <section class="section" style="padding-top:0; padding-bottom:0;">
     <div class="container" style="max-width:760px;">
       <div class="form-container" style="max-width:100%;">
         <h1 class="form-title">Editar Perfil</h1>
@@ -75,8 +75,11 @@ include dirname(__DIR__) . '/includes/header.php';
           </div>
 
           <div class="form-group">
-            <label for="bio">Bio</label>
-            <textarea id="bio" name="bio" rows="5" placeholder="Fala um pouco sobre ti..." style="width:100%; border:1px solid var(--creme-escuro); border-radius:var(--radius); padding:.7rem .85rem;"><?= h($bio) ?></textarea>
+            <label for="bio" style="display:flex; align-items:center; justify-content:space-between; gap:.75rem;">
+              <span>Bio</span>
+              <small id="bio-counter" style="color:var(--texto-muted); font-weight:500;">500 restantes</small>
+            </label>
+            <textarea id="bio" name="bio" rows="5" maxlength="500" placeholder="Fala um pouco sobre ti..." style="width:100%; border:1px solid var(--creme-escuro); border-radius:var(--radius); padding:.7rem .85rem;"><?= h($bio) ?></textarea>
             <?php if (isset($erros['bio'])): ?><div class="form-error"><?= h($erros['bio']) ?></div><?php endif; ?>
           </div>
 
@@ -90,5 +93,21 @@ include dirname(__DIR__) . '/includes/header.php';
   </section>
 </div>
 
-<?php include dirname(__DIR__) . '/includes/footer.php'; ?>
+<script>
+(function() {
+  var bio = document.getElementById('bio');
+  var counter = document.getElementById('bio-counter');
+  if (!bio || !counter) return;
 
+  var max = parseInt(bio.getAttribute('maxlength') || '500', 10);
+  var update = function() {
+    var remaining = Math.max(0, max - bio.value.length);
+    counter.textContent = remaining + ' restantes';
+  };
+
+  bio.addEventListener('input', update);
+  update();
+})();
+</script>
+
+<?php include dirname(__DIR__) . '/includes/footer.php'; ?>
