@@ -81,7 +81,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $destino = UPLOAD_DIR . $avatar_upload['filename'];
             if (!move_uploaded_file($avatar_upload['tmp_name'], $destino)) {
-                $erros['avatar'] = 'Falha ao guardar a foto de perfil.';
+                $erros['avatar'] = 'Falha ao guardar a foto de perfil';
             } else {
                 $avatar_guardar = $avatar_upload['filename'];
             }
@@ -96,14 +96,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     apagar_upload_local($avatar_atual);
                 }
 
-                flash('success', 'Perfil atualizado com sucesso.');
+                flash('success', 'Perfil atualizado.');
                 header('Location: ' . SITE_URL . '/pages/perfil.php?id=' . (int)$user['id']);
                 exit;
             } catch (Throwable $e) {
                 if ($avatar_upload && isset($avatar_guardar) && is_string($avatar_guardar) && $avatar_guardar !== '' && $avatar_guardar !== $avatar_atual) {
                     apagar_upload_local($avatar_guardar);
                 }
-                $erros['avatar'] = 'Nao foi possivel guardar a foto de perfil.';
+                $erros['avatar'] = 'Nao foi possivel guardar a foto de perfil';
             }
         }
     }
