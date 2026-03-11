@@ -35,7 +35,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // PHPMailer não instalado - auto-verificar e fazer login direto
                 db()->prepare('UPDATE utilizadores SET verificado = 1 WHERE id = ?')->execute([$res['id']]);
                 $_SESSION['user_id'] = $res['id'];
-                add_pontos($res['id'], PONTOS_LOCAL); // Bónus de boas-vindas
                 flash('success', 'Conta criada com sucesso! Bem-vindo ao Segredo Lusitano! 🎉 (Email não configurado - conta verificada automaticamente)');
                 header('Location: ' . SITE_URL . '/index.php');
                 exit;
@@ -52,7 +51,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // Falha no envio - auto-verificar também
                 db()->prepare('UPDATE utilizadores SET verificado = 1 WHERE id = ?')->execute([$res['id']]);
                 $_SESSION['user_id'] = $res['id'];
-                add_pontos($res['id'], PONTOS_LOCAL);
                 flash('success', 'Conta criada! Email não enviado (erro SMTP) - conta verificada automaticamente.');
                 header('Location: ' . SITE_URL . '/index.php');
                 exit;

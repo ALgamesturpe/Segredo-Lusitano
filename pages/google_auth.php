@@ -148,11 +148,9 @@ try {
         // Password aleatória (não usada, login é via Google)
         $password_hash = password_hash(bin2hex(random_bytes(16)), PASSWORD_BCRYPT);
 
-        $st = db()->prepare('
-            INSERT INTO utilizadores (nome, username, email, password, verificado, pontos)
-            VALUES (?, ?, ?, ?, 1, ?)
-        ');
-        $st->execute([$google_nome, $username, $google_email, $password_hash, PONTOS_LOCAL]);
+        $st = db()->prepare('INSERT INTO utilizadores (nome, username, email, password, verificado, pontos) VALUES (?, ?, ?, ?, 1, 0)');
+        $st->execute([$google_nome, $username, $google_email, $password_hash]);
+
         $novo_id = (int) db()->lastInsertId();
 
         $_SESSION['user_id'] = $novo_id;

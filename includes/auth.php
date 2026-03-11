@@ -67,7 +67,7 @@ function register(string $nome, string $username, string $email, string $passwor
     }
     // Hash da password com bcrypt (seguro)
     $password_hash = password_hash($password, PASSWORD_BCRYPT, ['cost' => 12]);
-    $st = db()->prepare('INSERT INTO utilizadores (nome, username, email, password, verificado) VALUES (?,?,?,?,0)');
+    $st = db()->prepare('INSERT INTO utilizadores (nome, username, email, password, verificado, pontos) VALUES (?,?,?,?,0,0)');
     $st->execute([$nome, $username, $email, $password_hash]);
     return ['ok' => true, 'id' => (int) db()->lastInsertId()];
 }

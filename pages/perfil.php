@@ -72,6 +72,13 @@ include dirname(__DIR__) . '/includes/header.php';
   <?php if ($perfil['bio']): ?>
     <p class="perfil-bio"><?= h($perfil['bio']) ?></p>
   <?php endif; ?>
+  <?php if ($is_own): ?>
+    <div style="margin-bottom:1rem;">
+      <a href="<?= SITE_URL ?>/pages/perfil_editar.php" class="btn btn-sm btn-primary">
+        <i class="fas fa-user-edit"></i> Editar Perfil
+      </a>
+    </div>
+  <?php endif; ?>
   <div class="perfil-stats">
     <div class="stat-item"><span class="stat-num"><?= count($locais_perfil) ?></span><span class="stat-label">Locais</span></div>
     <div class="stat-item"><span class="stat-num"><?= $total_likes ?></span><span class="stat-label">Likes Recebidos</span></div>

@@ -49,7 +49,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['codigo'])) {
         if ($tipo === 'registo') {
             // Marcar conta como verificada
             db()->prepare('UPDATE utilizadores SET verificado = 1 WHERE id = ?')->execute([$uid]);
-            add_pontos($uid, PONTOS_LOCAL); // bónus de boas-vindas
         }
         // Iniciar sessão
         $_SESSION['user_id'] = $uid;
