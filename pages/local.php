@@ -1,7 +1,5 @@
 <?php
-// ============================================================
 // SEGREDO LUSITANO — Detalhe do Local
-// ============================================================
 require_once dirname(__DIR__) . '/includes/functions.php';
 
 $id = (int)($_GET['id'] ?? 0);
