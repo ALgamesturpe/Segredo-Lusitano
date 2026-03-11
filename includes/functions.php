@@ -158,7 +158,7 @@ function get_locais(array $filtros = [], int $limite = 12, int $offset = 0): arr
 function get_local(int $id): ?array {
     $st = db()->prepare(
         'SELECT l.*, c.nome AS categoria_nome, c.icone AS categoria_icone,
-                r.nome AS regiao_nome, u.username, u.nome AS autor_nome,
+                r.nome AS regiao_nome, u.username, u.nome AS autor_nome, u.avatar,
                 (SELECT COUNT(*) FROM likes WHERE local_id = l.id) AS total_likes,
                 (SELECT COUNT(*) FROM comentarios WHERE local_id = l.id) AS total_comentarios
          FROM locais l
