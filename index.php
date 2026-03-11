@@ -20,7 +20,6 @@ include __DIR__ . '/includes/header.php';
         <img src="<?= SITE_URL ?>/assets/images/logo_icon.png" alt="Segredo Lusitano" class="hero-logo-img" style="height:180px;width:180px;max-width:180px;object-fit:contain;display:block;margin:0 auto;">
       </div>
       <h1>O Portugal que os<br><em>mapas não mostram</em></h1>
-      <p>Locais secretos, trilhos perdidos, aldeias esquecidas — partilhados por quem os conhece de verdade.</p>
       <div class="hero-actions">
         <a href="<?= SITE_URL ?>/pages/explorar.php" class="btn btn-primary"><i class="fas fa-compass"></i> Explorar Locais</a>
         <a href="<?= SITE_URL ?>/pages/mapa.php"     class="btn btn-outline"><i class="fas fa-map"></i> Ver no Mapa</a>
