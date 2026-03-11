@@ -148,7 +148,7 @@ include dirname(__DIR__) . '/includes/header.php';
         <!-- Descrição -->
         <div class="info-card" style="margin-bottom:1.5rem;">
           <h3><i class="fas fa-align-left"></i> Descrição</h3>
-          <p style="line-height:1.8; color:var(--texto);"><?= nl2br(h(local_descricao_publica($local))) ?></p>
+          <p class="text-wrap-anywhere" style="line-height:1.8; color:var(--texto);"><?= nl2br(h(local_descricao_publica($local))) ?></p>
         </div>
 
         <!-- Galeria de Fotos -->
@@ -214,7 +214,11 @@ include dirname(__DIR__) . '/includes/header.php';
                 <?php $comentario_bloqueado = ((int)$com['denunciado'] === 1); ?>
                 <div class="comentario">
                   <div class="comentario-avatar">
-                    <?= $comentario_bloqueado ? '!' : mb_strtoupper(mb_substr($com['username'],0,1)) ?>
+                    <?php if (!$comentario_bloqueado && !empty($com['avatar'])): ?>
+                      <img src="<?= SITE_URL ?>/uploads/locais/<?= h($com['avatar']) ?>" alt="<?= h($com['autor_nome']) ?>">
+                    <?php else: ?>
+                      <?= $comentario_bloqueado ? '!' : mb_strtoupper(mb_substr($com['username'],0,1)) ?>
+                    <?php endif; ?>
                   </div>
                   <div class="comentario-body">
                     <div class="comentario-meta" style="display:flex;align-items:center;gap:.45rem;flex-wrap:wrap;">
@@ -276,8 +280,14 @@ include dirname(__DIR__) . '/includes/header.php';
         <div class="info-card">
           <h3>Explorador</h3>
           <div style="display:flex; align-items:center; gap:.75rem;">
-            <div class="rank-avatar"><?= mb_strtoupper(mb_substr($local['username'],0,1)) ?></div>
-            <div>
+            <div class="rank-avatar">
+              <?php if (!empty($local['avatar'])): ?>
+                <img src="<?= SITE_URL ?>/uploads/locais/<?= h($local['avatar']) ?>" alt="<?= h($local['autor_nome']) ?>">
+              <?php else: ?>
+                <?= mb_strtoupper(mb_substr($local['username'],0,1)) ?>
+              <?php endif; ?>
+            </div>
+            <div class="rank-user-info">
               <div style="font-weight:700;"><?= h($local['autor_nome']) ?></div>
               <a href="<?= SITE_URL ?>/pages/perfil.php?id=<?= $local['utilizador_id'] ?>"
                  style="color:var(--verde); font-size:.85rem;"><?= h($local['username']) ?></a>

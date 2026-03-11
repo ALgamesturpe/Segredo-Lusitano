@@ -64,9 +64,13 @@ include dirname(__DIR__) . '/includes/header.php';
                   <td>
                     <div class="rank-user">
                       <div class="rank-avatar">
-                        <?= mb_strtoupper(mb_substr($u['username'],0,1)) ?>
+                        <?php if (!empty($u['avatar'])): ?>
+                          <img src="<?= SITE_URL ?>/uploads/locais/<?= h($u['avatar']) ?>" alt="<?= h($u['nome']) ?>">
+                        <?php else: ?>
+                          <?= mb_strtoupper(mb_substr($u['username'],0,1)) ?>
+                        <?php endif; ?>
                       </div>
-                      <div>
+                      <div class="rank-user-info">
                         <div style="font-weight:600;"><?= h($u['nome']) ?></div>
                         <a href="<?= SITE_URL ?>/pages/perfil.php?id=<?= $u['id'] ?>"
                           style="color:var(--verde); font-size:.82rem;"><?= h($u['username']) ?></a>

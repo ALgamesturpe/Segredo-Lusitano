@@ -397,11 +397,14 @@ main { flex: 1; }
   font-size: 1.2rem; font-weight: 700;
   margin-bottom: .6rem; color: var(--texto);
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+
+  overflow-wrap: anywhere; word-break: break-word;
 }
 .card-desc {
   font-size: .88rem; color: var(--texto-muted);
   display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
   flex: 1; margin-bottom: 1rem;
+  overflow-wrap: anywhere; word-break: break-word;
 }
 .card-meta {
   display: flex; align-items: center; justify-content: space-between;
@@ -548,11 +551,13 @@ main { flex: 1; }
   background: var(--verde-claro); color: #fff;
   display: flex; align-items: center; justify-content: center;
   font-weight: 700; font-size: 1rem;
+  overflow: hidden;
 }
-.comentario-body { flex: 1; }
+.comentario-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.comentario-body { flex: 1; min-width: 0; }
 .comentario-meta { font-size: .82rem; color: var(--texto-muted); margin-bottom: .3rem; }
 .comentario-meta strong { color: var(--texto); }
-.comentario-texto { font-size: .92rem; }
+.comentario-texto { font-size: .92rem; overflow-wrap: anywhere; word-break: break-word; }
 
 /* ============================================================
    FORMULÁRIOS
@@ -614,7 +619,7 @@ main { flex: 1; }
 .perfil-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .perfil-nome { font-size: 2rem; color: var(--creme); }
 .perfil-username { color: var(--dourado); font-size: .95rem; margin-bottom: .75rem; }
-.perfil-bio { color: rgba(245,239,230,.7); max-width: 500px; margin: 0 auto 1.5rem; font-size: .95rem; }
+.perfil-bio { color: rgba(245,239,230,.7); max-width: 500px; margin: 0 auto 1.5rem; font-size: .95rem; overflow-wrap: anywhere; word-break: break-word; }
 .perfil-stats {
   display: flex; gap: 2rem; justify-content: center; flex-wrap: wrap;
 }
@@ -638,14 +643,19 @@ main { flex: 1; }
 .rank-1 { color: #f1c40f; }
 .rank-2 { color: #bdc3c7; }
 .rank-3 { color: #e67e22; }
-.rank-user { display: flex; align-items: center; gap: .75rem; }
+.rank-user { display: flex; align-items: center; gap: .75rem; min-width: 0; }
 .rank-avatar {
   width: 42px; height: 42px; border-radius: 50%;
   background: var(--verde-claro); color: #fff;
   display: flex; align-items: center; justify-content: center;
   font-weight: 700; font-size: .85rem; flex-shrink: 0;
+  overflow: hidden;
 }
-.rank-pontos { font-weight: 700; color: var(--verde); }
+.rank-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.rank-user-info { min-width: 0; }
+.rank-user-info > div,
+.rank-user-info > a { overflow-wrap: anywhere; word-break: break-word; }
+.text-wrap-anywhere { overflow-wrap: anywhere; word-break: break-word; }
 
 /* ============================================================
    ADMIN
