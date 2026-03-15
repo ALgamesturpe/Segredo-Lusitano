@@ -60,8 +60,7 @@ include __DIR__ . '/includes/header.php';
   <section class="section section-alt">
     <div class="container">
       <div class="section-header">
-        <h2>Simples como um trilho</h2>
-        <span class="label">Como Funciona</span>
+        <h2>Como Funciona</h2>
       </div>
       <div class="steps-grid">
         <div class="step-card">
@@ -92,7 +91,6 @@ include __DIR__ . '/includes/header.php';
   <section class="section section-dark" style="text-align:center;">
     <div class="container" style="max-width:640px;">
       <div class="section-header">
-        <span class="label">Começa já</span>
         <h2>Tens um segredo lusitano?</h2>
       </div>
       <?php if (!auth_user()): ?>
