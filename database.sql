@@ -156,8 +156,8 @@ INSERT INTO utilizadores (id, nome, username, email, password, pontos, role, ati
 INSERT INTO utilizadores (nome, username, email, password, pontos, role, verificado) VALUES
   ('Administrador', 'admin', 'admin@segredolusitano.pt', '$2y$12$HAvXHYiIvDXx0JOX9.ghfeimbCy9fHUHU7ZW78RDW31Z.lUeEd1sW', 9999, 'admin', 1);
 
-INSERT INTO utilizadores (nome, username, email, password, pontos, role, verificado) VALUES
-  ('João Explorador', 'joao', 'joao@exemplo.pt', 'joao123', 150, 'user', 1);
+-- INSERT INTO utilizadores (nome, username, email, password, pontos, role, verificado) VALUES
+  -- ('João Explorador', 'joao', 'joao@exemplo.pt', 'joao123', 150, 'user', 1);
 
 -- Locais de exemplo
 INSERT INTO locais (utilizador_id, categoria_id, regiao_id, nome, descricao, latitude, longitude, dificuldade, estado) VALUES

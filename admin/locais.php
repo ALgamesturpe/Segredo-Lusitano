@@ -58,11 +58,9 @@ include dirname(__DIR__) . '/includes/header.php';
         <a href="?" class="btn btn-sm <?= (!$estado && !$bloqueado) ? 'btn-verde' : '' ?>"
            style="<?= ($estado || $bloqueado) ? 'border:1px solid var(--creme-escuro);color:var(--texto-muted);' : '' ?>">Todos</a>
         <a href="?estado=aprovado" class="btn btn-sm <?= $estado==='aprovado' ? 'btn-verde' : '' ?>"
-           style="<?= $estado!=='aprovado' ? 'border:1px solid var(--creme-escuro);color:var(--texto-muted);' : '' ?>">Aprovados</a>
-        <a href="?estado=rejeitado" class="btn btn-sm <?= $estado==='rejeitado' ? 'btn-danger' : '' ?>"
-           style="<?= $estado!=='rejeitado' ? 'border:1px solid var(--creme-escuro);color:var(--texto-muted);' : '' ?>">Rejeitados</a>
+           style="<?= $estado!=='aprovado' ? 'border:1px solid var(--creme-escuro);color:var(--texto-muted);' : '' ?>">Ativos</a>
         <a href="?bloqueado=1" class="btn btn-sm"
-           style="<?= $bloqueado ? 'background:#8e44ad;color:#fff;border:none;' : 'border:1px solid var(--creme-escuro);color:var(--texto-muted);' ?>">Bloqueados</a>
+           style="<?= $bloqueado ? 'background:#c0392b;color:#fff;border:none;' : 'border:1px solid var(--creme-escuro);color:var(--texto-muted);' ?>">Bloqueados</a>
       </div>
     </div>
 
@@ -98,7 +96,7 @@ include dirname(__DIR__) . '/includes/header.php';
         </tr>
         <?php endforeach; ?>
         <?php if (!$locais): ?>
-          <tr><td colspan="8" style="text-align:center;color:var(--texto-muted);padding:2rem;">Sem locais.</td></tr>
+          <tr><td colspan="8" style="text-align:center;color:var(--texto-muted);padding:2rem;">Sem locais</td></tr>
         <?php endif; ?>
       </tbody>
     </table>
