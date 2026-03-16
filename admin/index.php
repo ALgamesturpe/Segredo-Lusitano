@@ -1,7 +1,6 @@
 <?php
-// ============================================================
+
 // SEGREDO LUSITANO — Painel de Administração
-// ============================================================
 require_once dirname(__DIR__) . '/includes/functions.php';
 require_admin();
 
@@ -9,10 +8,11 @@ $page_title = 'Administração';
 
 // Stats
 $total_locais     = (int)db()->query('SELECT COUNT(*) FROM locais WHERE estado="aprovado"')->fetchColumn();
-$total_pendentes  = (int)db()->query('SELECT COUNT(*) FROM locais WHERE estado="pendente"')->fetchColumn();
 $total_users      = (int)db()->query('SELECT COUNT(*) FROM utilizadores WHERE ativo=1 AND role="user"')->fetchColumn();
 $total_comentarios= (int)db()->query('SELECT COUNT(*) FROM comentarios')->fetchColumn();
 $total_denuncias  = (int)db()->query('SELECT COUNT(*) FROM denuncias WHERE resolvida=0')->fetchColumn();
+$total_bloqueados = (int)db()->query('SELECT COUNT(*) FROM locais WHERE bloqueado=1')->fetchColumn();
+$total_suspensos  = (int)db()->query('SELECT COUNT(*) FROM utilizadores WHERE ativo=0 AND role="user"')->fetchColumn();
 
 $pendentes = get_pendentes();
 
@@ -30,13 +30,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         header('Location: ' . SITE_URL . '/admin/index.php');
         exit;
     }
-
     if (isset($_POST['moderar_denuncia_item'])) {
-        $tipo = (string)($_POST['tipo'] ?? '');
-        $ref_id = (int)($_POST['ref_id'] ?? 0);
-        $acao = (string)($_POST['acao'] ?? '');
-        $ok = moderar_denuncias_item($tipo, $ref_id, $acao === 'bloquear');
-
+        $tipo   = (string)($_POST['tipo']   ?? '');
+        $ref_id = (int)($_POST['ref_id']    ?? 0);
+        $acao   = (string)($_POST['acao']   ?? '');
+        $ok     = moderar_denuncias_item($tipo, $ref_id, $acao === 'bloquear');
         if ($ok) {
             flash('success', $acao === 'bloquear' ? 'Conteudo bloqueado e denuncias resolvidas.' : 'Conteudo permitido e denuncias resolvidas.');
         } else {
@@ -75,24 +73,43 @@ include dirname(__DIR__) . '/includes/header.php';
   <main class="admin-content">
     <h1 class="admin-title"><i class="fas fa-tachometer-alt"></i> Dashboard</h1>
 
-    <!-- Stats -->
-    <div class="admin-cards">
+    <!-- Stats — 6 cards -->
+    <div class="admin-cards" style="grid-template-columns: repeat(6, 1fr);">
+
       <div class="admin-stat-card">
         <div class="num"><?= $total_locais ?></div>
         <div class="lbl">Locais Aprovados</div>
       </div>
+
       <div class="admin-stat-card" style="border-color:var(--dourado);">
         <div class="num" style="color:var(--dourado);"><?= $total_users ?></div>
         <div class="lbl">Utilizadores</div>
       </div>
+
       <div class="admin-stat-card" style="border-color:var(--verde-claro);">
         <div class="num" style="color:var(--verde-claro);"><?= $total_comentarios ?></div>
         <div class="lbl">Comentários</div>
       </div>
+
       <div class="admin-stat-card" style="border-color:#e74c3c;">
         <div class="num" style="color:#e74c3c;"><?= $total_denuncias ?></div>
         <div class="lbl">Denúncias Abertas</div>
       </div>
+
+      <a href="<?= SITE_URL ?>/admin/locais.php?bloqueado=1" style="text-decoration:none;">
+        <div class="admin-stat-card" style="border-color:#8e44ad; cursor:pointer;">
+          <div class="num" style="color:#8e44ad;"><?= $total_bloqueados ?></div>
+          <div class="lbl">Locais Bloqueados</div>
+        </div>
+      </a>
+
+      <a href="<?= SITE_URL ?>/admin/utilizadores.php?suspensos=1" style="text-decoration:none;">
+        <div class="admin-stat-card" style="border-color:#e67e22; cursor:pointer;">
+          <div class="num" style="color:#e67e22;"><?= $total_suspensos ?></div>
+          <div class="lbl">Utilizadores Suspensos</div>
+        </div>
+      </a>
+
     </div>
 
     <!-- DENÚNCIAS -->
@@ -130,9 +147,9 @@ include dirname(__DIR__) . '/includes/header.php';
           <td><?= date('d/m/Y', strtotime($den['criado_em'])) ?></td>
           <td>
             <form method="POST" style="display:inline;">
-              <input type="hidden" name="tipo" value="<?= h($den['tipo']) ?>">
+              <input type="hidden" name="tipo"   value="<?= h($den['tipo']) ?>">
               <input type="hidden" name="ref_id" value="<?= (int)$den['referencia_id'] ?>">
-              <input type="hidden" name="acao" value="<?= $bloqueado ? 'permitir' : 'bloquear' ?>">
+              <input type="hidden" name="acao"   value="<?= $bloqueado ? 'permitir' : 'bloquear' ?>">
               <button type="submit" name="moderar_denuncia_item" class="btn btn-sm <?= $bloqueado ? 'btn-verde' : 'btn-danger' ?>">
                 <?= $bloqueado ? 'Permitir' : 'Bloquear' ?>
               </button>
@@ -145,6 +162,7 @@ include dirname(__DIR__) . '/includes/header.php';
     <?php else: ?>
       <div class="empty-state" style="padding:2rem;"><i class="fas fa-shield-alt"></i><h3>Sem denúncias abertas</h3></div>
     <?php endif; ?>
+
   </main>
 </div>
 </div>
@@ -172,30 +190,39 @@ include dirname(__DIR__) . '/includes/header.php';
 
 <script>
 function abrirConteudoDenuncia(btn) {
-  const tipo = btn.getAttribute('data-tipo') || '';
-  const ref = btn.getAttribute('data-ref') || '';
-  const preview = btn.getAttribute('data-preview') || '[indisponivel]';
-  const conteudo = btn.getAttribute('data-conteudo') || '[indisponivel]';
-  const link = btn.getAttribute('data-link') || '';
+  const tipo     = btn.getAttribute('data-tipo')    || '';
+  const ref      = btn.getAttribute('data-ref')     || '';
+  const preview  = btn.getAttribute('data-preview') || '[indisponivel]';
+  const conteudo = btn.getAttribute('data-conteudo')|| '[indisponivel]';
+  const link     = btn.getAttribute('data-link')    || '';
 
-  document.getElementById('denuncia-meta').textContent = tipo + ' ' + ref;
-  document.getElementById('denuncia-preview').textContent = preview;
+  document.getElementById('denuncia-meta').textContent     = tipo + ' ' + ref;
+  document.getElementById('denuncia-preview').textContent  = preview;
   document.getElementById('denuncia-conteudo').textContent = conteudo;
 
   const linkEl = document.getElementById('denuncia-link');
-  if (link) {
-    linkEl.href = link;
-    linkEl.style.display = 'inline-flex';
-  } else {
-    linkEl.style.display = 'none';
-  }
+  if (link) { linkEl.href = link; linkEl.style.display = 'inline-flex'; }
+  else       { linkEl.style.display = 'none'; }
 
   document.getElementById('modal-conteudo-denuncia').style.display = 'flex';
 }
-
 function fecharConteudoDenuncia() {
   document.getElementById('modal-conteudo-denuncia').style.display = 'none';
 }
 </script>
+
+<style>
+a:has(.admin-stat-card) {
+  display: block;
+  border-radius: inherit;
+}
+a:has(.admin-stat-card) .admin-stat-card {
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+a:has(.admin-stat-card):hover .admin-stat-card {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 24px rgba(0,0,0,.13);
+}
+</style>
 
 <?php include dirname(__DIR__) . '/includes/footer.php'; ?>

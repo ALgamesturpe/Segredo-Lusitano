@@ -1,7 +1,6 @@
 <?php
 
-//SEGREDO LUSITANO — Admin: Gerir Locais
-
+// SEGREDO LUSITANO — Admin: Gerir Locais
 require_once dirname(__DIR__) . '/includes/functions.php';
 require_admin();
 
@@ -15,8 +14,16 @@ if (isset($_GET['apagar'])) {
     exit;
 }
 
-$estado = $_GET['estado'] ?? '';
-$where  = $estado ? 'WHERE l.estado = "' . $estado . '"' : '';
+$estado    = $_GET['estado']    ?? '';
+$bloqueado = isset($_GET['bloqueado']) && $_GET['bloqueado'] === '1';
+
+if ($bloqueado) {
+    $where = 'WHERE l.bloqueado = 1';
+} elseif ($estado) {
+    $where = 'WHERE l.estado = "' . $estado . '"';
+} else {
+    $where = '';
+}
 
 $st = db()->query(
     "SELECT l.*, c.nome AS categoria_nome, r.nome AS regiao_nome, u.username
@@ -47,15 +54,20 @@ include dirname(__DIR__) . '/includes/header.php';
   <main class="admin-content">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem;">
       <h1 class="admin-title" style="margin:0;"><i class="fas fa-map-pin"></i> Gerir Locais</h1>
-      <div style="display:flex;gap:.5rem;">
-        <a href="?" class="btn btn-sm <?= !$estado ? 'btn-verde' : '' ?>" style="<?= $estado ? 'border:1px solid var(--creme-escuro);color:var(--texto-muted);' : '' ?>">Todos</a>
-        <a href="?estado=aprovado"  class="btn btn-sm <?= $estado==='aprovado' ? 'btn-verde' : '' ?>" style="<?= $estado!=='aprovado' ? 'border:1px solid var(--creme-escuro);color:var(--texto-muted);' : '' ?>">Aprovados</a>
-        <a href="?estado=rejeitado" class="btn btn-sm <?= $estado==='rejeitado' ? 'btn-danger' : '' ?>" style="<?= $estado!=='rejeitado' ? 'border:1px solid var(--creme-escuro);color:var(--texto-muted);' : '' ?>">Rejeitados</a>
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
+        <a href="?" class="btn btn-sm <?= (!$estado && !$bloqueado) ? 'btn-verde' : '' ?>"
+           style="<?= ($estado || $bloqueado) ? 'border:1px solid var(--creme-escuro);color:var(--texto-muted);' : '' ?>">Todos</a>
+        <a href="?estado=aprovado" class="btn btn-sm <?= $estado==='aprovado' ? 'btn-verde' : '' ?>"
+           style="<?= $estado!=='aprovado' ? 'border:1px solid var(--creme-escuro);color:var(--texto-muted);' : '' ?>">Aprovados</a>
+        <a href="?estado=rejeitado" class="btn btn-sm <?= $estado==='rejeitado' ? 'btn-danger' : '' ?>"
+           style="<?= $estado!=='rejeitado' ? 'border:1px solid var(--creme-escuro);color:var(--texto-muted);' : '' ?>">Rejeitados</a>
+        <a href="?bloqueado=1" class="btn btn-sm"
+           style="<?= $bloqueado ? 'background:#8e44ad;color:#fff;border:none;' : 'border:1px solid var(--creme-escuro);color:var(--texto-muted);' ?>">Bloqueados</a>
       </div>
     </div>
 
     <table class="data-table">
-      <thead><tr><th>Nome</th><th>Utilizador</th><th>Categoria</th><th>Estado</th><th>Vistas</th><th>Data</th><th>Ações</th></tr></thead>
+      <thead><tr><th>Nome</th><th>Utilizador</th><th>Categoria</th><th>Estado</th><th>Bloqueado</th><th>Vistas</th><th>Data</th><th>Ações</th></tr></thead>
       <tbody>
         <?php foreach ($locais as $l): ?>
         <tr>
@@ -63,6 +75,13 @@ include dirname(__DIR__) . '/includes/header.php';
           <td>@<?= h($l['username']) ?></td>
           <td><?= h($l['categoria_nome']) ?></td>
           <td><span class="badge badge-<?= $l['estado'] ?>"><?= ucfirst($l['estado']) ?></span></td>
+          <td>
+            <?php if ((int)$l['bloqueado'] === 1): ?>
+              <span class="badge badge-rejeitado">Bloqueado</span>
+            <?php else: ?>
+              <span style="color:var(--texto-muted);font-size:.85rem;">—</span>
+            <?php endif; ?>
+          </td>
           <td><?= number_format($l['vistas']) ?></td>
           <td><?= date('d/m/Y', strtotime($l['criado_em'])) ?></td>
           <td style="display:flex;gap:.5rem;flex-wrap:wrap;">
@@ -72,14 +91,14 @@ include dirname(__DIR__) . '/includes/header.php';
               <form method="POST" action="<?= SITE_URL ?>/admin/index.php" style="display:inline;">
                 <input type="hidden" name="local_id" value="<?= $l['id'] ?>">
                 <input type="hidden" name="estado" value="aprovado">
-                <button type="submit" name="moderar" class="btn btn-sm btn-primary btn-sm"><i class="fas fa-check"></i></button>
+                <button type="submit" name="moderar" class="btn btn-sm btn-primary"><i class="fas fa-check"></i></button>
               </form>
             <?php endif; ?>
           </td>
         </tr>
         <?php endforeach; ?>
         <?php if (!$locais): ?>
-          <tr><td colspan="7" style="text-align:center;color:var(--texto-muted);padding:2rem;">Sem locais.</td></tr>
+          <tr><td colspan="8" style="text-align:center;color:var(--texto-muted);padding:2rem;">Sem locais.</td></tr>
         <?php endif; ?>
       </tbody>
     </table>
