@@ -1,3 +1,4 @@
+@ -1,110 +1,110 @@
 <?php
 // SEGREDO LUSITANO — Página Inicial
 require_once __DIR__ . '/includes/functions.php';
@@ -95,6 +96,7 @@ include __DIR__ . '/includes/header.php';
       </div>
       <?php if (!auth_user()): ?>
       <a href="<?= SITE_URL ?>/pages/registo.php" class="btn btn-primary" style="font-size:1.05rem;">
+        <i class="fas fa-rocket"></i> Criar Conta Grátis
         <i class="fas fa-rocket"></i> Criar Conta
       </a>
       <?php else: ?>

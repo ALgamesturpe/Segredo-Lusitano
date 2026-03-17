@@ -187,7 +187,7 @@ function email_template(string $nome, string $codigo, string $tipo): string {
     $titulo = $tipo === 'login' ? 'Código de Acesso' : 'Confirma a tua Conta';
     $msg    = $tipo === 'login'
         ? 'Usa este código para concluir o teu início de sessão.'
-        : 'Usa este código para ativar a tua conta de explorador.';
+        : 'Usa este código para ativar a tua conta.';
 
     // Código dividido em dígitos individuais para melhor visual
     $digitos = '';
@@ -211,7 +211,7 @@ function email_template(string $nome, string $codigo, string $tipo): string {
         <tr>
           <td style='background:#1a3a2a;padding:32px;text-align:center;border-bottom:3px solid #c9a84c;'>
             <div style='font-family:Georgia,serif;font-size:1.5rem;color:#c9a84c;font-weight:700;letter-spacing:.05em;'>
-              🧭 Segredo Lusitano
+              Segredo Lusitano
             </div>
             <div style='color:#a8c5b0;font-size:.85rem;margin-top:.4rem;'>Descobre o Portugal escondido</div>
           </td>
@@ -227,10 +227,10 @@ function email_template(string $nome, string $codigo, string $tipo): string {
             <div style='margin:1.5rem 0;'>$digitos</div>
 
             <p style='color:#888;font-size:.85rem;margin:1.5rem 0 0;'>
-              ⏱ Este código expira em <strong>15 minutos</strong>.
+              Este código expira em <strong>15 minutos</strong>.
             </p>
             <p style='color:#aaa;font-size:.8rem;margin:.5rem 0 0;'>
-              Se não foste tu, ignora este email.
+              Se não foste tu, ignora este email.   
             </p>
           </td>
         </tr>

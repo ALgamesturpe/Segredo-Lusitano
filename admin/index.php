@@ -64,14 +64,12 @@ include dirname(__DIR__) . '/includes/header.php';
       <a href="<?= SITE_URL ?>/admin/utilizadores.php"><i class="fas fa-users"></i> Utilizadores</a>
       <div class="nav-section">Moderação</div>
       <a href="#denuncias"><i class="fas fa-flag"></i> Denúncias <span style="background:#e74c3c;color:#fff;padding:.1rem .4rem;border-radius:50px;font-size:.7rem;margin-left:.25rem;"><?= $total_denuncias ?></span></a>
-      <div class="nav-section">Site</div>
-      <a href="<?= SITE_URL ?>/index.php"><i class="fas fa-external-link-alt"></i> Ver Site</a>
     </nav>
   </aside>
 
   <!-- CONTEÚDO -->
   <main class="admin-content">
-    <h1 class="admin-title"><i class="fas fa-tachometer-alt"></i> Dashboard</h1>
+    <h1 class="admin-title">Dashboard</h1>
 
     <!-- Stats — 6 cards -->
     <div class="admin-cards" style="grid-template-columns: repeat(6, 1fr);">
@@ -114,7 +112,7 @@ include dirname(__DIR__) . '/includes/header.php';
 
     <!-- DENÚNCIAS -->
     <h2 style="font-size:1.3rem; margin-bottom:1rem;" id="denuncias">
-      <i class="fas fa-flag"></i> Denúncias Abertas
+      Denúncias Abertas
     </h2>
     <?php if ($denuncias): ?>
     <table class="data-table">

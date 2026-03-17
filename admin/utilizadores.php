@@ -12,7 +12,7 @@ if (isset($_GET['toggle'])) {
     $st->execute([$uid]);
     $row = $st->fetch();
     if ($row) {
-        db()->prepare('UPDATE utilizadores SET ativo=? WHERE id=?')->execute([!$row['ativo'], $uid]);
+        db()->prepare('UPDATE utilizadores SET ativo=0 WHERE id=?')->execute([$uid]);
     }
     flash('success', 'Utilizador atualizado.');
     $redirect = isset($_GET['suspensos']) ? '?suspensos=1' : '';
@@ -44,7 +44,6 @@ include dirname(__DIR__) . '/includes/header.php';
       <a href="<?= SITE_URL ?>/admin/index.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
       <a href="<?= SITE_URL ?>/admin/locais.php"><i class="fas fa-map-pin"></i> Locais</a>
       <a href="<?= SITE_URL ?>/admin/utilizadores.php" class="active"><i class="fas fa-users"></i> Utilizadores</a>
-      <a href="<?= SITE_URL ?>/index.php"><i class="fas fa-external-link-alt"></i> Ver Site</a>
     </nav>
   </aside>
   <main class="admin-content">
