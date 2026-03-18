@@ -52,7 +52,7 @@ include dirname(__DIR__) . '/includes/header.php';
   </aside>
   <main class="admin-content">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem;">
-      <h1 class="admin-title" style="margin:0;"><i class="fas fa-map-pin"></i> Gerir Locais</h1>
+      <h1 class="admin-title" style="margin:0;">Gerir Locais</h1>
       <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
         <a href="?" class="btn btn-sm <?= (!$estado && !$bloqueado) ? 'btn-verde' : '' ?>"
            style="<?= ($estado || $bloqueado) ? 'border:1px solid var(--creme-escuro);color:var(--texto-muted);' : '' ?>">Todos</a>

@@ -59,11 +59,12 @@ include dirname(__DIR__) . '/includes/header.php';
     </div>
     <nav class="admin-nav">
       <div class="nav-section">Geral</div>
-      <a href="<?= SITE_URL ?>/admin/index.php" class="active"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+      <a href="<?= SITE_URL ?>/admin/index.php" class="active"><i class="fa-solid fa-location-dot"></i>Dashboard</a>
       <a href="<?= SITE_URL ?>/admin/locais.php"><i class="fas fa-map-pin"></i> Locais</a>
       <a href="<?= SITE_URL ?>/admin/utilizadores.php"><i class="fas fa-users"></i> Utilizadores</a>
       <div class="nav-section">Moderação</div>
       <a href="#denuncias"><i class="fas fa-flag"></i> Denúncias <span style="background:#e74c3c;color:#fff;padding:.1rem .4rem;border-radius:50px;font-size:.7rem;margin-left:.25rem;"><?= $total_denuncias ?></span></a>
+      <div class="nav-section">Site</div>
     </nav>
   </aside>
 
@@ -74,25 +75,31 @@ include dirname(__DIR__) . '/includes/header.php';
     <!-- Stats — 6 cards -->
     <div class="admin-cards" style="grid-template-columns: repeat(6, 1fr);">
 
-      <div class="admin-stat-card">
-        <div class="num"><?= $total_locais ?></div>
-        <div class="lbl">Locais Aprovados</div>
-      </div>
+      <a href="<?= SITE_URL ?>/admin/locais.php" style="text-decoration:none;">
+        <div class="admin-stat-card" style="cursor:pointer;">
+          <div class="num"><?= $total_locais ?></div>
+          <div class="lbl">Locais Aprovados</div>
+        </div>
+      </a>
 
-      <div class="admin-stat-card" style="border-color:var(--dourado);">
-        <div class="num" style="color:var(--dourado);"><?= $total_users ?></div>
-        <div class="lbl">Utilizadores</div>
-      </div>
+      <a href="<?= SITE_URL ?>/admin/utilizadores.php" style="text-decoration:none;">
+        <div class="admin-stat-card" style="border-color:var(--dourado); cursor:pointer;">
+          <div class="num" style="color:var(--dourado);"><?= $total_users ?></div>
+          <div class="lbl">Utilizadores</div>
+        </div>
+      </a>
 
       <div class="admin-stat-card" style="border-color:var(--verde-claro);">
         <div class="num" style="color:var(--verde-claro);"><?= $total_comentarios ?></div>
         <div class="lbl">Comentários</div>
       </div>
 
-      <div class="admin-stat-card" style="border-color:#e74c3c;">
-        <div class="num" style="color:#e74c3c;"><?= $total_denuncias ?></div>
-        <div class="lbl">Denúncias Abertas</div>
-      </div>
+      <a href="#denuncias" style="text-decoration:none;">
+        <div class="admin-stat-card" style="border-color:#e74c3c; cursor:pointer;">
+          <div class="num" style="color:#e74c3c;"><?= $total_denuncias ?></div>
+          <div class="lbl">Denúncias Abertas</div>
+        </div>
+      </a>
 
       <a href="<?= SITE_URL ?>/admin/locais.php?bloqueado=1" style="text-decoration:none;">
         <div class="admin-stat-card" style="border-color:#8e44ad; cursor:pointer;">
@@ -112,7 +119,7 @@ include dirname(__DIR__) . '/includes/header.php';
 
     <!-- DENÚNCIAS -->
     <h2 style="font-size:1.3rem; margin-bottom:1rem;" id="denuncias">
-      Denúncias Abertas
+      <i class="fas fa-flag"></i> Denúncias Abertas
     </h2>
     <?php if ($denuncias): ?>
     <table class="data-table">

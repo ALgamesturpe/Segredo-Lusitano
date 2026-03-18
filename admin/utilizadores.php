@@ -12,16 +12,23 @@ if (isset($_GET['toggle'])) {
     $st->execute([$uid]);
     $row = $st->fetch();
     if ($row) {
-        db()->prepare('UPDATE utilizadores SET ativo=0 WHERE id=?')->execute([$uid]);
+        $novo_estado = (int)!$row['ativo'];
+        db()->prepare('UPDATE utilizadores SET ativo=? WHERE id=?')->execute([$novo_estado, $uid]);
+        flash('success', $novo_estado ? 'Conta reativada com sucesso.' : 'Conta suspensa com sucesso.');
     }
-    flash('success', 'Utilizador atualizado.');
-    $redirect = isset($_GET['suspensos']) ? '?suspensos=1' : '';
+    // Se reativou e estava no filtro suspensos, vai para Todos para ver o utilizador
+    $redirect = (!$row['ativo'] && isset($_GET['suspensos'])) ? '?suspensos=1' : '';
     header('Location: ' . SITE_URL . '/admin/utilizadores.php' . $redirect);
     exit;
 }
 
 $suspensos = isset($_GET['suspensos']) && $_GET['suspensos'] === '1';
-$where = $suspensos ? 'WHERE u.ativo = 0 AND u.role = "user"' : '';
+
+if ($suspensos) {
+    $where = 'WHERE u.ativo = 0 AND u.role = "user"';
+} else {
+    $where = 'WHERE u.role != "[deleted]"';
+}
 
 $st = db()->query(
     "SELECT u.*, (SELECT COUNT(*) FROM locais WHERE utilizador_id=u.id AND estado='aprovado') AS total_locais
