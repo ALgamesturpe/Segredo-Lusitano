@@ -15,14 +15,14 @@ include __DIR__ . '/includes/header.php';
 
 <main>
   <!-- HERO -->
-  <section class="hero" style="background: url('<?= SITE_URL ?>/assets/images/hero_bg.jpg?v=15') center/cover no-repeat;">
+  <section class="hero" style="background: url('<?= SITE_URL ?>/assets/images/imagem_fundo.jpg?v=15') center/cover no-repeat;">
     <div class="hero-content">
       <div class="hero-logo-wrap">
         <img src="<?= SITE_URL ?>/assets/images/logo_icon.png" alt="Segredo Lusitano" class="hero-logo-img" style="height:180px;width:180px;max-width:180px;object-fit:contain;display:block;margin:0 auto;">
       </div>
       <h1>O Portugal que os<br><em>mapas não mostram</em></h1>
       <div class="hero-actions">
-        <a href="<?= SITE_URL ?>/pages/explorar.php" class="btn btn-primary"><i class="fas fa-compass"></i> Explorar Locais</a>
+        <a href="<?= SITE_URL ?>/pages/explorar.php" class="btn btn-primary"><i class="fa-solid fa-earth-americas"></i> Explorar Locais</a>
         <a href="<?= SITE_URL ?>/pages/mapa.php"     class="btn btn-outline"><i class="fas fa-map"></i> Ver no Mapa</a>
       </div>
     </div>
