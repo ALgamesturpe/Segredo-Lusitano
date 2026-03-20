@@ -14,6 +14,22 @@ $total_denuncias  = (int)db()->query('SELECT COUNT(*) FROM denuncias WHERE resol
 $total_bloqueados = (int)db()->query('SELECT COUNT(*) FROM locais WHERE bloqueado=1')->fetchColumn();
 $total_suspensos  = (int)db()->query('SELECT COUNT(*) FROM utilizadores WHERE ativo=0 AND role="user"')->fetchColumn();
 
+// ── GRÁFICO: publicações por mês ──────────────────────────
+$ano_atual       = date('Y');
+$ano_selecionado = isset($_GET['ano']) ? (int)$_GET['ano'] : $ano_atual;
+if ($ano_selecionado < 2020 || $ano_selecionado > $ano_atual) $ano_selecionado = $ano_atual;
+
+$st_g = db()->prepare(
+    'SELECT MONTH(criado_em) AS mes, COUNT(*) AS total
+     FROM locais WHERE YEAR(criado_em) = ? AND estado = "aprovado"
+     GROUP BY MONTH(criado_em) ORDER BY mes ASC'
+);
+$st_g->execute([$ano_selecionado]);
+$dados_g = array_fill(1, 12, 0);
+foreach ($st_g->fetchAll() as $r) $dados_g[(int)$r['mes']] = (int)$r['total'];
+$grafico_json = json_encode(array_values($dados_g));
+// ─────────────────────────────────────────────────────────
+
 $pendentes = get_pendentes();
 
 // Ações de moderação
@@ -59,18 +75,37 @@ include dirname(__DIR__) . '/includes/header.php';
     </div>
     <nav class="admin-nav">
       <div class="nav-section">Geral</div>
-      <a href="<?= SITE_URL ?>/admin/index.php" class="active"><i class="fa-solid fa-location-dot"></i>Dashboard</a>
-      <a href="<?= SITE_URL ?>/admin/locais.php"><i class="fas fa-map-pin"></i> Locais</a>
+      <a href="<?= SITE_URL ?>/admin/index.php" class="active"><i class="fas fa-tachometer-alt"></i>Dashboard</a>
+      <a href="<?= SITE_URL ?>/admin/locais.php"><i class="fa-solid fa-location-dot"></i> Locais</a>
       <a href="<?= SITE_URL ?>/admin/utilizadores.php"><i class="fas fa-users"></i> Utilizadores</a>
       <div class="nav-section">Moderação</div>
       <a href="#denuncias"><i class="fas fa-flag"></i> Denúncias <span style="background:#e74c3c;color:#fff;padding:.1rem .4rem;border-radius:50px;font-size:.7rem;margin-left:.25rem;"><?= $total_denuncias ?></span></a>
-      <div class="nav-section">Site</div>
     </nav>
   </aside>
 
   <!-- CONTEÚDO -->
   <main class="admin-content">
     <h1 class="admin-title">Dashboard</h1>
+
+    <!-- GRÁFICO DE PUBLICAÇÕES -->
+    <div style="background:var(--branco); border-radius:var(--radius-lg); box-shadow:var(--sombra-sm); padding:1.75rem; margin-bottom:2rem;">
+      <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1rem; margin-bottom:1.25rem;">
+        <div style="display:flex; align-items:center; gap:.6rem;">
+          <i class="fa-solid fa-chart-column" style="color:var(--dourado); font-size:1.1rem;"></i>
+          <h2 style="font-size:1.15rem; margin:0;">Publicações por Mês</h2>
+        </div>
+        <form method="GET" style="display:flex; align-items:center; gap:.5rem;">
+          <label style="font-size:.85rem; color:var(--texto-muted);">Ano:</label>
+          <select name="ano" onchange="this.form.submit()"
+                  style="padding:.3rem .75rem; border:1.5px solid var(--creme-escuro); border-radius:8px; background:var(--creme); font-size:.9rem; color:var(--texto); cursor:pointer;">
+            <?php for ($y = $ano_atual; $y >= 2024; $y--): ?>
+              <option value="<?= $y ?>" <?= $y === $ano_selecionado ? 'selected' : '' ?>><?= $y ?></option>
+            <?php endfor; ?>
+          </select>
+        </form>
+      </div>
+      <canvas id="grafico-publicacoes" height="45"></canvas>
+    </div>
 
     <!-- Stats — 6 cards -->
     <div class="admin-cards" style="grid-template-columns: repeat(6, 1fr);">
@@ -214,6 +249,53 @@ function abrirConteudoDenuncia(btn) {
 function fecharConteudoDenuncia() {
   document.getElementById('modal-conteudo-denuncia').style.display = 'none';
 }
+</script>
+
+<!-- Chart.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+(function() {
+  const meses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const dados = <?= $grafico_json ?>;
+  const ctx = document.getElementById('grafico-publicacoes').getContext('2d');
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: meses,
+      datasets: [{
+        label: 'Publicações',
+        data: dados,
+        backgroundColor: 'rgba(201,168,76,0.25)',
+        borderColor: '#c9a84c',
+        borderWidth: 2,
+        borderRadius: 6,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => ' ' + ctx.parsed.y + ' publicação' + (ctx.parsed.y !== 1 ? 'ões' : '')
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: { font: { family: 'Outfit', size: 12 }, color: '#6b7280' }
+        },
+        y: {
+          beginAtZero: true,
+          ticks: { stepSize: 1, precision: 0, font: { family: 'Outfit', size: 12 }, color: '#6b7280' },
+          grid: { color: 'rgba(0,0,0,.06)' }
+        }
+      }
+    }
+  });
+})();
 </script>
 
 <style>

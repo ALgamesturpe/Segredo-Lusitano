@@ -49,7 +49,7 @@ include dirname(__DIR__) . '/includes/header.php';
     </div>
     <nav class="admin-nav">
       <a href="<?= SITE_URL ?>/admin/index.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
-      <a href="<?= SITE_URL ?>/admin/locais.php"><i class="fas fa-map-pin"></i> Locais</a>
+      <a href="<?= SITE_URL ?>/admin/locais.php"><i class="fa-solid fa-location-dot"></i> Locais</a>
       <a href="<?= SITE_URL ?>/admin/utilizadores.php" class="active"><i class="fas fa-users"></i> Utilizadores</a>
     </nav>
   </aside>

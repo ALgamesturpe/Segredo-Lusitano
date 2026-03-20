@@ -52,7 +52,7 @@ $page_title = $page_title ?? SITE_NAME;
 
     <ul class="nav-links" id="nav-links">
       <li><a href="<?= SITE_URL ?>/index.php"><i class="fas fa-home"></i> Início</a></li>
-      <li><a href="<?= SITE_URL ?>/pages/explorar.php"><i class="fas fa-compass"></i> Explorar</a></li>
+      <li><a href="<?= SITE_URL ?>/pages/explorar.php"><i class="fa-solid fa-earth-americas"></i> Explorar</a></li>
       <li><a href="<?= SITE_URL ?>/pages/mapa.php"><i class="fas fa-map"></i> Mapa</a></li>
       <li><a href="<?= SITE_URL ?>/pages/ranking.php"><i class="fas fa-trophy"></i> Ranking</a></li>
 
