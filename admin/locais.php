@@ -6,6 +6,7 @@ require_admin();
 
 $page_title = 'Admin · Locais';
 
+
 // Apagar
 if (isset($_GET['apagar'])) {
     delete_local((int)$_GET['apagar']);
@@ -40,12 +41,13 @@ include dirname(__DIR__) . '/includes/header.php';
 
 <div class="page-content">
 <div class="admin-wrapper">
-  <aside class="admin-sidebar">
-    <div style="color:var(--dourado);font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;margin-bottom:1.5rem;padding:.5rem .85rem;">
+ <aside class="admin-sidebar">
+    <div style="color:var(--dourado); font-family:'Playfair Display',serif; font-size:1.1rem; font-weight:700; margin-bottom:1.5rem; padding:.5rem .85rem;">
       <i class="fas fa-shield-alt"></i> Administração
     </div>
     <nav class="admin-nav">
-      <a href="<?= SITE_URL ?>/admin/index.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+      <div class="nav-section">Geral</div>
+      <a href="<?= SITE_URL ?>/admin/index.php"><i class="fas fa-tachometer-alt"></i>Dashboard</a>
       <a href="<?= SITE_URL ?>/admin/locais.php" class="active"><i class="fa-solid fa-location-dot"></i> Locais</a>
       <a href="<?= SITE_URL ?>/admin/utilizadores.php"><i class="fas fa-users"></i> Utilizadores</a>
     </nav>
