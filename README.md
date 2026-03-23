@@ -30,7 +30,7 @@ define('DB_HOST', 'localhost');
 define('DB_USER', 'root');       // o teu utilizador MySQL
 define('DB_PASS', '');            // a tua password (em branco no XAMPP por defeito)
 define('DB_NAME', 'segredo_lusitano');
-define('SITE_URL', 'http://localhost/segredo_lusitano');
+define('SITE_URL', 'http://localhost/Segredo_Susitano');
 ```
 
 ## 5. Permissões da pasta uploads

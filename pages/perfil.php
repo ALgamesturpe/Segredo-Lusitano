@@ -70,7 +70,7 @@ include dirname(__DIR__) . '/includes/header.php';
   <h1 class="perfil-nome"><?= h($perfil['nome']) ?></h1>
   <p class="perfil-username"><?= h($perfil['username']) ?> &middot; Explorador nº <?= $rank_pos ?></p>
   <?php if ($perfil['bio']): ?>
-    <p class="perfil-bio text-wrap-anywhere"><?= h($perfil['bio']) ?></p>
+    <p class="perfil-bio text-wrap-anywhere"><?= nl2br(h($perfil['bio'])) ?></p>
   <?php endif; ?>
   <?php if ($is_own): ?>
     <div style="margin-bottom:1rem;">

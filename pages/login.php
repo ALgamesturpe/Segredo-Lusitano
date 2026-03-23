@@ -148,9 +148,7 @@ function handleGoogleSignIn(response) {
       window.location.href = data.redirect;
     } else {
       msg.textContent = data.msg || 'Erro ao iniciar sessão com Google.';
-      if (data.debug) {
-        msg.textContent += ' (Debug: ' + data.debug + ')';
-      }
+      
       msg.style.display = 'block';
       console.error('Google Sign-In error:', data);
     }

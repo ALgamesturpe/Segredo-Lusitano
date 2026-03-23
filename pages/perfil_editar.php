@@ -192,4 +192,15 @@ include dirname(__DIR__) . '/includes/header.php';
 })();
 </script>
 
+<script>
+document.getElementById('bio').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+        const enters = (this.value.match(/\n/g) || []).length;
+        if (enters >= 5) {
+            e.preventDefault();
+        }
+    }
+});
+</script>
+
 <?php include dirname(__DIR__) . '/includes/footer.php'; ?>

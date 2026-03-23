@@ -123,6 +123,11 @@ try {
     $st->execute([$google_email]);
     $user = $st->fetch();
 
+    if ($user && !$user['ativo']) {
+        echo json_encode(['ok' => false, 'msg' => 'Conta suspensa. Contacta o administrador.']);
+        exit;
+    }
+
     if ($user) {
         // Já tem conta — iniciar sessão diretamente
         // Marcar como verificado se ainda não estava
@@ -160,7 +165,7 @@ try {
     error_log('Google OAuth DB error: ' . $e->getMessage());
     echo json_encode([
         'ok' => false,
-        'msg' => 'Erro ao guardar dados do utilizador.',
+        'msg' => 'Conta bloqueada pelo administrador',
         'debug' => $is_localhost ? $e->getMessage() : null
     ]);
     exit;
