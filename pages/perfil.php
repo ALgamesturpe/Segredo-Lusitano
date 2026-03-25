@@ -138,8 +138,8 @@ include dirname(__DIR__) . '/includes/header.php';
     <!-- Apagar conta -->
     <?php if ($is_own): ?>
     <div style="margin-top:4rem; padding:1.5rem; border:1.5px solid #e74c3c; border-radius:var(--radius); max-width:300px;">
-      <h3 style="color:#c0392b; margin-bottom:.5rem;"></i> Zona de Perigo</h3>
-      <p style="font-size:.9rem; color:var(--texto-muted); margin-bottom:1rem;">Todos os teus dados serão removidos.</p>
+      <h3 style="color:#c0392b; margin-bottom:.5rem;"></i> Zona de Perigo </h3>
+      <p style="font-size:.9rem; color:var(--texto-muted); margin-bottom:1rem;">Todos os teus dados serão apagados</p>
       <form method="POST" onsubmit="return confirm('Tens a certeza?');">
         <input type="hidden" name="apagar_conta" value="1">
         <button type="submit" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i> Apagar a Minha Conta</button>

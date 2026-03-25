@@ -314,26 +314,44 @@ include dirname(__DIR__) . '/includes/header.php';
 </section>
 
 <!-- MODAL DENUNCIA -->
+<!-- MODAL DENUNCIA -->
 <div id="modal-denuncia" style="display:none; position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:3000;align-items:center;justify-content:center;padding:1rem;">
-  <div style="background:#fff;border-radius:var(--radius-lg);padding:2rem;max-width:460px;width:100%;">
-    <h3 style="margin-bottom:1rem;"><i class="fas fa-flag"></i> <span id="denuncia-titulo">Denunciar</span></h3>
+  <div style="background:#fff;border-radius:var(--radius-lg);padding:2rem;max-width:460px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,.18);">
+    <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:1.25rem;">
+      <i class="fas fa-flag" style="color:#e74c3c;font-size:1.1rem;"></i>
+      <h3 style="margin:0;font-size:1.1rem;"><span id="denuncia-titulo">Denunciar</span></h3>
+    </div>
     <form method="POST">
       <input type="hidden" name="denunciar" value="1">
       <input type="hidden" name="tipo" id="denuncia-tipo" value="local">
       <input type="hidden" name="ref_id" id="denuncia-ref-id" value="<?= $id ?>">
 
-      <div class="form-group" style="margin-bottom:1rem;">
-        <label style="display:block;margin-bottom:.45rem;">Motivo</label>
-        <?php foreach ($motivos_denuncia as $valor => $rotulo): ?>
-          <label style="display:flex;align-items:center;gap:.5rem;margin-bottom:.35rem;">
-            <input type="radio" name="motivo" value="<?= h($valor) ?>" required>
-            <span><?= h($rotulo) ?></span>
-          </label>
-        <?php endforeach; ?>
+      <div style="margin-bottom:1.25rem;">
+        <p style="font-size:.85rem;color:var(--texto-muted);margin-bottom:.75rem;">Seleciona o motivo da denúncia:</p>
+        <div style="display:flex;flex-direction:column;gap:.5rem;">
+          <?php
+            $motivo_icones = [
+              'spam'             => 'fas fa-ban',
+              'discurso_odio'    => 'fas fa-angry',
+              'conteudo_sexual'  => 'fas fa-eye-slash',
+              'informacao_falsa' => 'fas fa-times-circle',
+            ];
+          ?>
+          <?php foreach ($motivos_denuncia as $valor => $rotulo): ?>
+            <label style="display:flex;align-items:center;gap:.75rem;padding:.75rem 1rem;border:1.5px solid var(--creme-escuro);border-radius:var(--radius);cursor:pointer;transition:border-color .15s,background .15s;"
+                   onmouseover="this.style.borderColor='var(--verde)';this.style.background='var(--creme)'"
+                   onmouseout="this.style.borderColor='var(--creme-escuro)';this.style.background='#fff'"
+                   onclick="this.style.borderColor='var(--verde)';this.style.background='var(--creme)'">
+              <input type="radio" name="motivo" value="<?= h($valor) ?>" required style="accent-color:var(--verde);width:16px;height:16px;flex-shrink:0;">
+              <i class="<?= $motivo_icones[$valor] ?? 'fas fa-flag' ?>" style="color:var(--verde);width:16px;text-align:center;flex-shrink:0;"></i>
+              <span style="font-size:.92rem;font-weight:500;"><?= h($rotulo) ?></span>
+            </label>
+          <?php endforeach; ?>
+        </div>
       </div>
 
       <div style="display:flex;gap:.75rem;">
-        <button type="submit" class="btn btn-danger">Enviar Denuncia</button>
+        <button type="submit" class="btn btn-danger" style="flex:1;justify-content:center;"><i class="fas fa-paper-plane"></i> Enviar Denúncia</button>
         <button type="button" onclick="document.getElementById('modal-denuncia').style.display='none'" class="btn" style="border:1px solid var(--creme-escuro);color:var(--texto-muted);">Cancelar</button>
       </div>
     </form>

@@ -1,7 +1,5 @@
 <?php
-// ============================================================
 // SEGREDO LUSITANO - Funções Auxiliares
-// ============================================================
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/auth.php';
 
@@ -9,8 +7,8 @@ require_once __DIR__ . '/auth.php';
 function motivos_denuncia(): array {
     return [
         'spam' => 'Spam',
-        'discurso_odio' => 'Discurso de odio',
-        'conteudo_sexual' => 'Conteudo sexual',
+        'discurso_ofensivo' => 'Discurso ofensivo',
+        'conteudo_inapropriado' => 'Conteudo inapropriado',
         'informacao_falsa' => 'Informacao falsa',
     ];
 }

@@ -121,29 +121,34 @@ include dirname(__DIR__) . '/includes/header.php';
         <p class="form-subtitle" style="margin-bottom:1.2rem;">Atualiza os teus dados publicos.</p>
 
         <form method="POST" enctype="multipart/form-data" novalidate>
-          <div class="form-group">
+            <div class="form-group">
             <label>Foto de Perfil</label>
-            <div style="display:flex; align-items:center; gap:1rem; margin-bottom:.85rem; flex-wrap:wrap;">
-              <div class="perfil-avatar" style="width:72px; height:72px; margin:0; font-size:1.6rem;">
-                <?php if ($avatar_atual): ?>
-                  <img src="<?= SITE_URL ?>/uploads/locais/<?= h($avatar_atual) ?>" alt="Avatar atual">
-                <?php else: ?>
-                  <?= mb_strtoupper(mb_substr($username ?: $user['username'],0,1)) ?>
-                <?php endif; ?>
-              </div>
-              <div>
-                <strong style="display:block; margin-bottom:.2rem;">Foto atual</strong>
-                <small style="color:var(--texto-muted);">JPG, PNG ou WebP &middot; Máx. 5MB</small>
-              </div>
-            </div>
-            <div class="upload-area" data-input-id="avatar">
-              <i class="fas fa-user-circle upload-icon" style="font-size:2.5rem;color:var(--verde-claro);margin-bottom:.75rem;display:block;"></i>
-              <p class="upload-label" style="font-weight:500;margin-bottom:.25rem;">Clica ou arrasta a nova foto aqui</p>
-              <small style="color:var(--texto-muted);">A imagem atual so muda depois de guardares</small>
+            <div style="margin-bottom:.85rem;">
+                <div id="avatar-wrapper"
+                    onclick="document.getElementById('avatar').click()"
+                    style="position:relative; width:80px; height:80px; cursor:pointer; border-radius:50%; overflow:hidden;">
+
+                <!-- Avatar atual -->
+                <div class="perfil-avatar" id="avatar-preview" style="width:80px; height:80px; margin:0; font-size:1.8rem;">
+                    <?php if ($avatar_atual): ?>
+                    <img src="<?= SITE_URL ?>/uploads/locais/<?= h($avatar_atual) ?>" alt="Avatar atual" style="width:100%;height:100%;object-fit:cover;">
+                    <?php else: ?>
+                    <?= mb_strtoupper(mb_substr($username ?: $user['username'],0,1)) ?>
+                    <?php endif; ?>
+                </div>
+
+                <!-- Overlay ao hover -->
+                <div id="avatar-overlay"
+                    style="position:absolute;inset:0;background:rgba(0,0,0,.45);border-radius:50%;
+                            display:flex;align-items:center;justify-content:center;
+                            opacity:0;transition:opacity .2s;">
+                    <i class="fa-solid fa-image" style="color:#fff;font-size:1.6rem;"></i>
+                </div>
+                </div>
             </div>
             <input type="file" id="avatar" name="avatar" accept="image/jpeg,image/png,image/webp" style="display:none;">
             <?php if (isset($erros['avatar'])): ?><div class="form-error"><?= h($erros['avatar']) ?></div><?php endif; ?>
-          </div>
+            </div>
 
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
             <div class="form-group">
@@ -200,6 +205,29 @@ document.getElementById('bio').addEventListener('keydown', function(e) {
             e.preventDefault();
         }
     }
+});
+</script>
+
+<!-- Animação de adicionar uma foto de perfil -->
+<script>
+// Hover no avatar
+const wrapper = document.getElementById('avatar-wrapper');
+const overlay = document.getElementById('avatar-overlay');
+if (wrapper && overlay) {
+  wrapper.addEventListener('mouseenter', () => overlay.style.opacity = '1');
+  wrapper.addEventListener('mouseleave', () => overlay.style.opacity = '0');
+}
+
+// Preview ao selecionar ficheiro
+document.getElementById('avatar').addEventListener('change', function() {
+  const file = this.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const preview = document.getElementById('avatar-preview');
+    preview.innerHTML = `<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+  };
+  reader.readAsDataURL(file);
 });
 </script>
 

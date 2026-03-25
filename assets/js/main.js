@@ -236,9 +236,7 @@ function initMiniMap() {
   }
 }
 
-// ============================================================
 // Mapa principal (mapa.php)
-// ============================================================
 function initMainMap(locais) {
   const map = L.map('map').setView([39.5, -8.0], 7);
   L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
