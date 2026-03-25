@@ -55,8 +55,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['codigo'])) {
         unset($_SESSION['verificar_id'], $_SESSION['verificar_tipo']);
 
         $msg = $tipo === 'registo'
-            ? 'Conta verificada! Bem-vindo à comunidade Segredo Lusitano! 🎉'
-            : 'Sessão iniciada com sucesso!';
+            ? 'Bem-vindo à comunidade Segredo Lusitano!'
+            : 'Bem-vindo de volta!';
         flash('success', $msg);
         header('Location: ' . SITE_URL . '/index.php');
         exit;
