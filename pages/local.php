@@ -247,8 +247,21 @@ include dirname(__DIR__) . '/includes/header.php';
       <!-- SIDEBAR -->
       <div class="detalhe-sidebar">
         <!-- Mapa mini -->
-        <div class="info-card" style="padding:0; overflow:hidden;">
+        <div class="info-card" style="padding:0; overflow:hidden; position:relative;">
           <div id="mini-map-detalhe" style="height:220px; border-radius:var(--radius-lg);"></div>
+          <button onclick="abrirMapaFullscreen()"
+                  style="position:absolute;top:.6rem;right:.6rem;z-index:999;
+                        background:var(--verde-escuro);color:#fff;border:none;
+                        border-radius:8px;padding:.4rem .65rem;cursor:pointer;
+                        font-size:.8rem;display:flex;align-items:center;gap:.35rem;
+                        box-shadow:0 2px 8px rgba(0,0,0,.3);">
+            <i class="fas fa-expand"></i> Expandir
+          </button>
+          <div id="mapa-estado" style="position:absolute;bottom:.6rem;left:.6rem;z-index:999;
+              background:rgba(26,58,42,.85);color:#c9a84c;font-size:.75rem;
+              padding:.3rem .65rem;border-radius:6px;display:none;">
+            <i class="fas fa-spinner fa-spin"></i> A obter localização...
+          </div>
         </div>
 
         <!-- Info -->
@@ -313,7 +326,21 @@ include dirname(__DIR__) . '/includes/header.php';
   </div>
 </section>
 
-<!-- MODAL DENUNCIA -->
+<!-- MODAL MAPA FULLSCREEN -->
+<div id="modal-mapa" style="display:none;position:fixed;inset:0;z-index:5000;background:#000;flex-direction:column;">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:.75rem 1rem;background:var(--verde-escuro);color:#fff;">
+    <span style="font-family:'Playfair Display',serif;color:var(--dourado);font-weight:700;">
+      <i class="fas fa-map"></i> <?= h(local_nome_publico($local)) ?>
+    </span>
+    <button onclick="fecharMapaFullscreen()"
+            style="background:rgba(255,255,255,.15);border:none;color:#fff;
+                   border-radius:8px;padding:.4rem .85rem;cursor:pointer;font-size:.9rem;">
+      <i class="fas fa-times"></i> Fechar
+    </button>
+  </div>
+  <div id="mapa-fullscreen" style="flex:1;"></div>
+</div>
+
 <!-- MODAL DENUNCIA -->
 <div id="modal-denuncia" style="display:none; position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:3000;align-items:center;justify-content:center;padding:1rem;">
   <div style="background:#fff;border-radius:var(--radius-lg);padding:2rem;max-width:460px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,.18);">
@@ -374,12 +401,107 @@ function abrirModalDenuncia(tipo, refId, alvo) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  const destLat = <?= $local['latitude'] ?>;
+  const destLng = <?= $local['longitude'] ?>;
+
+  // ── Mapa mini ────────────────────────────────────────────
   const map2 = L.map('mini-map-detalhe', { zoomControl:false, dragging:false, scrollWheelZoom:false })
-    .setView([<?= $local['latitude'] ?>, <?= $local['longitude'] ?>], 13);
+    .setView([destLat, destLng], 13);
   L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
     attribution: '© CARTO', maxZoom: 18
   }).addTo(map2);
-  L.marker([<?= $local['latitude'] ?>, <?= $local['longitude'] ?>]).addTo(map2);
+  L.marker([destLat, destLng]).addTo(map2);
+
+  // ── Mapa fullscreen ───────────────────────────────────────
+  let mapFS = null;
+  let rotaLayer = null;
+  let userMarker = null;
+
+  window.abrirMapaFullscreen = function() {
+    document.getElementById('modal-mapa').style.display = 'flex';
+    if (!mapFS) {
+      mapFS = L.map('mapa-fullscreen').setView([destLat, destLng], 13);
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+        attribution: '© CARTO', maxZoom: 18
+      }).addTo(mapFS);
+      L.marker([destLat, destLng]).addTo(mapFS)
+        .bindPopup('<strong><?= h(local_nome_publico($local)) ?></strong><br><?= h($local['regiao_nome']) ?>').openPopup();
+    }
+    setTimeout(() => mapFS.invalidateSize(), 100);
+    pedirLocalizacao();
+  };
+
+  window.fecharMapaFullscreen = function() {
+    document.getElementById('modal-mapa').style.display = 'none';
+  };
+
+  function pedirLocalizacao() {
+    const estado = document.getElementById('mapa-estado');
+    if (!navigator.geolocation) return;
+    estado.style.display = 'block';
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        estado.style.display = 'none';
+        const uLat = pos.coords.latitude;
+        const uLng = pos.coords.longitude;
+
+        // Marcador do utilizador
+        if (userMarker) userMarker.remove();
+        userMarker = L.circleMarker([uLat, uLng], {
+          radius: 8, fillColor: '#2d6a4f', fillOpacity: 1,
+          color: '#fff', weight: 2
+        }).addTo(mapFS).bindPopup('A tua localização');
+
+        // Buscar rota via OSRM (gratuito, sem chave)
+        const url = `https://router.project-osrm.org/route/v1/driving/${uLng},${uLat};${destLng},${destLat}?overview=full&geometries=geojson`;
+        fetch(url)
+          .then(r => r.json())
+          .then(data => {
+            if (data.routes && data.routes[0]) {
+              if (rotaLayer) rotaLayer.remove();
+              rotaLayer = L.geoJSON(data.routes[0].geometry, {
+                style: { color: '#c9a84c', weight: 4, opacity: .85 }
+              }).addTo(mapFS);
+
+              // Ajustar vista para mostrar rota completa
+              const bounds = L.latLngBounds([[uLat, uLng], [destLat, destLng]]);
+              mapFS.fitBounds(bounds, { padding: [40, 40] });
+
+              // Info da rota
+              const dist = (data.routes[0].distance / 1000).toFixed(1);
+              const mins = Math.round(data.routes[0].duration / 60);
+              const horas = mins >= 60 ? Math.floor(mins/60) + 'h ' + (mins%60) + 'min' : mins + ' min';
+              L.popup().setLatLng([(uLat+destLat)/2, (uLng+destLng)/2])
+                .setContent(`<b>Rota</b><br> ${dist} km · ⏱ ${horas}`)
+                .openOn(mapFS);
+            }
+          })
+          .catch(() => {
+            // Se OSRM falhar, mostra apenas os dois pontos
+            mapFS.fitBounds([[uLat, uLng], [destLat, destLng]], { padding: [40, 40] });
+          });
+      },
+      () => { estado.style.display = 'none'; }
+    );
+  }
+
+  // Pedir localização ao abrir a página
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        // Atualizar mapa mini com marcador do utilizador
+        L.circleMarker([pos.coords.latitude, pos.coords.longitude], {
+          radius: 7, fillColor: '#2d6a4f', fillOpacity: 1, color: '#fff', weight: 2
+        }).addTo(map2);
+        const bounds = L.latLngBounds(
+          [pos.coords.latitude, pos.coords.longitude],
+          [destLat, destLng]
+        );
+        map2.fitBounds(bounds, { padding: [20, 20] });
+      },
+      () => {} // silencioso se recusar
+    );
+  }
 });
 </script>
 

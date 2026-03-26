@@ -24,5 +24,30 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="<?= SITE_URL ?>/assets/js/main.js"></script>
 <?= $extra_scripts ?? '' ?>
+<!-- Script botões seguir nos cards -->
+<script>
+(function() {
+  const SITE = "<?= SITE_URL ?>";
+  document.addEventListener('click', async function(e) {
+    const btn = e.target.closest('.btn-seguir-card');
+    if (!btn) return;
+    e.preventDefault();
+    const id = btn.dataset.id;
+    const res = await fetch(`${SITE}/pages/seguir.php`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: `id=${id}`
+    });
+    if (res.status === 401) { window.location.href = `${SITE}/pages/login.php`; return; }
+    const data = await res.json();
+    if (!data.ok) return;
+    const aSeguir = data.a_seguir;
+    btn.dataset.seguindo = aSeguir ? '1' : '0';
+    btn.style.borderColor = aSeguir ? 'var(--creme-escuro)' : 'var(--verde)';
+    btn.style.color = aSeguir ? 'var(--texto-muted)' : 'var(--verde)';
+    btn.innerHTML = `<i class="fas ${aSeguir ? 'fa-user-check' : 'fa-user-plus'}"></i> ${aSeguir ? 'A seguir' : 'Seguir'}`;
+  });
+})();
+</script>
 </body>
 </html>

@@ -14,6 +14,7 @@ DROP TABLE IF EXISTS locais;
 DROP TABLE IF EXISTS regioes;
 DROP TABLE IF EXISTS categorias;
 DROP TABLE IF EXISTS utilizadores;
+DROP TABLE IF EXISTS seguidores;
 DROP TABLE IF EXISTS codigos_verificacao;
 SET FOREIGN_KEY_CHECKS = 1;
 
@@ -34,6 +35,16 @@ CREATE TABLE utilizadores (
     criado_em DATETIME DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
+-- TABELA: seguidores
+CREATE TABLE seguidores (
+    id           INT AUTO_INCREMENT PRIMARY KEY,
+    seguidor_id  INT NOT NULL,
+    seguido_id   INT NOT NULL,
+    criado_em    DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY unique_seguidor (seguidor_id, seguido_id),
+    FOREIGN KEY (seguidor_id) REFERENCES utilizadores(id) ON DELETE CASCADE,
+    FOREIGN KEY (seguido_id)  REFERENCES utilizadores(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
 
 -- TABELA: categorias
 CREATE TABLE categorias (
