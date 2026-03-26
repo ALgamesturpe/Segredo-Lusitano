@@ -56,7 +56,7 @@ $page_title = $page_title ?? SITE_NAME;
       <li><a href="<?= SITE_URL ?>/pages/mapa.php"><i class="fas fa-map"></i> Mapa</a></li>
       <li><a href="<?= SITE_URL ?>/pages/ranking.php"><i class="fas fa-trophy"></i> Ranking</a></li>
       <?php if ($user): ?>
-      <li><a href="<?= SITE_URL ?>/pages/feed.php"><i class="fas fa-users"></i> Feed</a></li>
+      <li><a href="<?= SITE_URL ?>/pages/feed.php"><i class="fas fa-users"></i> Amigos</a></li>
       <?php endif; ?>
 
       <?php if ($user): ?>

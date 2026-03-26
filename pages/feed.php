@@ -34,7 +34,7 @@ include dirname(__DIR__) . '/includes/header.php';
 <section class="section">
   <div class="container">
     <div class="section-header">
-      <h2><i class="fas fa-users"></i> Feed</h2>
+      <h2><i class="fas fa-users"></i> Publicações</h2>
       <p>As publicações mais recentes de quem segues.</p>
     </div>
 
