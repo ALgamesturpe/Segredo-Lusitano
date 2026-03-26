@@ -50,7 +50,7 @@ include dirname(__DIR__) . '/includes/header.php';
         <h3>Ainda não segues ninguém</h3>
         <p>Explora perfis e segue exploradores para ver as suas publicações aqui.</p>
         <a href="<?= SITE_URL ?>/pages/explorar.php" class="btn btn-primary" style="margin-top:1rem;">
-          <i class="fas fa-compass"></i> Explorar Locais
+          <i class="fa-solid fa-earth-americas"></i> Explorar Locais
         </a>
       </div>
     <?php else: ?>
