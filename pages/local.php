@@ -358,7 +358,8 @@ include dirname(__DIR__) . '/includes/header.php';
   </div>
   <!-- Info da rota -->
   <div id="rota-info" style="display:none;background:var(--verde-escuro);color:#fff;
-       padding:.5rem 1rem;font-size:.85rem;border-top:1px solid rgba(201,168,76,.3);">
+     padding:.5rem 1rem;font-size:.85rem;border-top:1px solid rgba(201,168,76,.3);
+     flex-shrink:0;">
     <i class="fas fa-route" style="color:var(--dourado);margin-right:.4rem;"></i>
     <span id="rota-info-texto"></span>
   </div>
