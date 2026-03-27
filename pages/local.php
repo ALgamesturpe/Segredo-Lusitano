@@ -328,15 +328,39 @@ include dirname(__DIR__) . '/includes/header.php';
 
 <!-- MODAL MAPA FULLSCREEN -->
 <div id="modal-mapa" style="display:none;position:fixed;inset:0;z-index:5000;background:#000;flex-direction:column;">
-  <div style="display:flex;align-items:center;justify-content:space-between;padding:.75rem 1rem;background:var(--verde-escuro);color:#fff;">
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;padding:.75rem 1rem;background:var(--verde-escuro);color:#fff;">
     <span style="font-family:'Playfair Display',serif;color:var(--dourado);font-weight:700;">
       <i class="fas fa-map"></i> <?= h(local_nome_publico($local)) ?>
     </span>
+    <!-- Modos de transporte -->
+    <div style="display:flex;gap:.4rem;">
+      <button class="btn-modo" data-modo="driving" onclick="mudarModo('driving')"
+              style="background:var(--dourado);color:var(--verde-escuro);border:none;border-radius:8px;
+                     padding:.35rem .75rem;cursor:pointer;font-size:.82rem;font-weight:700;display:flex;align-items:center;gap:.3rem;">
+        <i class="fas fa-car"></i> Carro
+      </button>
+      <button class="btn-modo" data-modo="foot" onclick="mudarModo('foot')"
+              style="background:rgba(255,255,255,.15);color:#fff;border:none;border-radius:8px;
+                     padding:.35rem .75rem;cursor:pointer;font-size:.82rem;display:flex;align-items:center;gap:.3rem;">
+        <i class="fas fa-walking"></i> A Pé
+      </button>
+      <button class="btn-modo" data-modo="bike" onclick="mudarModo('bike')"
+              style="background:rgba(255,255,255,.15);color:#fff;border:none;border-radius:8px;
+                     padding:.35rem .75rem;cursor:pointer;font-size:.82rem;display:flex;align-items:center;gap:.3rem;">
+        <i class="fas fa-bicycle"></i> Bicicleta
+      </button>
+    </div>
     <button onclick="fecharMapaFullscreen()"
             style="background:rgba(255,255,255,.15);border:none;color:#fff;
                    border-radius:8px;padding:.4rem .85rem;cursor:pointer;font-size:.9rem;">
       <i class="fas fa-times"></i> Fechar
     </button>
+  </div>
+  <!-- Info da rota -->
+  <div id="rota-info" style="display:none;background:var(--verde-escuro);color:#fff;
+       padding:.5rem 1rem;font-size:.85rem;border-top:1px solid rgba(201,168,76,.3);">
+    <i class="fas fa-route" style="color:var(--dourado);margin-right:.4rem;"></i>
+    <span id="rota-info-texto"></span>
   </div>
   <div id="mapa-fullscreen" style="flex:1;"></div>
 </div>
@@ -393,10 +417,8 @@ function abrirModalDenuncia(tipo, refId, alvo) {
   document.getElementById('denuncia-titulo').textContent = 'Denunciar ' + alvo;
   document.getElementById('denuncia-tipo').value = tipo;
   document.getElementById('denuncia-ref-id').value = refId;
-
   const radios = document.querySelectorAll('#modal-denuncia input[name="motivo"]');
   radios.forEach((r) => { r.checked = false; });
-
   document.getElementById('modal-denuncia').style.display = 'flex';
 }
 
@@ -412,10 +434,27 @@ document.addEventListener('DOMContentLoaded', () => {
   }).addTo(map2);
   L.marker([destLat, destLng]).addTo(map2);
 
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(pos => {
+      L.circleMarker([pos.coords.latitude, pos.coords.longitude], {
+        radius: 7, fillColor: '#2d6a4f', fillOpacity: 1, color: '#fff', weight: 2
+      }).addTo(map2);
+      map2.fitBounds(L.latLngBounds(
+        [pos.coords.latitude, pos.coords.longitude], [destLat, destLng]
+      ), { padding: [20, 20] });
+    }, () => {});
+  }
+
   // ── Mapa fullscreen ───────────────────────────────────────
   let mapFS = null;
   let rotaLayer = null;
   let userMarker = null;
+  let modoAtual = 'driving';
+  let userLat = null;
+  let userLng = null;
+
+  const osrmModo = { driving: 'driving', foot: 'foot', bike: 'bike' };
+  const modoCores = { driving: '#c9a84c', foot: '#2d6a4f', bike: '#3498db' };
 
   window.abrirMapaFullscreen = function() {
     document.getElementById('modal-mapa').style.display = 'flex';
@@ -428,11 +467,28 @@ document.addEventListener('DOMContentLoaded', () => {
         .bindPopup('<strong><?= h(local_nome_publico($local)) ?></strong><br><?= h($local['regiao_nome']) ?>').openPopup();
     }
     setTimeout(() => mapFS.invalidateSize(), 100);
-    pedirLocalizacao();
+
+    if (!userLat) {
+      pedirLocalizacao();
+    } else {
+      tracarRota(userLat, userLng, modoAtual);
+    }
   };
 
   window.fecharMapaFullscreen = function() {
     document.getElementById('modal-mapa').style.display = 'none';
+  };
+
+  window.mudarModo = function(modo) {
+    modoAtual = modo;
+    // Atualizar visual dos botões
+    document.querySelectorAll('.btn-modo').forEach(btn => {
+      const ativo = btn.dataset.modo === modo;
+      btn.style.background = ativo ? 'var(--dourado)' : 'rgba(255,255,255,.15)';
+      btn.style.color = ativo ? 'var(--verde-escuro)' : '#fff';
+      btn.style.fontWeight = ativo ? '700' : '400';
+    });
+    if (userLat) tracarRota(userLat, userLng, modo);
   };
 
   function pedirLocalizacao() {
@@ -442,65 +498,44 @@ document.addEventListener('DOMContentLoaded', () => {
     navigator.geolocation.getCurrentPosition(
       pos => {
         estado.style.display = 'none';
-        const uLat = pos.coords.latitude;
-        const uLng = pos.coords.longitude;
+        userLat = pos.coords.latitude;
+        userLng = pos.coords.longitude;
 
-        // Marcador do utilizador
         if (userMarker) userMarker.remove();
-        userMarker = L.circleMarker([uLat, uLng], {
-          radius: 8, fillColor: '#2d6a4f', fillOpacity: 1,
-          color: '#fff', weight: 2
+        userMarker = L.circleMarker([userLat, userLng], {
+          radius: 8, fillColor: '#2d6a4f', fillOpacity: 1, color: '#fff', weight: 2
         }).addTo(mapFS).bindPopup('A tua localização');
 
-        // Buscar rota via OSRM (gratuito, sem chave)
-        const url = `https://router.project-osrm.org/route/v1/driving/${uLng},${uLat};${destLng},${destLat}?overview=full&geometries=geojson`;
-        fetch(url)
-          .then(r => r.json())
-          .then(data => {
-            if (data.routes && data.routes[0]) {
-              if (rotaLayer) rotaLayer.remove();
-              rotaLayer = L.geoJSON(data.routes[0].geometry, {
-                style: { color: '#c9a84c', weight: 4, opacity: .85 }
-              }).addTo(mapFS);
-
-              // Ajustar vista para mostrar rota completa
-              const bounds = L.latLngBounds([[uLat, uLng], [destLat, destLng]]);
-              mapFS.fitBounds(bounds, { padding: [40, 40] });
-
-              // Info da rota
-              const dist = (data.routes[0].distance / 1000).toFixed(1);
-              const mins = Math.round(data.routes[0].duration / 60);
-              const horas = mins >= 60 ? Math.floor(mins/60) + 'h ' + (mins%60) + 'min' : mins + ' min';
-              L.popup().setLatLng([(uLat+destLat)/2, (uLng+destLng)/2])
-                .setContent(`<b>Rota</b><br> ${dist} km · ⏱ ${horas}`)
-                .openOn(mapFS);
-            }
-          })
-          .catch(() => {
-            // Se OSRM falhar, mostra apenas os dois pontos
-            mapFS.fitBounds([[uLat, uLng], [destLat, destLng]], { padding: [40, 40] });
-          });
+        tracarRota(userLat, userLng, modoAtual);
       },
       () => { estado.style.display = 'none'; }
     );
   }
 
-  // Pedir localização ao abrir a página
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(
-      pos => {
-        // Atualizar mapa mini com marcador do utilizador
-        L.circleMarker([pos.coords.latitude, pos.coords.longitude], {
-          radius: 7, fillColor: '#2d6a4f', fillOpacity: 1, color: '#fff', weight: 2
-        }).addTo(map2);
-        const bounds = L.latLngBounds(
-          [pos.coords.latitude, pos.coords.longitude],
-          [destLat, destLng]
-        );
-        map2.fitBounds(bounds, { padding: [20, 20] });
-      },
-      () => {} // silencioso se recusar
-    );
+  function tracarRota(uLat, uLng, modo) {
+    const url = `https://router.project-osrm.org/route/v1/${osrmModo[modo]}/${uLng},${uLat};${destLng},${destLat}?overview=full&geometries=geojson`;
+    fetch(url)
+      .then(r => r.json())
+      .then(data => {
+        if (!data.routes || !data.routes[0]) return;
+        if (rotaLayer) rotaLayer.remove();
+        rotaLayer = L.geoJSON(data.routes[0].geometry, {
+          style: { color: modoCores[modo], weight: 4, opacity: .9 }
+        }).addTo(mapFS);
+
+        mapFS.fitBounds(L.latLngBounds([[uLat, uLng], [destLat, destLng]]), { padding: [50, 50] });
+
+        const dist = (data.routes[0].distance / 1000).toFixed(1);
+        const mins = Math.round(data.routes[0].duration / 60);
+        const tempo = mins >= 60 ? Math.floor(mins/60) + 'h ' + (mins%60) + 'min' : mins + ' min';
+        const icones = { driving: '🚗', foot: '🚶', bike: '🚲' };
+        document.getElementById('rota-info-texto').textContent =
+          `${icones[modo]} ${dist} km · ⏱ ${tempo}`;
+        infoEl.style.display = 'block';
+      })
+      .catch(() => {
+        mapFS.fitBounds([[uLat, uLng], [destLat, destLng]], { padding: [40, 40] });
+      });
   }
 });
 </script>
