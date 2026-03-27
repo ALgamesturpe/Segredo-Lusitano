@@ -49,7 +49,7 @@ include dirname(__DIR__) . '/includes/header.php';
         <i class="fas fa-user-plus"></i>
         <h3>Ainda não segues ninguém</h3>
         <p>Explora perfis e segue exploradores para ver as suas publicações aqui.</p>
-        <a href="<?= SITE_URL ?>/pages/explorar.php" class="btn btn-sm btn-primary" style="margin-top:1rem;">
+        <a href="<?= SITE_URL ?>/pages/explorar.php" class="btn btn-sm btn-primary" style="margin-top:1rem; display:inline-flex; align-items:center; gap:.4rem;">
           <i class="fa-solid fa-earth-americas"></i> Explorar Locais
         </a>
       </div>

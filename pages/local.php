@@ -527,12 +527,23 @@ document.addEventListener('DOMContentLoaded', () => {
         mapFS.fitBounds(L.latLngBounds([[uLat, uLng], [destLat, destLng]]), { padding: [50, 50] });
 
         const dist = (data.routes[0].distance / 1000).toFixed(1);
-        const mins = Math.round(data.routes[0].duration / 60);
-        const tempo = mins >= 60 ? Math.floor(mins/60) + 'h ' + (mins%60) + 'min' : mins + ' min';
+        const velocidades = { driving: 100, foot: 4, bike: 25 };
+        const minsCalc = Math.round((data.routes[0].distance / 1000) / velocidades[modo] * 60);
+        const tempo = minsCalc >= 60 ? Math.floor(minsCalc/60) + 'h ' + (minsCalc%60) + 'min' : minsCalc + ' min';
         const icones = { driving: '🚗', foot: '🚶', bike: '🚲' };
+        const infoEl = document.getElementById('rota-info');
         document.getElementById('rota-info-texto').textContent =
           `${icones[modo]} ${dist} km · ⏱ ${tempo}`;
         infoEl.style.display = 'block';
+
+        let infoMapa = document.getElementById('rota-info-mapa');
+        if (!infoMapa) {
+          infoMapa = document.createElement('div');
+          infoMapa.id = 'rota-info-mapa';
+          infoMapa.style.cssText = 'position:absolute;bottom:2rem;left:.75rem;z-index:1000;background:var(--verde-escuro);color:#fff;padding:.45rem .85rem;border-radius:8px;font-size:.85rem;font-weight:600;box-shadow:0 2px 8px rgba(0,0,0,.3);pointer-events:none;';
+          document.getElementById('mapa-fullscreen').appendChild(infoMapa);
+        }
+        infoMapa.textContent = `${icones[modo]} ${dist} km · ⏱ ${tempo}`;
       })
       .catch(() => {
         mapFS.fitBounds([[uLat, uLng], [destLat, destLng]], { padding: [40, 40] });
