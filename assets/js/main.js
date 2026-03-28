@@ -28,14 +28,12 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // --- Dropdown do utilizador (click-based, robusto) ---
+  // --- Dropdown do utilizador ---
   const dropdownToggle  = document.getElementById('dropdown-toggle');
   const dropdownMenu    = document.getElementById('user-dropdown-menu');
   const dropdownChevron = document.getElementById('dropdown-chevron');
 
   if (dropdownToggle && dropdownMenu) {
-
-    // Abrir/fechar ao clicar no botão
     dropdownToggle.addEventListener('click', function(e) {
       e.preventDefault();
       e.stopPropagation();
@@ -49,7 +47,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
-    // Fechar ao clicar em qualquer lado fora
     document.addEventListener('click', function(e) {
       if (!dropdownToggle.contains(e.target) && !dropdownMenu.contains(e.target)) {
         dropdownMenu.classList.remove('open');
@@ -57,10 +54,8 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
-    // Os links dentro do menu funcionam normalmente - não bloquear
     dropdownMenu.querySelectorAll('a').forEach(function(a) {
       a.addEventListener('click', function() {
-        // Deixar o link navegar normalmente
         dropdownMenu.classList.remove('open');
       });
     });
@@ -212,7 +207,7 @@ function initMiniMap() {
 
   map.on('click', e => setMarker(e.latlng.lat, e.latlng.lng));
 
-  // Botão de geolocalização
+  // --- Botão de geolocalização ---
   const geoBtn = document.getElementById('btn-geolocalizacao');
   if (geoBtn) {
     geoBtn.addEventListener('click', () => {
@@ -236,7 +231,9 @@ function initMiniMap() {
   }
 }
 
+// ============================================================
 // Mapa principal (mapa.php)
+// ============================================================
 function initMainMap(locais) {
   const map = L.map('map').setView([39.5, -8.0], 7);
   L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {

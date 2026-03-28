@@ -429,22 +429,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ── Mapa mini ────────────────────────────────────────────
   const map2 = L.map('mini-map-detalhe', { zoomControl:false, dragging:false, scrollWheelZoom:false })
-    .setView([destLat, destLng], 13);
+    .setView([destLat, destLng], 15);
   L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
     attribution: '© CARTO', maxZoom: 18
   }).addTo(map2);
   const iconePersonalizado = L.divIcon({
   className: '',
-  html: `<div style="background:#1a3a2a;border:3px solid #c9a84c;border-radius:50% 50% 50% 0;transform:rotate(-45deg);width:32px;height:32px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,.3);"><i class='fas fa-map-pin' style='transform:rotate(45deg);color:#c9a84c;font-size:.7rem;'></i></div>`,
-  iconSize: [32, 32],
-  iconAnchor: [16, 32]
+  html: `<i class="fa-solid fa-location-dot" style="color:#2d6a4f;font-size:2rem;"></i>`,  iconSize: [20, 20],
+  iconAnchor: [10, 32]
 });
-L.marker([destLat, destLng], { icon: iconePersonalizado }).addTo(map2);
+L.marker([destLat, destLng], { icon: iconePersonalizado }).addTo(map2)
+  .on('click', () => {
+    window.open(`https://www.google.com/maps?q=${destLat},${destLng}`, '_blank');
+  });
+
+
+  
 
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(pos => {
       L.circleMarker([pos.coords.latitude, pos.coords.longitude], {
-        radius: 7, fillColor: '#2d6a4f', fillOpacity: 1, color: '#fff', weight: 2
+        radius: 7, fillColor: '#269b3f', fillOpacity: 1, color: '#fff', weight: 2
       }).addTo(map2);
       map2.fitBounds(L.latLngBounds(
         [pos.coords.latitude, pos.coords.longitude], [destLat, destLng]
@@ -538,18 +543,10 @@ L.marker([destLat, destLng], { icon: iconePersonalizado }).addTo(map2);
         const tempo = minsCalc >= 60 ? Math.floor(minsCalc/60) + 'h ' + (minsCalc%60) + 'min' : minsCalc + ' min';
         const icones = { driving: '🚗', foot: '🚶', bike: '🚲' };
         const infoEl = document.getElementById('rota-info');
+        //onde aparece o tempo e distancia da rota
         document.getElementById('rota-info-texto').textContent =
           `${icones[modo]} ${dist} km · ⏱ ${tempo}`;
         infoEl.style.display = 'block';
-
-        let infoMapa = document.getElementById('rota-info-mapa');
-        if (!infoMapa) {
-          infoMapa = document.createElement('div');
-          infoMapa.id = 'rota-info-mapa';
-          infoMapa.style.cssText = 'position:absolute;bottom:2rem;left:.75rem;z-index:1000;background:var(--verde-escuro);color:#fff;padding:.45rem .85rem;border-radius:8px;font-size:.85rem;font-weight:600;box-shadow:0 2px 8px rgba(0,0,0,.3);pointer-events:none;';
-          document.getElementById('mapa-fullscreen').appendChild(infoMapa);
-        }
-        infoMapa.textContent = `${icones[modo]} ${dist} km · ⏱ ${tempo}`;
       })
       .catch(() => {
         mapFS.fitBounds([[uLat, uLng], [destLat, destLng]], { padding: [40, 40] });
