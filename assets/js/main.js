@@ -235,7 +235,22 @@ function initMiniMap() {
 // Mapa principal (mapa.php)
 // ============================================================
 function initMainMap(locais) {
-  const map = L.map('map').setView([39.5, -8.0], 7);
+  // Verificar se há um local para abrir via URL
+  const params = new URLSearchParams(window.location.search);
+  const abrirId = params.get('abrir') ? parseInt(params.get('abrir')) : null;
+
+  // Se houver um local para abrir, centrar nele; caso contrário mostrar Portugal
+  let localAbrir = null;
+  if (abrirId) {
+    localAbrir = locais.find(l => l.id === abrirId) || null;
+  }
+
+  const viewInicial = localAbrir
+    ? [parseFloat(localAbrir.latitude), parseFloat(localAbrir.longitude)]
+    : [39.5, -8.0];
+  const zoomInicial = localAbrir ? 14 : 7;
+
+  const map = L.map('map').setView(viewInicial, zoomInicial);
   L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
     attribution: '© <a href="https://openstreetmap.org">OpenStreetMap</a> © <a href="https://carto.com">CARTO</a>',
     maxZoom: 18
@@ -261,5 +276,10 @@ function initMainMap(locais) {
         </a>
       </div>
     `);
+
+    // Abrir popup do local pretendido
+    if (abrirId && l.id === abrirId) {
+      m.openPopup();
+    }
   });
 }

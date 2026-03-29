@@ -86,8 +86,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['denunciar'])) {
 }
 
 $page_title = local_nome_publico($local);
-$extra_scripts = '<script>const SITE_URL = "' . SITE_URL . '";</script>';
-
 include dirname(__DIR__) . '/includes/header.php';
 ?>
 
@@ -125,7 +123,7 @@ include dirname(__DIR__) . '/includes/header.php';
             <span id="like-count"><?= $local['total_likes'] ?></span>
           </button>
           <?php if ($user): ?>
-            <a href="<?= SITE_URL ?>/pages/mapa.php" class="btn btn-sm btn-verde">
+            <a href="<?= SITE_URL ?>/pages/mapa.php?abrir=<?= $id ?>" class="btn btn-sm btn-verde">
               <i class="fas fa-map"></i> Ver no Mapa
             </a>
           <?php else: ?>
@@ -133,8 +131,6 @@ include dirname(__DIR__) . '/includes/header.php';
               <i class="fas fa-map"></i> Ver no Mapa
             </a>
           <?php endif; ?>
-            <i class="fas fa-map"></i> Ver no Mapa
-          </a>
           <?php if ($user && ($user['id'] == $local['utilizador_id'] || is_admin())): ?>
             <a href="<?= SITE_URL ?>/pages/local_editar.php?id=<?= $id ?>" class="btn btn-sm btn-outline" style="color:var(--texto-muted);border-color:var(--creme-escuro);">
               <i class="fas fa-edit"></i> Editar
