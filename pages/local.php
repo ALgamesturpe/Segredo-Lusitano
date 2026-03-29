@@ -315,7 +315,7 @@ include dirname(__DIR__) . '/includes/header.php';
             <?= number_format($local['latitude'],6,',','') ?>°N,
             <?= number_format(abs($local['longitude']),6,',','') ?>°O
           </code>
-          <a href="https://www.google.com/maps?q=<?= $local['latitude'] ?>,<?= $local['longitude'] ?>"
+          <a href="https://www.google.com/maps/dir/?api=1&destination=<?= $local['latitude'] ?>,<?= $local['longitude'] ?>"
              target="_blank" rel="noopener"
              class="btn btn-sm btn-verde" style="margin-top:.75rem; width:100%;">
             <i class="fas fa-external-link-alt"></i> Abrir no Google Maps
