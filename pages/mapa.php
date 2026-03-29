@@ -5,9 +5,8 @@
 require_once dirname(__DIR__) . '/includes/functions.php';
 
 $page_title = 'Mapa';
-$locais = get_locais(['excluir_bloqueados' => 1], 500); // aprovados e nao bloqueados para o mapa
+$locais = get_locais(['excluir_bloqueados' => 1], 500);
 
-// Codificar para JSON de forma segura
 $locais_json = json_encode(array_map(fn($l) => [
     'id'             => $l['id'],
     'nome'           => local_nome_publico($l),
@@ -20,12 +19,12 @@ $locais_json = json_encode(array_map(fn($l) => [
     'total_likes'    => $l['total_likes'],
 ], $locais), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP);
 
-$extra_head = '<style>body { overflow: hidden; } .page-content { height: calc(100vh - var(--nav-h)); display:flex; flex-direction:column; }</style>';
-$extra_scripts = '<script>
-const SITE_URL = "' . SITE_URL . '";
-initMainMap(' . $locais_json . ');
-</script>';
-
+$extra_head = '<style>
+body { overflow: hidden; margin:0; padding:0; }
+.page-content { height: calc(100vh - var(--nav-h)); display:flex; flex-direction:column; margin:0; padding:0; }
+footer, .site-footer { display:none !important; height:0 !important; }
+#map { flex:1; min-height:0; }
+</style>';
 include dirname(__DIR__) . '/includes/header.php';
 ?>
 
@@ -44,7 +43,15 @@ include dirname(__DIR__) . '/includes/header.php';
   </div>
 
   <!-- MAPA -->
-  <div id="map" style="flex:1; border-radius:0;"></div>
+  <div id="map" style="flex:1; border-radius:0; height:100%;"></div>
 </div>
 
-<?php include dirname(__DIR__) . '/includes/footer.php'; ?>
+<!-- Scripts sem footer visual -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="<?= SITE_URL ?>/assets/js/main.js"></script>
+<script>
+const SITE_URL = "<?= SITE_URL ?>";
+initMainMap(<?= $locais_json ?>);
+</script>
+</body>
+</html>

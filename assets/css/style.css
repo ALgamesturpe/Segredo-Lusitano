@@ -880,7 +880,7 @@ main { flex: 1; }
 /*FOOTER*/
 .site-footer {
   background: var(--verde-escuro);
-  padding: 2.5rem 1.5rem;
+  padding: 1rem 1.5rem;
   border-top: 2px solid var(--dourado);
   margin-top: auto;
 }
@@ -890,7 +890,7 @@ main { flex: 1; }
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: .85rem;
+  gap: .4rem;
   text-align: center;
 }
 .footer-brand {
@@ -901,6 +901,7 @@ main { flex: 1; }
 .footer-tagline {
   color: rgba(245,239,230,.6);
   font-size: .9rem;
+  margin: 0;
 }
 .footer-links {
   display: flex;
@@ -917,4 +918,5 @@ main { flex: 1; }
 .footer-copy {
   color: rgba(245,239,230,.35);
   font-size: .78rem;
+  margin: 0;
 }
