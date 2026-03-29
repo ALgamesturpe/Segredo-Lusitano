@@ -124,7 +124,15 @@ include dirname(__DIR__) . '/includes/header.php';
             <i class="fas fa-heart"></i>
             <span id="like-count"><?= $local['total_likes'] ?></span>
           </button>
-          <a href="<?= SITE_URL ?>/pages/mapa.php" class="btn btn-sm btn-verde">
+          <?php if ($user): ?>
+            <a href="<?= SITE_URL ?>/pages/mapa.php" class="btn btn-sm btn-verde">
+              <i class="fas fa-map"></i> Ver no Mapa
+            </a>
+          <?php else: ?>
+            <a href="<?= SITE_URL ?>/pages/login.php" class="btn btn-sm btn-verde">
+              <i class="fas fa-map"></i> Ver no Mapa
+            </a>
+          <?php endif; ?>
             <i class="fas fa-map"></i> Ver no Mapa
           </a>
           <?php if ($user && ($user['id'] == $local['utilizador_id'] || is_admin())): ?>
@@ -249,7 +257,7 @@ include dirname(__DIR__) . '/includes/header.php';
         <!-- Mapa mini -->
         <div class="info-card" style="padding:0; overflow:hidden; position:relative;">
           <div id="mini-map-detalhe" style="height:220px; border-radius:var(--radius-lg);"></div>
-          <button onclick="abrirMapaFullscreen()"
+          <button onclick="<?= $user ? 'abrirMapaFullscreen()' : 'window.location.href=\'' . SITE_URL . '/pages/login.php\'' ?>"
                   style="position:absolute;top:.6rem;right:.6rem;z-index:999;
                         background:var(--verde-escuro);color:#fff;border:none;
                         border-radius:8px;padding:.4rem .65rem;cursor:pointer;
@@ -315,11 +323,17 @@ include dirname(__DIR__) . '/includes/header.php';
             <?= number_format($local['latitude'],6,',','') ?>°N,
             <?= number_format(abs($local['longitude']),6,',','') ?>°O
           </code>
-          <a href="https://www.google.com/maps/dir/?api=1&destination=<?= $local['latitude'] ?>,<?= $local['longitude'] ?>"
-             target="_blank" rel="noopener"
-             class="btn btn-sm btn-verde" style="margin-top:.75rem; width:100%;">
-            <i class="fas fa-external-link-alt"></i> Abrir no Google Maps
-          </a>
+          <?php if ($user): ?>
+            <a href="https://www.google.com/maps/dir/?api=1&destination=<?= $local['latitude'] ?>,<?= $local['longitude'] ?>"
+              target="_blank" rel="noopener"
+              class="btn btn-sm btn-verde" style="margin-top:.75rem; width:100%;">
+              <i class="fas fa-external-link-alt"></i> Abrir no Google Maps
+            </a>
+          <?php else: ?>
+            <a href="<?= SITE_URL ?>/pages/login.php" class="btn btn-sm btn-verde" style="margin-top:.75rem; width:100%;">
+              <i class="fas fa-sign-in-alt"></i> Inicia sessão para navegar
+            </a>
+          <?php endif; ?>
         </div>
       </div>
     </div>
@@ -440,7 +454,11 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 L.marker([destLat, destLng], { icon: iconePersonalizado }).addTo(map2)
   .on('click', () => {
-    window.open(`https://www.google.com/maps?q=${destLat},${destLng}`, '_blank');
+    <?php if ($user): ?>
+      window.open(`https://www.google.com/maps?q=${destLat},${destLng}`, '_blank');
+    <?php else: ?>
+      window.location.href = '<?= SITE_URL ?>/pages/login.php';
+    <?php endif; ?>
   });
 
 
