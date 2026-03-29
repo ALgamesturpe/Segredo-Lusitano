@@ -49,7 +49,7 @@ if ($_card_user && !$_card_e_proprio) {
            style="color:var(--verde);font-weight:600;font-size:.82rem;">
           @<?= h($local['username']) ?>
         </a>
-        <?php if ($_card_user && !$_card_e_proprio): ?>
+        <?php if ($_card_user && !$_card_e_proprio && empty($ocultar_btn_seguir)): ?>
           <button class="btn-seguir-card"
                   data-id="<?= $local['utilizador_id'] ?>"
                   data-seguindo="<?= $_card_segue ? '1' : '0' ?>"

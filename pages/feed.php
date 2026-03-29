@@ -41,8 +41,10 @@ include dirname(__DIR__) . '/includes/header.php';
     <?php if ($locais_feed): ?>
       <div class="cards-grid">
         <?php foreach ($locais_feed as $local): ?>
-          <?php include dirname(__DIR__) . '/includes/card_local.php'; ?>
-        <?php endforeach; ?>
+        <?php $ocultar_btn_seguir = true; ?>
+        <?php include dirname(__DIR__) . '/includes/card_local.php'; ?>
+        <?php $ocultar_btn_seguir = false; ?>
+      <?php endforeach; ?>
       </div>
     <?php elseif ($total_seguidos === 0): ?>
       <div class="empty-state">

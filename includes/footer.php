@@ -9,7 +9,7 @@
       <img src="<?= SITE_URL ?>/assets/images/logo_icon.png" alt="Segredo Lusitano" style="height:36px;width:36px;object-fit:contain;filter:drop-shadow(0 0 6px rgba(201,168,76,.4));">
       <span style="font-family:'Playfair Display',serif;color:var(--creme);font-size:1rem;">Segredo <strong style="color:var(--dourado);">Lusitano</strong></span>
     </div>
-    <p class="footer-tagline">Descobre o Portugal que os mapas não mostram.</p>
+    <p class="footer-tagline">Descobre o Portugal de forma fácil!</p>
     <nav class="footer-links">
       <a href="<?= SITE_URL ?>/index.php">Início</a>
       <a href="<?= SITE_URL ?>/pages/explorar.php">Explorar</a>
@@ -45,7 +45,13 @@
     btn.dataset.seguindo = aSeguir ? '1' : '0';
     btn.style.borderColor = aSeguir ? 'var(--creme-escuro)' : 'var(--verde)';
     btn.style.color = aSeguir ? 'var(--texto-muted)' : 'var(--verde)';
-    btn.innerHTML = `<i class="fas ${aSeguir ? 'fa-user-check' : 'fa-user-plus'}"></i> ${aSeguir ? 'A seguir' : 'Seguir'}`;
+    document.querySelectorAll(`.btn-seguir-card[data-id="${id}"]`).forEach(b => {
+    //quando estou a seguir, quero que todos os botões desse utilizador fiquem com o estado "A seguir", e quando deixar de seguir, que fiquem "Seguir"
+    b.dataset.seguindo = aSeguir ? '1' : '0';
+    b.style.borderColor = aSeguir ? 'var(--creme-escuro)' : 'var(--verde)';
+    b.style.color = aSeguir ? 'var(--texto-muted)' : 'var(--verde)';
+    b.innerHTML = `<i class="fas ${aSeguir ? 'fa-user-check' : 'fa-user-plus'}"></i> ${aSeguir ? 'A seguir' : 'Seguir'}`;
+});
   });
 })();
 </script>

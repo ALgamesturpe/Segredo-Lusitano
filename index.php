@@ -101,7 +101,7 @@ include __DIR__ . '/includes/header.php';
       </a>
       <?php else: ?>
       <a href="<?= SITE_URL ?>/pages/local_novo.php" class="btn btn-primary" style="font-size:1.05rem;">
-        <i class="fas fa-plus-circle"></i> Partilhar Novo Local
+        Partilha Agora
       </a>
       <?php endif; ?>
     </div>

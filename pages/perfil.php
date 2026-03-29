@@ -153,6 +153,13 @@ include dirname(__DIR__) . '/includes/header.php';
         <i class="fas fa-times"></i>
       </button>
     </div>
+    <div style="padding:.75rem 1.25rem;border-bottom:1px solid var(--creme-escuro);">
+      <div style="display:flex;align-items:center;gap:.5rem;background:var(--creme);border:1.5px solid var(--creme-escuro);border-radius:8px;padding:.4rem .75rem;">
+        <i class="fas fa-search" style="color:var(--texto-muted);font-size:.85rem;"></i>
+        <input type="text" id="modal-seg-pesquisa" placeholder="Pesquisar..."
+              style="border:none;background:transparent;outline:none;font-size:.9rem;width:100%;">
+      </div>
+    </div>
     <div style="overflow-y:auto;padding:1rem 1.25rem;display:flex;flex-direction:column;gap:.75rem;" id="modal-seg-lista"></div>
   </div>
 </div>
@@ -190,7 +197,9 @@ include dirname(__DIR__) . '/includes/header.php';
               </div>
             </article>
           <?php else: ?>
+            <?php $ocultar_btn_seguir = !$is_own; ?>
             <?php include dirname(__DIR__) . '/includes/card_local.php'; ?>
+            <?php $ocultar_btn_seguir = false; ?>
           <?php endif;
         endforeach; ?>
       </div>
@@ -254,6 +263,18 @@ function abrirModalSeg(tipo) {
     `).join('');
   }
   document.getElementById('modal-seg').style.display = 'flex';
+  // Pesquisar utilizadores na lista
+  const inputSeg = document.getElementById('modal-seg-pesquisa');
+  if (inputSeg) {
+    inputSeg.value = '';
+    inputSeg.oninput = function() {
+      const termo = this.value.toLowerCase();
+      document.querySelectorAll('#modal-seg-lista a').forEach(item => {
+        const nome = item.textContent.toLowerCase();
+        item.style.display = nome.includes(termo) ? 'flex' : 'none';
+      });
+    };
+  }
 }
 
 // Botão Seguir
