@@ -73,7 +73,7 @@ include dirname(__DIR__) . '/includes/header.php';
 <div class="page-content" style="display:flex; align-items:center; justify-content:center; padding:2rem; min-height:calc(100vh - 72px);">
   <div class="form-container">
     <!-- Logo -->
-    <div style="text-align:center; margin-bottom:2rem;">
+    <div style="display:flex; justify-content:center; margin-bottom:2rem;">
       <img src="<?= SITE_URL ?>/assets/images/logo_icon.png" alt="Segredo Lusitano" style="height:80px;width:80px;object-fit:contain;filter:drop-shadow(0 0 10px rgba(201,168,76,.5));">
     </div>
     <h1 class="form-title" style="text-align:center;">Bem-vindo de volta</h1>
@@ -122,6 +122,19 @@ include dirname(__DIR__) . '/includes/header.php';
       </div>
       <p id="google-msg" style="color:#c0392b;font-size:.85rem;display:none;"></p>
     </div>
+    <!-- GitHub Sign-In -->
+    <a href="<?= SITE_URL ?>/pages/github_redirect.php"
+      style="display:flex;align-items:center;justify-content:space-between;
+              width:300px;padding:.65rem 1rem;border:1.5px solid #d0d5dd;
+              border-radius:8px;background:#fff;color:#1e1e1e;
+              font-size:.9rem;font-weight:500;text-decoration:none;
+              transition:background .2s;margin-top:.5rem;">
+      <div style="display:flex;align-items:center;gap:.65rem;">
+        <i class="fab fa-github" style="font-size:1.1rem;color:#24292e;"></i>
+        <span>Iniciar sessão com GitHub</span>
+      </div>
+      <i class="fab fa-github" style="font-size:1.1rem;color:#24292e;"></i>
+    </a>
     <?php endif; ?>
 
     <div class="form-divider" style="margin-top:1.25rem;"></div>

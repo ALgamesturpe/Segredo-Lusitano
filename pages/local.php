@@ -251,6 +251,10 @@ include dirname(__DIR__) . '/includes/header.php';
       <!-- SIDEBAR -->
       <div class="detalhe-sidebar">
         <!-- Mapa mini -->
+        <p style="font-size:.75rem;color:var(--texto-muted); margin-bottom:.35rem; display:flex; align-items:center; gap:.35rem;">
+          <i class="fas fa-info-circle" style="color:var(--verde);"></i>
+          Clica no echo <strong>PINO</strong> para obter direções via Maps
+        </p>
         <div class="info-card" style="padding:0; overflow:hidden; position:relative;">
           <div id="mini-map-detalhe" style="height:220px; border-radius:var(--radius-lg);"></div>
           <button onclick="<?= $user ? 'abrirMapaFullscreen()' : 'window.location.href=\'' . SITE_URL . '/pages/login.php\'' ?>"

@@ -68,7 +68,7 @@ include dirname(__DIR__) . '/includes/header.php';
 
 <div class="page-content" style="display:flex; align-items:center; justify-content:center; padding:2rem; min-height:calc(100vh - 72px);">
   <div class="form-container" style="max-width:600px;">
-    <div style="text-align:center; margin-bottom:2rem;">
+    <div style="display:flex; justify-content:center; margin-bottom:2rem;">
       <img src="<?= SITE_URL ?>/assets/images/logo_icon.png" alt="Segredo Lusitano" style="height:80px;width:80px;object-fit:contain;filter:drop-shadow(0 0 10px rgba(201,168,76,.5));">
     </div>
     <h1 class="form-title" style="text-align:center;">Torna-te um Explorador</h1>
@@ -79,20 +79,20 @@ include dirname(__DIR__) . '/includes/header.php';
         <div class="form-group">
           <label for="nome">Nome Completo</label>
           <input type="text" id="nome" name="nome" value="<?= h($_POST['nome'] ?? '') ?>"
-                 placeholder="João Silva" required>
+                 placeholder="Gonçalo Teixeira" required>
           <?php if (isset($erros['nome'])): ?><div class="form-error"><?= h($erros['nome']) ?></div><?php endif; ?>
         </div>
         <div class="form-group">
           <label for="username">Username</label>
           <input type="text" id="username" name="username" value="<?= h($_POST['username'] ?? '') ?>"
-                 placeholder="explorador42" required>
+                 placeholder="Gonçalo123" required>
           <?php if (isset($erros['username'])): ?><div class="form-error"><?= h($erros['username']) ?></div><?php endif; ?>
         </div>
       </div>
       <div class="form-group">
         <label for="email">Email</label>
         <input type="email" id="email" name="email" value="<?= h($_POST['email'] ?? '') ?>"
-               placeholder="o.teu@email.pt" required>
+               placeholder="o.teu@email.com" required>
         <?php if (isset($erros['email'])): ?><div class="form-error"><?= h($erros['email']) ?></div><?php endif; ?>
       </div>
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
@@ -113,10 +113,10 @@ include dirname(__DIR__) . '/includes/header.php';
     </form>
 
     <?php if (GOOGLE_CLIENT_ID && GOOGLE_CLIENT_ID !== ''): ?>
-    <div class="form-divider">ou entra com</div>
+    <div class="form-divider">ou entrar com</div>
 
     <!-- Google Sign-In (Google Identity Services - 2024) -->
-    <div style="display:flex;flex-direction:column;align-items:center;gap:.75rem;margin-bottom:1rem;">
+    <div style="display:flex;flex-direction:column;align-items:center;gap:.75rem;">
       <div id="g_id_onload"
            data-client_id="<?= GOOGLE_CLIENT_ID ?>"
            data-context="signup"
@@ -133,6 +133,21 @@ include dirname(__DIR__) . '/includes/header.php';
            data-width="300">
       </div>
       <p id="google-msg" style="color:#c0392b;font-size:.85rem;display:none;"></p>
+    </div>
+    <!-- GitHub Sign-In -->
+    <div style="display:flex;justify-content:center;">
+      <a href="<?= SITE_URL ?>/pages/github_redirect.php"
+        style="display:flex;align-items:center;justify-content:space-between;
+                width:300px;padding:.65rem 1rem;border:1.5px solid #d0d5dd;
+                border-radius:8px;background:#fff;color:#1e1e1e;
+                font-size:.9rem;font-weight:500;text-decoration:none;
+                transition:background .2s;margin-top:.5rem;">
+        <div style="display:flex;align-items:center;gap:.65rem;">
+          <i class="fab fa-github" style="font-size:1.1rem;color:#24292e;"></i>
+          <span>Iniciar sessão com GitHub</span>
+        </div>
+        <i class="fab fa-github" style="font-size:1.1rem;color:#24292e;"></i>
+      </a>
     </div>
     <?php endif; ?>
 
