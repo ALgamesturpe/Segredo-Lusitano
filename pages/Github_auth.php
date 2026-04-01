@@ -125,7 +125,7 @@ if ($st2->fetch()) {
 
 $password_hash = password_hash(bin2hex(random_bytes(16)), PASSWORD_BCRYPT, ['cost' => 12]);
 
-$st3 = db()->prepare('INSERT INTO utilizadores (nome, username, email, password, verificado, pontos) VALUES (?,?,?,?,1,0)');
+$st3 = db()->prepare('INSERT INTO utilizadores (nome, username, email, password, verificado, pontos, tipo_auth) VALUES (?,?,?,?,1,0,"github")');
 $st3->execute([$nome, $username, $email, $password_hash]);
 $new_id = (int)db()->lastInsertId();
 

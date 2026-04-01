@@ -3,7 +3,6 @@ CREATE DATABASE IF NOT EXISTS segredo_lusitano CHARACTER SET utf8mb4 COLLATE utf
 
 USE segredo_lusitano;
 
-
 -- Limpar tabelas existentes (ordem inversa por causa das FK)
 SET FOREIGN_KEY_CHECKS = 0;
 DROP TABLE IF EXISTS denuncias;
@@ -18,7 +17,6 @@ DROP TABLE IF EXISTS seguidores;
 DROP TABLE IF EXISTS codigos_verificacao;
 SET FOREIGN_KEY_CHECKS = 1;
 
-
 -- TABELA: utilizadores
 CREATE TABLE utilizadores (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -32,6 +30,8 @@ CREATE TABLE utilizadores (
     role ENUM('user','admin', '[deleted]') DEFAULT 'user',
     ativo TINYINT(1) DEFAULT 1,
     verificado TINYINT(1) DEFAULT 0,
+    privado TINYINT(1) DEFAULT 0,
+    tipo_auth ENUM('email','google','github') DEFAULT 'email',
     criado_em DATETIME DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 

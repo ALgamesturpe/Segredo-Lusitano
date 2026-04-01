@@ -15,7 +15,10 @@ $perfil = $st->fetch();
 
 if (!$perfil) { header('Location: ' . SITE_URL . '/index.php'); exit; }
 
-// Locais do utilizador
+// Definir is_own ANTES de qualquer verificação que o use
+$is_own = $user_auth && $user_auth['id'] == $id;
+
+// Buscar locais do utilizador (aprovados para visitantes, todos para o próprio e admin)
 $st2 = db()->prepare(
     'SELECT l.*, c.nome AS categoria_nome, c.icone AS categoria_icone, r.nome AS regiao_nome,
             u.username, u.nome AS autor_nome,
@@ -34,12 +37,12 @@ $locais_perfil = $st2->fetchAll();
 $total_likes = 0;
 foreach ($locais_perfil as $lp) $total_likes += $lp['total_likes'];
 
-// Rank
+// Calcular posição no ranking
 $st3 = db()->prepare('SELECT COUNT(*) + 1 FROM utilizadores WHERE pontos > ? AND ativo = 1 AND role = "user"');
 $st3->execute([$perfil['pontos']]);
 $rank_pos = (int)$st3->fetchColumn();
 
-// ── Seguidores ──────────────────────────────────────────────
+// ── Contadores de seguidores ────────────────────────────────
 $st_seg = db()->prepare('SELECT COUNT(*) FROM seguidores WHERE seguido_id = ?');
 $st_seg->execute([$id]);
 $total_seguidores = (int)$st_seg->fetchColumn();
@@ -56,7 +59,7 @@ if ($user_auth && $user_auth['id'] !== $id) {
     $ja_segue = (bool)$st_check->fetch();
 }
 
-// Lista de seguidores (avatares)
+// Lista de seguidores para o modal
 $st_lista_seg = db()->prepare(
     'SELECT u.id, u.username, u.nome, u.avatar
      FROM seguidores s JOIN utilizadores u ON u.id = s.seguidor_id
@@ -65,7 +68,7 @@ $st_lista_seg = db()->prepare(
 $st_lista_seg->execute([$id]);
 $lista_seguidores = $st_lista_seg->fetchAll();
 
-// Lista de seguidos
+// Lista de utilizadores que este perfil segue
 $st_lista_seguidos = db()->prepare(
     'SELECT u.id, u.username, u.nome, u.avatar
      FROM seguidores s JOIN utilizadores u ON u.id = s.seguido_id
@@ -73,9 +76,8 @@ $st_lista_seguidos = db()->prepare(
 );
 $st_lista_seguidos->execute([$id]);
 $lista_seguidos = $st_lista_seguidos->fetchAll();
-// ────────────────────────────────────────────────────────────
 
-// Apagar conta (só o próprio)
+// Apagar conta (só o próprio utilizador pode apagar a sua conta)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['apagar_conta']) && $user_auth && $user_auth['id'] == $id) {
     db()->prepare('UPDATE locais SET utilizador_id = 1 WHERE utilizador_id = ?')->execute([$id]);
     db()->prepare('UPDATE comentarios SET utilizador_id = 1 WHERE utilizador_id = ?')->execute([$id]);
@@ -84,7 +86,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['apagar_conta']) && $u
     logout();
 }
 
-$is_own = $user_auth && $user_auth['id'] == $id;
 $page_title = $perfil['nome'];
 include dirname(__DIR__) . '/includes/header.php';
 ?>
@@ -93,6 +94,7 @@ include dirname(__DIR__) . '/includes/header.php';
 
 <!-- HERO PERFIL -->
 <div class="perfil-hero">
+  <!-- Avatar do utilizador -->
   <div class="perfil-avatar">
     <?php if ($perfil['avatar']): ?>
       <img src="<?= SITE_URL ?>/uploads/locais/<?= h($perfil['avatar']) ?>" alt="">
@@ -106,7 +108,7 @@ include dirname(__DIR__) . '/includes/header.php';
     <p class="perfil-bio text-wrap-anywhere"><?= nl2br(h($perfil['bio'])) ?></p>
   <?php endif; ?>
 
-  <!-- Botão Seguir -->
+  <!-- Botão Seguir (só aparece quando se visita o perfil de outro utilizador) -->
   <?php if ($user_auth && !$is_own): ?>
     <div style="margin-bottom:1rem;">
       <button id="btn-seguir"
@@ -119,6 +121,7 @@ include dirname(__DIR__) . '/includes/header.php';
       </button>
     </div>
   <?php elseif ($is_own): ?>
+    <!-- Botão Editar Perfil (só para o próprio) -->
     <div style="margin-bottom:1rem;">
       <a href="<?= SITE_URL ?>/pages/perfil_editar.php" class="btn btn-sm btn-primary">
         <i class="fas fa-user-edit"></i> Editar Perfil
@@ -126,7 +129,7 @@ include dirname(__DIR__) . '/includes/header.php';
     </div>
   <?php endif; ?>
 
-  <!-- Stats -->
+  <!-- Estatísticas do perfil -->
   <div class="perfil-stats">
     <div class="stat-item"><span class="stat-num"><?= count($locais_perfil) ?></span><span class="stat-label">Locais</span></div>
     <div class="stat-item"><span class="stat-num"><?= $total_likes ?></span><span class="stat-label">Likes Recebidos</span></div>
@@ -153,18 +156,19 @@ include dirname(__DIR__) . '/includes/header.php';
         <i class="fas fa-times"></i>
       </button>
     </div>
+    <!-- Barra de pesquisa no modal -->
     <div style="padding:.75rem 1.25rem;border-bottom:1px solid var(--creme-escuro);">
       <div style="display:flex;align-items:center;gap:.5rem;background:var(--creme);border:1.5px solid var(--creme-escuro);border-radius:8px;padding:.4rem .75rem;">
         <i class="fas fa-search" style="color:var(--texto-muted);font-size:.85rem;"></i>
         <input type="text" id="modal-seg-pesquisa" placeholder="Pesquisar..."
-              style="border:none;background:transparent;outline:none;font-size:.9rem;width:100%;">
+               style="border:none;background:transparent;outline:none;font-size:.9rem;width:100%;">
       </div>
     </div>
     <div style="overflow-y:auto;padding:1rem 1.25rem;display:flex;flex-direction:column;gap:.75rem;" id="modal-seg-lista"></div>
   </div>
 </div>
 
-<!-- LOCAIS -->
+<!-- LOCAIS DO UTILIZADOR -->
 <section class="section">
   <div class="container">
     <h2 style="margin-bottom:1.5rem;">
@@ -175,6 +179,7 @@ include dirname(__DIR__) . '/includes/header.php';
       <div class="cards-grid">
         <?php foreach ($locais_perfil as $local):
           if ($is_own || is_admin()): ?>
+            <!-- Card com badge de estado para o próprio utilizador e admin -->
             <article class="card" style="<?= $local['estado'] !== 'aprovado' ? 'opacity:.75' : '' ?>">
               <a href="<?= SITE_URL ?>/pages/local.php?id=<?= $local['id'] ?>" class="card-img" style="display:block;">
                 <?php if ($local['foto_capa']): ?>
@@ -197,6 +202,7 @@ include dirname(__DIR__) . '/includes/header.php';
               </div>
             </article>
           <?php else: ?>
+            <!-- Card normal sem botão seguir (já está no perfil) -->
             <?php $ocultar_btn_seguir = !$is_own; ?>
             <?php include dirname(__DIR__) . '/includes/card_local.php'; ?>
             <?php $ocultar_btn_seguir = false; ?>
@@ -213,7 +219,7 @@ include dirname(__DIR__) . '/includes/header.php';
       </div>
     <?php endif; ?>
 
-    <!-- Apagar conta -->
+    <!-- Zona de perigo — apagar conta (só o próprio) -->
     <?php if ($is_own): ?>
     <div style="margin-top:4rem; padding:1.5rem; border:1.5px solid #e74c3c; border-radius:var(--radius); max-width:300px;">
       <h3 style="color:#c0392b; margin-bottom:.5rem;">Zona de Perigo</h3>
@@ -229,13 +235,13 @@ include dirname(__DIR__) . '/includes/header.php';
 </div>
 
 <script>
-// Dados das listas para o modal
 const dadosSeguidores = <?= json_encode($lista_seguidores) ?>;
 const dadosSeguidos   = <?= json_encode($lista_seguidos) ?>;
 const SITE_URL_JS     = "<?= SITE_URL ?>";
 
+// Abrir modal de seguidores ou de seguidos
 function abrirModalSeg(tipo) {
-  const lista = tipo === 'seguidores' ? dadosSeguidores : dadosSeguidos;
+  const lista  = tipo === 'seguidores' ? dadosSeguidores : dadosSeguidos;
   const titulo = tipo === 'seguidores' ? 'Seguidores' : 'A Seguir';
   document.getElementById('modal-seg-titulo').textContent = titulo;
   const el = document.getElementById('modal-seg-lista');
@@ -263,25 +269,25 @@ function abrirModalSeg(tipo) {
     `).join('');
   }
   document.getElementById('modal-seg').style.display = 'flex';
-  // Pesquisar utilizadores na lista
+
+  // Pesquisa em tempo real dentro do modal
   const inputSeg = document.getElementById('modal-seg-pesquisa');
   if (inputSeg) {
     inputSeg.value = '';
     inputSeg.oninput = function() {
       const termo = this.value.toLowerCase();
       document.querySelectorAll('#modal-seg-lista a').forEach(item => {
-        const nome = item.textContent.toLowerCase();
-        item.style.display = nome.includes(termo) ? 'flex' : 'none';
+        item.style.display = item.textContent.toLowerCase().includes(termo) ? 'flex' : 'none';
       });
     };
   }
 }
 
-// Botão Seguir
+// Botão Seguir / Deixar de Seguir via AJAX
 const btnSeguir = document.getElementById('btn-seguir');
 if (btnSeguir) {
   btnSeguir.addEventListener('click', async () => {
-    const id = btnSeguir.dataset.id;
+    const id  = btnSeguir.dataset.id;
     const res = await fetch(`${SITE_URL_JS}/pages/seguir.php`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -292,11 +298,11 @@ if (btnSeguir) {
 
     const aSeguir = data.a_seguir;
     btnSeguir.dataset.seguindo = aSeguir ? '1' : '0';
-    btnSeguir.className = 'btn btn-sm ' + (aSeguir ? '' : 'btn-primary');
-    btnSeguir.style.cssText = aSeguir ? 'border:1.5px solid var(--creme-escuro);color:var(--texto-muted);' : '';
-    btnSeguir.innerHTML = `<i class="fas ${aSeguir ? 'fa-user-check' : 'fa-user-plus'}"></i> <span>${aSeguir ? 'A Seguir' : 'Seguir'}</span>`;
+    btnSeguir.className        = 'btn btn-sm ' + (aSeguir ? '' : 'btn-primary');
+    btnSeguir.style.cssText    = aSeguir ? 'border:1.5px solid var(--creme-escuro);color:var(--texto-muted);' : '';
+    btnSeguir.innerHTML        = `<i class="fas ${aSeguir ? 'fa-user-check' : 'fa-user-plus'}"></i> <span>${aSeguir ? 'A Seguir' : 'Seguir'}</span>`;
 
-    // Atualizar contador
+    // Atualizar contador de seguidores
     const el = document.getElementById('total-seguidores');
     if (el) el.textContent = data.total;
   });

@@ -107,6 +107,7 @@ include dirname(__DIR__) . '/includes/header.php';
           <?php if (isset($erros['confirm'])): ?><div class="form-error"><?= h($erros['confirm']) ?></div><?php endif; ?>
         </div>
       </div>
+      <!-- Botão de confirmar os termos e condições-->
       <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center; margin-top:.5rem;">
         <i class="fas fa-user-plus"></i> Criar Conta
       </button>
