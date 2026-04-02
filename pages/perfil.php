@@ -37,9 +37,9 @@ $locais_perfil = $st2->fetchAll();
 $total_likes = 0;
 foreach ($locais_perfil as $lp) $total_likes += $lp['total_likes'];
 
-// Calcular posição no ranking
-$st3 = db()->prepare('SELECT COUNT(*) + 1 FROM utilizadores WHERE pontos > ? AND ativo = 1 AND role = "user"');
-$st3->execute([$perfil['pontos']]);
+// Numeração de utilizadores domo se fosse um número de processo
+$st3 = db()->prepare('SELECT COUNT(*) FROM utilizadores WHERE id <= ? AND ativo = 1 AND role = "user"');
+$st3->execute([$id]);
 $rank_pos = (int)$st3->fetchColumn();
 
 // ── Contadores de seguidores ────────────────────────────────
@@ -103,7 +103,7 @@ include dirname(__DIR__) . '/includes/header.php';
     <?php endif; ?>
   </div>
   <h1 class="perfil-nome"><?= h($perfil['nome']) ?></h1>
-  <p class="perfil-username"><?= h($perfil['username']) ?> &middot; Explorador nº <?= $rank_pos ?></p>
+    <p class="perfil-username"><?= h($perfil['username']) ?><?php if ($perfil['role'] !== 'admin'): ?>&middot; Explorador nº <?= $rank_pos ?><?php endif; ?></p>
   <?php if ($perfil['bio']): ?>
     <p class="perfil-bio text-wrap-anywhere"><?= nl2br(h($perfil['bio'])) ?></p>
   <?php endif; ?>
@@ -133,7 +133,14 @@ include dirname(__DIR__) . '/includes/header.php';
   <div class="perfil-stats">
     <div class="stat-item"><span class="stat-num"><?= count($locais_perfil) ?></span><span class="stat-label">Locais</span></div>
     <div class="stat-item"><span class="stat-num"><?= $total_likes ?></span><span class="stat-label">Likes Recebidos</span></div>
-    <div class="stat-item"><span class="stat-num"><?= number_format($perfil['pontos']) ?></span><span class="stat-label">Pontos</span></div>
+    <?php if ($perfil['role'] !== 'admin'): ?>
+      <?php if ((int)$perfil['pontos'] > 0): ?>
+        <div class="stat-item"><span class="stat-num"><?= number_format($perfil['pontos']) ?></span><span class="stat-label">Pontos</span></div>
+        <div class="stat-item"><span class="stat-num"><?= $rank_pos ?>º</span><span class="stat-label">Ranking</span></div>
+      <?php else: ?>
+        <div class="stat-item"><span class="stat-num">-</span><span class="stat-label">Sem pontos</span></div>
+      <?php endif; ?>
+    <?php endif; ?>
     <div class="stat-item"><span class="stat-num"><?= $rank_pos ?>º</span><span class="stat-label">Ranking</span></div>
     <div class="stat-item" style="cursor:pointer;" onclick="abrirModalSeg('seguidores')">
       <span class="stat-num" id="total-seguidores"><?= $total_seguidores ?></span>
