@@ -130,6 +130,6 @@ $st3->execute([$nome, $username, $email, $password_hash]);
 $new_id = (int)db()->lastInsertId();
 
 $_SESSION['user_id'] = $new_id;
-flash('success', 'Conta criada com GitHub! Bem-vindo à comunidade Segredo Lusitano! 🎉');
+flash('success', 'Conta criada com GitHub, bem-vindo à comunidade!');
 header('Location: ' . SITE_URL . '/index.php');
 exit;
