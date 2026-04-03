@@ -92,7 +92,7 @@ include dirname(__DIR__) . '/includes/header.php';
 
 <div class="page-content">
 
-<!-- HERO PERFIL -->
+<!-- oerte superior dos detalhes do perfil -->
 <div class="perfil-hero">
   <!-- Avatar do utilizador -->
   <div class="perfil-avatar">

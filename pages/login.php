@@ -28,56 +28,72 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!$email || !$password) {
         $erro = 'Preenche todos os campos.';
     } else {
-        require_once dirname(__DIR__) . '/includes/mailer.php';
-
-        // Chamar a função login() que verifica o email e a password na base de dados
-        $res = login($email, $password);
-
-        if ($res['ok']) {
-            // Login bem sucedido — redirecionar para a página anterior ou para o início
-            $redirect = $_GET['redirect'] ?? (SITE_URL . '/index.php');
-            header('Location: ' . $redirect);
-            exit;
-
-        } elseif (!empty($res['verificar'])) {
-            // A conta existe mas o email ainda não foi verificado
-
-            if (!class_exists('PHPMailer\PHPMailer\PHPMailer')) {
-                // PHPMailer não instalado — verificar automaticamente
-                db()->prepare('UPDATE utilizadores SET verificado = 1 WHERE id = ?')->execute([$res['id']]);
-                $_SESSION['user_id'] = $res['id'];
-                flash('success', 'Email não configurado. Bem-vindo!');
-                $redirect = $_GET['redirect'] ?? (SITE_URL . '/index.php');
-                header('Location: ' . $redirect);
-                exit;
-            }
-
-            // Gerar e enviar código de verificação por email
-            $st = db()->prepare('SELECT nome FROM utilizadores WHERE id = ?');
-            $st->execute([$res['id']]);
-            $u      = $st->fetch();
-            $codigo = gerar_e_guardar_codigo($res['id'], 'login');
-            $enviado = enviar_codigo_verificacao($email, $u['nome'] ?? '', $codigo, 'login');
-
-            if (!$enviado) {
-                // Falha no envio — verificar automaticamente
-                db()->prepare('UPDATE utilizadores SET verificado = 1 WHERE id = ?')->execute([$res['id']]);
-                $_SESSION['user_id'] = $res['id'];
-                flash('success', 'Erro ao enviar email. Conta verificada automaticamente.');
-                $redirect = $_GET['redirect'] ?? (SITE_URL . '/index.php');
-                header('Location: ' . $redirect);
-                exit;
-            }
-
-            // Redirecionar para a página de verificação do código
-            $_SESSION['verificar_id']   = $res['id'];
-            $_SESSION['verificar_tipo'] = 'login';
-            header('Location: ' . SITE_URL . '/pages/verificar.php');
-            exit;
-
+        // Verificar se o email pertence a um utilizador banido
+        $st_ban = db()->prepare('SELECT motivo FROM banidos WHERE email = ?');
+        $st_ban->execute([$email]);
+        $ban = $st_ban->fetch();
+        if ($ban) {
+            $erro = 'banido';
+            $motivos_label = [
+                'spam'                  => 'Spam',
+                'comportamento_abusivo' => 'Comportamento abusivo',
+                'conteudo_inapropriado' => 'Conteúdo inapropriado',
+                'fraude'                => 'Fraude',
+                'outro'                 => 'Outro',
+            ];
+            $motivo_ban = $motivos_label[$ban['motivo']] ?? $ban['motivo'];
         } else {
-            // Email ou password incorretos
-            $erro = $res['msg'];
+            require_once dirname(__DIR__) . '/includes/mailer.php';
+
+            // Chamar a função login() que verifica o email e a password na base de dados
+            $res = login($email, $password);
+
+            if ($res['ok']) {
+                // Login bem sucedido — redirecionar para a página anterior ou para o início
+                $redirect = $_GET['redirect'] ?? (SITE_URL . '/index.php');
+                header('Location: ' . $redirect);
+                exit;
+
+            } elseif (!empty($res['verificar'])) {
+                // A conta existe mas o email ainda não foi verificado
+
+                if (!class_exists('PHPMailer\PHPMailer\PHPMailer')) {
+                    // PHPMailer não instalado — verificar automaticamente
+                    db()->prepare('UPDATE utilizadores SET verificado = 1 WHERE id = ?')->execute([$res['id']]);
+                    $_SESSION['user_id'] = $res['id'];
+                    flash('success', 'Email não configurado. Bem-vindo!');
+                    $redirect = $_GET['redirect'] ?? (SITE_URL . '/index.php');
+                    header('Location: ' . $redirect);
+                    exit;
+                }
+
+                // Gerar e enviar código de verificação por email
+                $st = db()->prepare('SELECT nome FROM utilizadores WHERE id = ?');
+                $st->execute([$res['id']]);
+                $u      = $st->fetch();
+                $codigo = gerar_e_guardar_codigo($res['id'], 'login');
+                $enviado = enviar_codigo_verificacao($email, $u['nome'] ?? '', $codigo, 'login');
+
+                if (!$enviado) {
+                    // Falha no envio — verificar automaticamente
+                    db()->prepare('UPDATE utilizadores SET verificado = 1 WHERE id = ?')->execute([$res['id']]);
+                    $_SESSION['user_id'] = $res['id'];
+                    flash('success', 'Erro ao enviar email. Conta verificada automaticamente.');
+                    $redirect = $_GET['redirect'] ?? (SITE_URL . '/index.php');
+                    header('Location: ' . $redirect);
+                    exit;
+                }
+
+                // Redirecionar para a página de verificação do código
+                $_SESSION['verificar_id']   = $res['id'];
+                $_SESSION['verificar_tipo'] = 'login';
+                header('Location: ' . SITE_URL . '/pages/verificar.php');
+                exit;
+
+            } else {
+                // Email ou password incorretos
+                $erro = $res['msg'];
+            }
         }
     }
 }
@@ -97,8 +113,17 @@ include dirname(__DIR__) . '/includes/header.php';
     <h1 class="form-title" style="text-align:center;">Bem-vindo de volta</h1>
     <p class="form-subtitle" style="text-align:center;">Entra na tua conta de explorador</p>
 
-    <!-- Mensagem de erro (credenciais incorretas) -->
-    <?php if ($erro): ?>
+    <!-- Mensagem de utilizador banido -->
+    <p id="google-msg" style="color:#c0392b;font-size:.9rem;font-weight:600;display:none;margin-bottom:1.25rem;"></p>
+
+    <!-- Mensagem de utilizador banido (login normal) -->
+    <?php if ($erro === 'banido'): ?>
+      <p style="color:#c0392b;font-size:.9rem;font-weight:600;margin-bottom:1.25rem;">
+        <i class="fas fa-user-alt-slash"></i> Conta banida pelo administrador pelo motivo: <?= h($motivo_ban ?? '') ?>.
+      </p>
+
+    <!-- Mensagem de erro normal (credenciais incorretas) -->
+    <?php elseif ($erro): ?>
       <div class="flash flash-error" style="position:static; margin-bottom:1.25rem; border-radius:8px;">
         <i class="fas fa-exclamation-circle"></i> <?= h($erro) ?>
       </div>
@@ -144,10 +169,7 @@ include dirname(__DIR__) . '/includes/header.php';
       </div>
 
       <!-- Mensagem de erro do Google Sign-In -->
-      <p id="google-msg" style="color:#c0392b;font-size:.85rem;font-weight:600;text-align:center;
-         display:none;margin-top:.25rem;padding:.65rem 1rem;
-         background:rgba(192,57,43,.08);border:1px solid rgba(192,57,43,.25);
-         border-radius:8px;width:300px;"></p>
+      <p id="google-msg" style="color:#c0392b;font-size:.9rem;font-weight:600;display:none;margin-bottom:1.25rem;"></p>
 
       <!-- Botão de login com GitHub -->
       <div style="display:flex;justify-content:center;">
@@ -180,11 +202,10 @@ include dirname(__DIR__) . '/includes/header.php';
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script>
 // Callback chamado pelo Google após o utilizador selecionar a conta
-// Recebe o token JWT que é enviado para o servidor para validação
 function handleGoogleSignIn(response) {
   const msg = document.getElementById('google-msg');
 
-  // Enviar token JWT para o servidor
+  // Enviar token JWT para o servidor para validação
   fetch('<?= SITE_URL ?>/pages/google_auth.php', {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -197,7 +218,7 @@ function handleGoogleSignIn(response) {
       window.location.href = data.redirect;
     } else {
       // Mostrar mensagem de erro
-      msg.textContent = data.msg || 'Erro ao iniciar sessão com Google.';
+      msg.innerHTML = data.msg || 'Erro ao iniciar sessão com Google.';
       msg.style.display = 'block';
     }
   })

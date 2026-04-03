@@ -39,16 +39,24 @@ function is_admin(): bool {
 }
 
 function login(string $email, string $password): array {
-    $st = db()->prepare('SELECT * FROM utilizadores WHERE email = ? AND ativo = 1');
+    // Buscar utilizador pelo email, excluindo contas fantasma [deleted]
+    $st = db()->prepare('SELECT * FROM utilizadores WHERE email = ? AND role != "[deleted]"');
     $st->execute([$email]);
     $user = $st->fetch();
+
+    // Verificar se a conta existe e a password está correta
     if (!$user || !password_verify($password, $user['password'])) {
         return ['ok' => false, 'msg' => 'Email ou password incorretos.'];
     }
-    // Verificar se a conta está verificada
+    // Verificar se a conta está suspensa
+    if (!$user['ativo']) {
+        return ['ok' => false, 'msg' => 'suspenso'];
+    }
+    // Verificar se a conta está verificada por email
     if (!$user['verificado']) {
         return ['ok' => false, 'verificar' => true, 'id' => $user['id'], 'msg' => 'Conta não verificada.'];
     }
+
     $_SESSION['user_id'] = $user['id'];
     return ['ok' => true];
 }

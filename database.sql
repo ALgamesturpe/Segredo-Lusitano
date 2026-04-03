@@ -5,6 +5,7 @@ USE segredo_lusitano;
 
 -- Limpar tabelas existentes (ordem inversa por causa das FK)
 SET FOREIGN_KEY_CHECKS = 0;
+DROP TABLE IF EXISTS banidos;
 DROP TABLE IF EXISTS denuncias;
 DROP TABLE IF EXISTS comentarios;
 DROP TABLE IF EXISTS likes;
@@ -17,7 +18,10 @@ DROP TABLE IF EXISTS seguidores;
 DROP TABLE IF EXISTS codigos_verificacao;
 SET FOREIGN_KEY_CHECKS = 1;
 
+-- ============================================================
 -- TABELA: utilizadores
+-- Guarda todos os utilizadores registados na plataforma
+-- ============================================================
 CREATE TABLE utilizadores (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nome VARCHAR(100) NOT NULL,
@@ -35,7 +39,26 @@ CREATE TABLE utilizadores (
     criado_em DATETIME DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
+-- ============================================================
+-- TABELA: banidos
+-- Guarda o registo de utilizadores banidos pelo administrador.
+-- Quando um utilizador é banido, a sua conta é eliminada da
+-- tabela utilizadores mas os seus dados ficam aqui guardados.
+-- O email é usado para impedir que o utilizador se registe novamente.
+-- ============================================================
+CREATE TABLE banidos (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    username VARCHAR(50) NOT NULL,
+    email VARCHAR(150) NOT NULL UNIQUE,
+    motivo ENUM('spam','comportamento_abusivo','conteudo_inapropriado','fraude','outro') NOT NULL,
+    banido_em DATETIME DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+-- ============================================================
 -- TABELA: seguidores
+-- Regista as relações de seguimento entre utilizadores
+-- ============================================================
 CREATE TABLE seguidores (
     id           INT AUTO_INCREMENT PRIMARY KEY,
     seguidor_id  INT NOT NULL,
@@ -46,7 +69,10 @@ CREATE TABLE seguidores (
     FOREIGN KEY (seguido_id)  REFERENCES utilizadores(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
+-- ============================================================
 -- TABELA: categorias
+-- Categorias disponíveis para os locais
+-- ============================================================
 CREATE TABLE categorias (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nome VARCHAR(80) NOT NULL,
@@ -63,17 +89,22 @@ INSERT INTO categorias (nome, icone) VALUES
   ('Gruta','fas fa-dungeon'),
   ('Monumento','fas fa-chess-rook');
 
-
+-- ============================================================
 -- TABELA: regioes
+-- Regiões de Portugal disponíveis para os locais
+-- ============================================================
 CREATE TABLE regioes (
-    id INT AUTO_INCREMENT PRIMARY KEY, nome VARCHAR(80) NOT NULL
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(80) NOT NULL
 ) ENGINE=InnoDB;
 
 INSERT INTO regioes (nome) VALUES
-  ('Norte'),('Centro'),('Lisboa e Vale do Tejo'), ('Alentejo'), ('Algarve'), ('Açores'), ('Madeira');
+  ('Norte'),('Centro'),('Lisboa e Vale do Tejo'),('Alentejo'),('Algarve'),('Açores'),('Madeira');
 
-
+-- ============================================================
 -- TABELA: locais
+-- Locais secretos partilhados pelos utilizadores
+-- ============================================================
 CREATE TABLE locais (
     id INT AUTO_INCREMENT PRIMARY KEY,
     utilizador_id INT NOT NULL,
@@ -91,11 +122,13 @@ CREATE TABLE locais (
     criado_em DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (utilizador_id) REFERENCES utilizadores(id) ON DELETE CASCADE,
     FOREIGN KEY (categoria_id)  REFERENCES categorias(id) ON DELETE RESTRICT,
-    FOREIGN KEY (regiao_id) REFERENCES regioes(id) ON DELETE RESTRICT
+    FOREIGN KEY (regiao_id)     REFERENCES regioes(id) ON DELETE RESTRICT
 ) ENGINE=InnoDB;
 
-
+-- ============================================================
 -- TABELA: fotos
+-- Fotos adicionadas pelos utilizadores aos locais
+-- ============================================================
 CREATE TABLE fotos (
     id INT AUTO_INCREMENT PRIMARY KEY,
     local_id INT NOT NULL,
@@ -103,36 +136,43 @@ CREATE TABLE fotos (
     ficheiro VARCHAR(255) NOT NULL,
     denunciada TINYINT(1) DEFAULT 0,
     criado_em DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (local_id) REFERENCES locais(id) ON DELETE CASCADE, FOREIGN KEY (utilizador_id) REFERENCES utilizadores(id) ON DELETE CASCADE
+    FOREIGN KEY (local_id)        REFERENCES locais(id) ON DELETE CASCADE,
+    FOREIGN KEY (utilizador_id)   REFERENCES utilizadores(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
-
+-- ============================================================
 -- TABELA: likes
+-- Regista os likes dados pelos utilizadores aos locais
+-- ============================================================
 CREATE TABLE likes (
     id INT AUTO_INCREMENT PRIMARY KEY,
     local_id INT NOT NULL,
     utilizador_id INT NOT NULL,
     criado_em DATETIME DEFAULT CURRENT_TIMESTAMP,
     UNIQUE KEY unique_like (local_id, utilizador_id),
-    FOREIGN KEY (local_id) REFERENCES locais(id) ON DELETE CASCADE,
-    FOREIGN KEY (utilizador_id) REFERENCES utilizadores(id) ON DELETE CASCADE
+    FOREIGN KEY (local_id)       REFERENCES locais(id) ON DELETE CASCADE,
+    FOREIGN KEY (utilizador_id)  REFERENCES utilizadores(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
-
+-- ============================================================
 -- TABELA: comentarios
+-- Comentários deixados pelos utilizadores nos locais
+-- ============================================================
 CREATE TABLE comentarios (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    local_id INT  NOT NULL,
-    utilizador_id INT  NOT NULL,
+    local_id INT NOT NULL,
+    utilizador_id INT NOT NULL,
     texto TEXT NOT NULL,
     denunciado TINYINT(1) DEFAULT 0,
     criado_em DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (local_id) REFERENCES locais(id) ON DELETE CASCADE,
-    FOREIGN KEY (utilizador_id) REFERENCES utilizadores(id) ON DELETE CASCADE
+    FOREIGN KEY (local_id)       REFERENCES locais(id) ON DELETE CASCADE,
+    FOREIGN KEY (utilizador_id)  REFERENCES utilizadores(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
-
+-- ============================================================
 -- TABELA: denuncias
+-- Denúncias feitas pelos utilizadores sobre locais, comentários ou fotos
+-- ============================================================
 CREATE TABLE denuncias (
     id INT AUTO_INCREMENT PRIMARY KEY,
     tipo ENUM('foto','local','comentario') NOT NULL,
@@ -145,8 +185,10 @@ CREATE TABLE denuncias (
     FOREIGN KEY (utilizador_id) REFERENCES utilizadores(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
-
+-- ============================================================
 -- TABELA: codigos_verificacao
+-- Códigos de 6 dígitos enviados por email para verificar contas
+-- ============================================================
 CREATE TABLE codigos_verificacao (
     id INT AUTO_INCREMENT PRIMARY KEY,
     utilizador_id INT NOT NULL,
@@ -158,17 +200,17 @@ CREATE TABLE codigos_verificacao (
     FOREIGN KEY (utilizador_id) REFERENCES utilizadores(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
--- EXEMPLO
--- User fantasma para conteúdo de utilizadores eliminados (ID: 1)
+-- ============================================================
+-- DADOS INICIAIS
+-- ============================================================
+
+-- Utilizador fantasma (ID: 1) — usado para conteúdo de contas eliminadas
 INSERT INTO utilizadores (id, nome, username, email, password, pontos, role, ativo, verificado) VALUES
   (1, '[deleted]', '[deleted]', '[deleted]', '¯\_(ツ)_/¯', NULL, '[deleted]', 1, 1);
 
--- Dados do Admin (ID: 2)
+-- Conta do Administrador (ID: 2)
 INSERT INTO utilizadores (nome, username, email, password, pontos, role, verificado) VALUES
   ('Administrador', 'admin', 'admin@segredolusitano.pt', '$2y$12$HAvXHYiIvDXx0JOX9.ghfeimbCy9fHUHU7ZW78RDW31Z.lUeEd1sW', 9999, 'admin', 1);
-
--- INSERT INTO utilizadores (nome, username, email, password, pontos, role, verificado) VALUES
-  -- ('João Explorador', 'joao', 'joao@exemplo.pt', 'joao123', 150, 'user', 1);
 
 -- Locais de exemplo
 INSERT INTO locais (utilizador_id, categoria_id, regiao_id, nome, descricao, latitude, longitude, dificuldade, estado) VALUES

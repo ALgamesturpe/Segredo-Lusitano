@@ -87,8 +87,25 @@ $google_email = $payload['email'];
 $google_nome  = $payload['name'] ?? 'Utilizador';
 
 try {
+    // Verificar se o email está banido
+    $st_ban = db()->prepare('SELECT motivo FROM banidos WHERE email = ?');
+    $st_ban->execute([$google_email]);
+    $ban = $st_ban->fetch();
+    if ($ban) {
+        $motivos_label = [
+            'spam'                  => 'Spam',
+            'comportamento_abusivo' => 'Comportamento abusivo',
+            'conteudo_inapropriado' => 'Conteúdo inapropriado',
+            'fraude'                => 'Fraude',
+            'outro'                 => 'Outro',
+        ];
+        $motivo = $motivos_label[$ban['motivo']] ?? $ban['motivo'];
+        echo json_encode(['ok' => false, 'msg' => '<i class="fas fa-user-alt-slash"></i> Conta banida pelo administrador pelo motivo: ' . $motivo . '.']);
+        exit;
+    }
+
     // Verificar se já existe conta com este email
-    $st = db()->prepare('SELECT * FROM utilizadores WHERE email = ? AND ativo = 1');
+    $st = db()->prepare('SELECT * FROM utilizadores WHERE email = ? AND role != "[deleted]"');
     $st->execute([$google_email]);
     $user = $st->fetch();
 
