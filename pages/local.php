@@ -141,12 +141,12 @@ include dirname(__DIR__) . '/includes/header.php';
               <i class="fas fa-trash"></i>
             </a>
           <?php endif; ?>
-          <?php if ($user && $user['id'] != $local['utilizador_id']): ?>
+          <?php if ($user && $user['id'] != $local['utilizador_id'] && !is_admin()): ?>
             <button onclick="abrirModalDenuncia('local', <?= $id ?>, 'Local')"
                     class="btn btn-sm" style="color:var(--texto-muted);border:1px solid var(--creme-escuro);border-radius:50px;">
               <i class="fas fa-flag"></i> Denunciar
             </button>
-          <?php endif; ?>
+        <?php endif; ?>
         </div>
 
         <!-- Descrição -->
@@ -161,9 +161,10 @@ include dirname(__DIR__) . '/includes/header.php';
           <h3><i class="fas fa-images"></i> Galeria</h3>
           <div class="galeria">
             <?php foreach ($fotos as $foto): ?>
-              <div class="galeria-item">
+              <div class="galeria-item" onclick="abrirFoto('<?= SITE_URL ?>/uploads/locais/<?= h($foto['ficheiro']) ?>')"
+                  style="cursor:pointer;">
                 <img src="<?= SITE_URL ?>/uploads/locais/<?= h($foto['ficheiro']) ?>"
-                     alt="Foto do local" loading="lazy">
+                    alt="Foto do local" loading="lazy">
               </div>
             <?php endforeach; ?>
           </div>
@@ -228,7 +229,7 @@ include dirname(__DIR__) . '/includes/header.php';
                     <div class="comentario-meta" style="display:flex;align-items:center;gap:.45rem;flex-wrap:wrap;">
                       <strong><?= h(comentario_autor_publico($com)) ?></strong>
                       &bull; <?= date('d M Y', strtotime($com['criado_em'])) ?>
-                      <?php if ($user && !$comentario_bloqueado && $user['id'] !== (int)$com['utilizador_id']): ?>
+                      <?php if ($user && !$comentario_bloqueado && $user['id'] !== (int)$com['utilizador_id'] && !is_admin()): ?>
                         <button type="button"
                                 onclick="abrirModalDenuncia('comentario', <?= (int)$com['id'] ?>, 'Comentario')"
                                 class="btn btn-sm"
@@ -571,6 +572,25 @@ L.marker([destLat, destLng], { icon: iconePersonalizado }).addTo(map2)
       });
   }
 });
+</script>
+
+<!-- Modal para ampliar foto da galeria -->
+<div id="modal-foto" onclick="fecharFoto()"
+     style="display:none;position:fixed;inset:0;z-index:6000;background:rgba(0,0,0,.92);
+            align-items:center;justify-content:center;cursor:zoom-out;">
+  <img id="modal-foto-img" src="" alt=""
+       style="max-width:90vw;max-height:90vh;object-fit:contain;border-radius:var(--radius);">
+</div>
+
+<script>
+function abrirFoto(src) {
+  document.getElementById('modal-foto-img').src = src;
+  document.getElementById('modal-foto').style.display = 'flex';
+}
+function fecharFoto() {
+  document.getElementById('modal-foto').style.display = 'none';
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') fecharFoto(); });
 </script>
 
 <?php include dirname(__DIR__) . '/includes/footer.php'; ?>

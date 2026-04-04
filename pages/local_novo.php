@@ -75,7 +75,7 @@ include dirname(__DIR__) . '/includes/header.php';
 
         <!-- Nome -->
         <div class="form-group">
-          <label for="nome">Nome do Local *</label>
+          <label for="nome">Nome do Local</label>
           <input type="text" id="nome" name="nome" value="<?= h($_POST['nome'] ?? '') ?>"
                  placeholder="Ex: Cascata da Pedra Furada" required maxlength="150">
           <?php if (isset($erros['nome'])): ?><div class="form-error"><?= h($erros['nome']) ?></div><?php endif; ?>
@@ -83,7 +83,7 @@ include dirname(__DIR__) . '/includes/header.php';
 
         <!-- Descrição -->
         <div class="form-group">
-          <label for="descricao">Descrição *
+          <label for="descricao">Descrição
             <span style="font-weight:400;color:var(--texto-muted);font-size:.82rem;" data-counter-for="descricao">0/2000</span>
           </label>
           <textarea id="descricao" name="descricao" rows="5" data-maxlength="2000"
@@ -94,7 +94,7 @@ include dirname(__DIR__) . '/includes/header.php';
         <!-- Categoria + Região + Dificuldade -->
         <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:1rem;">
           <div class="form-group">
-            <label for="categoria_id">Categoria *</label>
+            <label for="categoria_id">Categoria </label>
             <select id="categoria_id" name="categoria_id" required>
               <option value="">-- Seleciona --</option>
               <?php foreach ($categorias as $c): ?>
@@ -106,7 +106,7 @@ include dirname(__DIR__) . '/includes/header.php';
             <?php if (isset($erros['categoria_id'])): ?><div class="form-error"><?= h($erros['categoria_id']) ?></div><?php endif; ?>
           </div>
           <div class="form-group">
-            <label for="regiao_id">Região *</label>
+            <label for="regiao_id">Região </label>
             <select id="regiao_id" name="regiao_id" required>
               <option value="">-- Seleciona --</option>
               <?php foreach ($regioes as $r): ?>

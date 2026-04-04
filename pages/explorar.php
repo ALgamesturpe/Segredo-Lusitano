@@ -43,7 +43,7 @@ include dirname(__DIR__) . '/includes/header.php';
         <div class="filtro-group" style="flex:2; min-width:200px;">
           <label for="pesquisa">Pesquisa</label>
           <input type="search" id="pesquisa" name="pesquisa" placeholder="Nome do local..."
-                 value="<?= h($filtros['pesquisa']) ?>">
+                value="<?= h($filtros['pesquisa']) ?>" autocomplete="off">
         </div>
         <div class="filtro-group">
           <label for="regiao">Região</label>
@@ -130,5 +130,48 @@ include dirname(__DIR__) . '/includes/header.php';
   </div>
 </section>
 </div>
+
+<!-- Script para pesquisa dinâmica sem recarregar a página -->
+<script>
+(function() {
+  const input   = document.getElementById('pesquisa');
+  const grid    = document.querySelector('.cards-grid') || document.querySelector('.empty-state')?.parentElement;
+  const section = document.querySelector('.cards-grid')?.parentElement || document.querySelector('.empty-state')?.parentElement;
+  let timer     = null;
+
+  if (!input || !section) return;
+
+  input.addEventListener('input', function() {
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      // Recolher filtros atuais do formulário
+      const form     = input.closest('form');
+      const params   = new URLSearchParams(new FormData(form));
+      params.set('ajax', '1');
+
+      fetch('<?= SITE_URL ?>/pages/explorar.php?' + params.toString())
+        .then(r => r.text())
+        .then(html => {
+          const parser  = new DOMParser();
+          const doc     = parser.parseFromString(html, 'text/html');
+          const novoGrid = doc.querySelector('.cards-grid');
+          const novoEmpty = doc.querySelector('.empty-state');
+          const velhoGrid  = section.querySelector('.cards-grid');
+          const velhoEmpty = section.querySelector('.empty-state');
+          const velhoPag   = section.querySelector('.pagination');
+
+          // Remover conteúdo anterior
+          if (velhoGrid)  velhoGrid.remove();
+          if (velhoEmpty) velhoEmpty.remove();
+          if (velhoPag)   velhoPag.remove();
+
+          // Inserir novo conteúdo
+          if (novoGrid)  section.appendChild(novoGrid);
+          if (novoEmpty) section.appendChild(novoEmpty);
+        });
+    }, 350); // espera 350ms após parar de escrever
+  });
+})();
+</script>
 
 <?php include dirname(__DIR__) . '/includes/footer.php'; ?>
