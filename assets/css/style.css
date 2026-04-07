@@ -845,10 +845,12 @@ main { flex: 1; }
 @media (max-width: 768px) {
   .hamburger { display: flex; }
   .nav-links {
-    position: fixed; inset: var(--nav-h) 0 0;
+    position: fixed;
+    top: var(--nav-h); right: 0; left: 0; bottom: 0;
     background: var(--verde-escuro);
-    flex-direction: column; align-items: flex-start;
-    padding: 1.5rem;
+    flex-direction: column;
+    align-items: stretch;
+    padding: 1rem;
     gap: .25rem;
     transform: translateX(100%);
     transition: transform var(--transition);
