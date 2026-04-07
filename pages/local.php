@@ -127,7 +127,7 @@ include dirname(__DIR__) . '/includes/header.php';
               <i class="fas fa-map"></i> Ver no Mapa
             </a>
           <?php else: ?>
-            <a href="<?= SITE_URL ?>/pages/login.php" class="btn btn-sm btn-verde">
+            <a href="#" onclick="mostrarAvisoLogin('Precisas de iniciar sessão para ver no mapa.', '<?= SITE_URL ?>/pages/login.php'); return false;" class="btn btn-sm btn-verde">
               <i class="fas fa-map"></i> Ver no Mapa
             </a>
           <?php endif; ?>
