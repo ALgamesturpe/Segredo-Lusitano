@@ -35,6 +35,7 @@ $page_title = $page_title ?? SITE_NAME;
 <link rel="stylesheet" href="<?= SITE_URL ?>/assets/css/bootstrap.min.css">
 
 <?= $extra_head ?? '' ?>
+<script>const SITE_URL = "<?= SITE_URL ?>";</script>
 </head>
 <body>
 

@@ -80,7 +80,12 @@ document.addEventListener('DOMContentLoaded', () => {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: `local_id=${localId}`
       });
-      if (res.status === 401) { window.location.href = `${SITE_URL}/pages/login.php`; return; }
+      if (res.status === 401) {
+        if (typeof mostrarAvisoLogin === 'function') {
+          mostrarAvisoLogin('Precisas de iniciar sessão para dar like.', `${SITE_URL}/pages/login.php`);
+        }
+        return;
+      }
       const data = await res.json();
       likeBtn.classList.toggle('liked', data.liked);
       const countEl = document.getElementById('like-count');

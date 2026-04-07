@@ -209,7 +209,7 @@ include dirname(__DIR__) . '/includes/header.php';
             </form>
           <?php else: ?>
             <p style="margin-bottom:1.5rem; color:var(--texto-muted); font-size:.9rem;">
-              <a href="<?= SITE_URL ?>/pages/login.php" class="form-link">Inicia sessão</a> para deixar um comentário.
+              <a href="#" onclick="mostrarAvisoLogin('Precisas de iniciar sessão para comentar.', '<?= SITE_URL ?>/pages/login.php'); return false;" class="form-link">Inicia sessão</a> para deixar um comentário.
             </p>
           <?php endif; ?>
 
@@ -428,7 +428,6 @@ include dirname(__DIR__) . '/includes/header.php';
 
 <!-- Mapa mini sidebar -->
 <script>
-const SITE_URL = "<?= SITE_URL ?>";
 function abrirModalDenuncia(tipo, refId, alvo) {
   document.getElementById('denuncia-titulo').textContent = 'Denunciar ' + alvo;
   document.getElementById('denuncia-tipo').value = tipo;
@@ -458,7 +457,7 @@ L.marker([destLat, destLng], { icon: iconePersonalizado }).addTo(map2)
     <?php if ($user): ?>
       window.open(`https://www.google.com/maps?q=${destLat},${destLng}`, '_blank');
     <?php else: ?>
-      window.location.href = '<?= SITE_URL ?>/pages/login.php';
+      mostrarAvisoLogin('Precisas de iniciar sessão para obter direções.', '<?= SITE_URL ?>/pages/login.php');
     <?php endif; ?>
   });
 

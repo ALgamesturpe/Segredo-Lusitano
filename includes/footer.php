@@ -20,7 +20,42 @@
   </div>
 </footer>
 
+<!-- Modal de aviso para utilizadores não autenticados -->
+<div id="modal-login-aviso" style="display:none;position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.5);align-items:center;justify-content:center;padding:1rem;">
+  <div style="background:#fff;border-radius:var(--radius-lg);padding:2rem;max-width:380px;width:100%;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.2);">
+    <i class="fas fa-lock" style="font-size:2.5rem;color:var(--verde);margin-bottom:1rem;display:block;"></i>
+    <h3 style="margin-bottom:.5rem;">Precisas de uma conta</h3>
+    <p style="color:var(--texto-muted);font-size:.95rem;margin-bottom:1.5rem;" id="modal-login-aviso-msg">
+      Para interagir precisas de iniciar sessão.
+    </p>
+    <div style="display:flex;gap:.75rem;justify-content:center;">
+      <a id="modal-login-btn" href="<?= SITE_URL ?>/pages/login.php" class="btn btn-primary">
+        <i class="fas fa-sign-in-alt"></i> Iniciar Sessão
+      </a>
+      <button onclick="fecharAvisoLogin()" class="btn btn-sm"
+              style="border:1px solid var(--creme-escuro);color:var(--texto-muted);">
+        Cancelar
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- Scripts globais -->
+
+
+<script>
+function mostrarAvisoLogin(msg, redirectUrl) {
+  const modal = document.getElementById('modal-login-aviso');
+  const msgEl = document.getElementById('modal-login-aviso-msg');
+  const btn   = document.getElementById('modal-login-btn');
+  if (msgEl) msgEl.textContent = msg || 'Para interagir precisas de iniciar sessão.';
+  if (btn)   btn.href = redirectUrl || '<?= SITE_URL ?>/pages/login.php';
+  if (modal) modal.style.display = 'flex';
+}
+function fecharAvisoLogin() {
+  document.getElementById('modal-login-aviso').style.display = 'none';
+}
+</script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="<?= SITE_URL ?>/assets/js/main.js"></script>
 <?= $extra_scripts ?? '' ?>
@@ -38,7 +73,7 @@
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: `id=${id}`
     });
-    if (res.status === 401) { window.location.href = `${SITE}/pages/login.php`; return; }
+    if (res.status === 401) { mostrarAvisoLogin('Precisas de iniciar sessão para seguir utilizadores.', `${SITE}/pages/login.php`); return; }
     const data = await res.json();
     if (!data.ok) return;
     const aSeguir = data.a_seguir;
