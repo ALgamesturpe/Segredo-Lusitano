@@ -843,10 +843,16 @@ main { flex: 1; }
 }
 
 @media (max-width: 768px) {
-  .hamburger { display: flex; }
+  .hamburger {
+    display: flex;
+  }
+
   .nav-links {
     position: fixed;
-    top: var(--nav-h); right: 0; left: 0; bottom: 0;
+    top: var(--nav-h);
+    right: 0;
+    left: 0;
+    bottom: 0;
     background: var(--verde-escuro);
     flex-direction: column;
     align-items: stretch;
