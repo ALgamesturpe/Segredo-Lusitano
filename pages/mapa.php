@@ -43,14 +43,13 @@ include dirname(__DIR__) . '/includes/header.php';
   </div>
 
   <!-- MAPA -->
-  <div id="map" style="flex:1; border-radius:0; height:100%;"></div>
+  <div id="map" style="flex:1; border-radius:0; min-height:calc(100vh - var(--nav-h) + 2rem);"></div>
 </div>
 
 <!-- Scripts sem footer visual -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="<?= SITE_URL ?>/assets/js/main.js"></script>
 <script>
-const SITE_URL = "<?= SITE_URL ?>";
 initMainMap(<?= $locais_json ?>);
 </script>
 </body>
