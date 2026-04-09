@@ -223,7 +223,6 @@ include dirname(__DIR__) . '/includes/header.php';
           <th>Email</th>
           <th>Pontos</th>
           <th>Locais</th>
-          <th>Role</th>
           <th>Estado</th>
           <th>Ações</th>
         </tr>
@@ -231,16 +230,15 @@ include dirname(__DIR__) . '/includes/header.php';
       <tbody>
         <?php foreach ($users as $u): ?>
         <tr>
-          <td><?= h($u['nome']) ?></td>
+          <td>
+            <a href="<?= SITE_URL ?>/pages/perfil.php?id=<?= $u['id'] ?>" style="color:var(--verde);font-weight:600;">
+              <?= h($u['nome']) ?>
+            </a>
+          </td>
           <td>@<?= h($u['username']) ?></td>
           <td><?= h($u['email']) ?></td>
           <td><?= number_format((int)$u['pontos']) ?></td>
           <td><?= (int)$u['total_locais'] ?></td>
-          <td>
-            <span class="badge <?= $u['role'] === 'admin' ? 'badge-cat' : '' ?>">
-              <?= ucfirst($u['role']) ?>
-            </span>
-          </td>
           <td>
             <span style="color:<?= $u['ativo'] ? '#27ae60' : '#e74c3c' ?>;font-weight:700;">
               <?= $u['ativo'] ? 'Ativo' : 'Suspenso' ?>

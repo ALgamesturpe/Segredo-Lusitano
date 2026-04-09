@@ -386,12 +386,8 @@ function moderar_denuncias_item(string $tipo, int $ref_id, bool $bloquear): bool
         db()->prepare('UPDATE locais SET bloqueado=? WHERE id=?')->execute([$bloquear ? 1 : 0, $ref_id]);
 
         if ($bloquear) {
+            // Apenas bloqueia — não elimina o local automaticamente
             limpar_imagens_local($ref_id);
-            if (local_bloqueado_deve_ser_eliminado($ref_id)) {
-                resolver_denuncias_local_e_comentarios($ref_id);
-                delete_local($ref_id);
-                return true;
-            }
         }
 
         db()->prepare('UPDATE denuncias SET resolvida=1 WHERE tipo=? AND referencia_id=? AND resolvida=0')->execute([$tipo, $ref_id]);

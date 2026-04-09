@@ -65,6 +65,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['fotos'])) {
     exit;
 }
 
+// --- POST: Upload de foto pelo admin ---
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload_admin']) && is_admin()) {
+    $f = $_FILES['foto_admin'];
+    if ($f['error'] === 0) {
+        upload_foto($f, $id, $user['id']);
+        flash('success', 'Foto adicionada.');
+    }
+    header('Location: ' . SITE_URL . '/pages/local.php?id=' . $id);
+    exit;
+}
+
+// --- GET: Apagar foto pelo admin ---
+if (isset($_GET['apagar_foto']) && is_admin()) {
+    $fid = (int)$_GET['apagar_foto'];
+    $st  = db()->prepare('SELECT ficheiro FROM fotos WHERE id = ?');
+    $st->execute([$fid]);
+    $foto = $st->fetch();
+    if ($foto) {
+        apagar_upload_local($foto['ficheiro']);
+        db()->prepare('DELETE FROM fotos WHERE id = ?')->execute([$fid]);
+        flash('success', 'Foto eliminada.');
+    }
+    header('Location: ' . SITE_URL . '/pages/local.php?id=' . $id . '#galeria');
+    exit;
+}
+
+// --- GET: Apagar comentário pelo admin ---
+if (isset($_GET['apagar_comentario']) && is_admin()) {
+    db()->prepare('DELETE FROM comentarios WHERE id = ?')->execute([(int)$_GET['apagar_comentario']]);
+    flash('success', 'Comentário eliminado.');
+    header('Location: ' . SITE_URL . '/pages/local.php?id=' . $id . '#comentarios');
+    exit;
+}
+
 // --- POST: Denúncia ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['denunciar'])) {
     if (!$user) { header('Location: ' . SITE_URL . '/pages/login.php'); exit; }
@@ -156,18 +190,38 @@ include dirname(__DIR__) . '/includes/header.php';
         </div>
 
         <!-- Galeria de Fotos -->
-        <?php if ($fotos): ?>
+        <?php if ($fotos || is_admin()): ?>
         <div class="info-card" style="margin-bottom:1.5rem;">
           <h3><i class="fas fa-images"></i> Galeria</h3>
           <div class="galeria">
             <?php foreach ($fotos as $foto): ?>
-              <div class="galeria-item" onclick="abrirFoto('<?= SITE_URL ?>/uploads/locais/<?= h($foto['ficheiro']) ?>')"
-                  style="cursor:pointer;">
+              <div class="galeria-item" style="position:relative;">
                 <img src="<?= SITE_URL ?>/uploads/locais/<?= h($foto['ficheiro']) ?>"
-                    alt="Foto do local" loading="lazy">
+                    alt="Foto do local" loading="lazy"
+                    onclick="abrirFoto('<?= SITE_URL ?>/uploads/locais/<?= h($foto['ficheiro']) ?>')"
+                    style="cursor:pointer;">
+                <?php if (is_admin()): ?>
+                  <a href="<?= SITE_URL ?>/pages/local.php?id=<?= $id ?>&apagar_foto=<?= $foto['id'] ?>"
+                    onclick="return confirm('Eliminar esta foto?')"
+                    style="position:absolute;top:.35rem;right:.35rem;background:#c0392b;color:#fff;
+                            border-radius:6px;padding:.2rem .45rem;font-size:.75rem;text-decoration:none;z-index:10;">
+                    <i class="fas fa-trash"></i>
+                  </a>
+                <?php endif; ?>
               </div>
             <?php endforeach; ?>
           </div>
+
+          <?php if (is_admin()): ?>
+          <form method="POST" enctype="multipart/form-data" style="margin-top:1rem;display:flex;gap:.75rem;align-items:center;flex-wrap:wrap;">
+            <input type="hidden" name="local_id_upload" value="<?= $id ?>">
+            <input type="file" name="foto_admin" accept="image/*" required
+                  style="border:1.5px solid var(--creme-escuro);border-radius:8px;padding:.4rem .75rem;background:var(--creme);font-size:.9rem;">
+            <button type="submit" name="upload_admin" class="btn btn-sm btn-verde">
+              <i class="fas fa-upload"></i> Adicionar Foto
+            </button>
+          </form>
+          <?php endif; ?>
         </div>
         <?php endif; ?>
 
@@ -229,6 +283,13 @@ include dirname(__DIR__) . '/includes/header.php';
                     <div class="comentario-meta" style="display:flex;align-items:center;gap:.45rem;flex-wrap:wrap;">
                       <strong><?= h(comentario_autor_publico($com)) ?></strong>
                       &bull; <?= date('d M Y', strtotime($com['criado_em'])) ?>
+                      <?php if (is_admin()): ?>
+                        <a href="?id=<?= $id ?>&apagar_comentario=<?= $com['id'] ?>"
+                          onclick="return confirm('Eliminar este comentário permanentemente?')"
+                          style="margin-left:auto;color:#c0392b;font-size:.8rem;text-decoration:none;">
+                          <i class="fas fa-trash"></i>
+                        </a>
+                      <?php endif; ?>
                       <?php if ($user && !$comentario_bloqueado && $user['id'] !== (int)$com['utilizador_id'] && !is_admin()): ?>
                         <button type="button"
                                 onclick="abrirModalDenuncia('comentario', <?= (int)$com['id'] ?>, 'Comentario')"
