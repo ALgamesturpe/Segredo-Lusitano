@@ -43,7 +43,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['codigo'])) {
     if (strlen($codigo) !== 6) {
         $erro = 'O código deve ter 6 dígitos.';
     } elseif (!verificar_codigo($uid, $codigo, $tipo)) {
-        $erro = 'Código inválido ou expirado. Pede um novo código.';
+    // Debug temporário
+    $st_debug = db()->prepare('SELECT codigo, tipo, usado, expira_em, NOW() as agora FROM codigos_verificacao WHERE utilizador_id = ? ORDER BY id DESC LIMIT 1');
+    $st_debug->execute([$uid]);
+    $row_debug = $st_debug->fetch();
+    $erro = 'Código inválido ou expirado. Debug: ' . json_encode($row_debug);
     } else {
         // Código correto!
         if ($tipo === 'registo') {
