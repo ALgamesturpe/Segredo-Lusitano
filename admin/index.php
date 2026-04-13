@@ -14,6 +14,40 @@ $total_comentarios = (int)db()->query('SELECT COUNT(*) FROM comentarios')->fetch
 $total_denuncias   = (int)db()->query('SELECT COUNT(*) FROM denuncias WHERE resolvida=0')->fetchColumn();
 $total_bloqueados  = (int)db()->query('SELECT COUNT(*) FROM locais WHERE bloqueado=1')->fetchColumn();
 $total_suspensos   = (int)db()->query('SELECT COUNT(*) FROM utilizadores WHERE ativo=0 AND role="user"')->fetchColumn();
+$total_likes       = (int)db()->query('SELECT COUNT(*) FROM likes')->fetchColumn();
+
+// ── Top utilizadores ─────────────────────────────────────
+
+// Utilizador com mais locais publicados
+$top_locais = db()->query(
+    'SELECT u.id, u.nome, u.username, u.avatar,
+            COUNT(l.id) AS total
+     FROM utilizadores u
+     JOIN locais l ON l.utilizador_id = u.id AND l.estado = "aprovado"
+     WHERE u.role = "user"
+     GROUP BY u.id ORDER BY total DESC LIMIT 1'
+)->fetch() ?: null;
+
+// Utilizador com mais comentários
+$top_comentarios = db()->query(
+    'SELECT u.id, u.nome, u.username, u.avatar,
+            COUNT(c.id) AS total
+     FROM utilizadores u
+     JOIN comentarios c ON c.utilizador_id = u.id
+     WHERE u.role = "user"
+     GROUP BY u.id ORDER BY total DESC LIMIT 1'
+)->fetch() ?: null;
+
+// Utilizador com mais likes recebidos nos seus locais
+$top_likes = db()->query(
+    'SELECT u.id, u.nome, u.username, u.avatar,
+            COUNT(lk.id) AS total
+     FROM utilizadores u
+     JOIN locais l ON l.utilizador_id = u.id
+     JOIN likes lk ON lk.local_id = l.id
+     WHERE u.role = "user"
+     GROUP BY u.id ORDER BY total DESC LIMIT 1'
+)->fetch() ?: null;
 
 // ── Gráfico: publicações por mês ─────────────────────────
 $ano_atual       = date('Y');
@@ -32,24 +66,18 @@ $grafico_json = json_encode(array_values($dados_g));
 
 // ── Ações de moderação ────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-
-    // Aprovar ou rejeitar local pendente
     if (isset($_POST['moderar'])) {
         moderar_local((int)$_POST['local_id'], $_POST['estado']);
         flash('success', 'Local ' . $_POST['estado'] . ' com sucesso!');
         header('Location: ' . SITE_URL . '/admin/index.php');
         exit;
     }
-
-    // Devolver denúncia — resolve sem tomar ação sobre o conteúdo
     if (isset($_POST['devolver_denuncia'])) {
         db()->prepare('UPDATE denuncias SET resolvida=1 WHERE id=?')->execute([(int)$_POST['den_id']]);
         flash('success', 'Denúncia devolvida — conteúdo mantido.');
         header('Location: ' . SITE_URL . '/admin/index.php#denuncias');
         exit;
     }
-
-    // Bloquear ou permitir conteúdo denunciado
     if (isset($_POST['moderar_denuncia_item'])) {
         $tipo   = (string)($_POST['tipo']   ?? '');
         $ref_id = (int)($_POST['ref_id']    ?? 0);
@@ -69,6 +97,28 @@ $pendentes = get_pendentes();
 $denuncias = get_denuncias();
 
 include dirname(__DIR__) . '/includes/header.php';
+
+// Função auxiliar para renderizar card de top utilizador
+function render_top_user(?array $u, string $valor_label): string {
+    if (!$u) return '<div style="color:var(--texto-muted);font-size:.85rem;padding:.5rem 0;">Sem dados ainda.</div>';
+    $avatar = !empty($u['avatar'])
+        ? '<img src="' . SITE_URL . '/uploads/locais/' . h($u['avatar']) . '" style="width:100%;height:100%;object-fit:cover;">'
+        : '<span style="font-size:.9rem;font-weight:700;">' . mb_strtoupper(mb_substr($u['username'],0,1)) . '</span>';
+    return '
+    <div style="display:flex;align-items:center;gap:.75rem;">
+      <div style="width:38px;height:38px;border-radius:50%;background:var(--verde-claro);color:#fff;
+                  display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;">
+        ' . $avatar . '
+      </div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-weight:600;font-size:.88rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' . h($u['nome']) . '</div>
+        <a href="' . SITE_URL . '/pages/perfil.php?id=' . $u['id'] . '" style="color:var(--verde);font-size:.78rem;">@' . h($u['username']) . '</a>
+      </div>
+      <div style="font-family:\'Playfair Display\',serif;font-size:1.15rem;font-weight:700;color:var(--dourado);flex-shrink:0;">
+        ' . $u['total'] . ' <span style="font-family:\'Outfit\',sans-serif;font-size:.72rem;color:var(--texto-muted);font-weight:400;">' . $valor_label . '</span>
+      </div>
+    </div>';
+}
 ?>
 
 <div class="page-content">
@@ -84,6 +134,7 @@ include dirname(__DIR__) . '/includes/header.php';
       <a href="<?= SITE_URL ?>/admin/index.php" class="active"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
       <a href="<?= SITE_URL ?>/admin/locais.php"><i class="fa-solid fa-location-dot"></i> Locais</a>
       <a href="<?= SITE_URL ?>/admin/utilizadores.php"><i class="fas fa-users"></i> Utilizadores</a>
+      <a href="<?= SITE_URL ?>/admin/estatisticas.php"><i class="fas fa-chart-bar"></i> Estatísticas</a>
       <div class="nav-section">Moderação</div>
       <a href="#denuncias">
         <i class="fas fa-flag"></i> Denúncias
@@ -96,28 +147,83 @@ include dirname(__DIR__) . '/includes/header.php';
   <main class="admin-content">
     <h1 class="admin-title">Dashboard</h1>
 
-    <!-- GRÁFICO DE PUBLICAÇÕES POR MÊS -->
-    <div style="background:var(--branco); border-radius:var(--radius-lg); box-shadow:var(--sombra-sm); padding:1.75rem; margin-bottom:2rem;">
-      <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1rem; margin-bottom:1.25rem;">
-        <div style="display:flex; align-items:center; gap:.6rem;">
-          <i class="fa-solid fa-chart-column" style="color:var(--dourado); font-size:1.1rem;"></i>
-          <h2 style="font-size:1.15rem; margin:0;">Publicações por Mês</h2>
+    <!-- GRÁFICO (60%) + TOP UTILIZADORES (40%) -->
+    <div style="display:grid;grid-template-columns:3fr 2fr;gap:1.5rem;margin-bottom:2rem;">
+
+      <!-- Gráfico -->
+      <div style="background:var(--branco);border-radius:var(--radius-lg);box-shadow:var(--sombra-sm);padding:1.75rem;">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1.25rem;">
+          <div style="display:flex;align-items:center;gap:.6rem;">
+            <i class="fa-solid fa-chart-column" style="color:var(--dourado);font-size:1.1rem;"></i>
+            <h2 style="font-size:1.15rem;margin:0;">Publicações por Mês</h2>
+          </div>
+          <form method="GET" style="display:flex;align-items:center;gap:.5rem;">
+            <label style="font-size:.85rem;color:var(--texto-muted);">Ano:</label>
+            <select name="ano" onchange="this.form.submit()"
+                    style="padding:.3rem .75rem;border:1.5px solid var(--creme-escuro);border-radius:8px;background:var(--creme);font-size:.9rem;color:var(--texto);cursor:pointer;">
+              <?php for ($y = $ano_atual; $y >= 2024; $y--): ?>
+                <option value="<?= $y ?>" <?= $y === $ano_selecionado ? 'selected' : '' ?>><?= $y ?></option>
+              <?php endfor; ?>
+            </select>
+          </form>
         </div>
-        <form method="GET" style="display:flex; align-items:center; gap:.5rem;">
-          <label style="font-size:.85rem; color:var(--texto-muted);">Ano:</label>
-          <select name="ano" onchange="this.form.submit()"
-                  style="padding:.3rem .75rem; border:1.5px solid var(--creme-escuro); border-radius:8px; background:var(--creme); font-size:.9rem; color:var(--texto); cursor:pointer;">
-            <?php for ($y = $ano_atual; $y >= 2024; $y--): ?>
-              <option value="<?= $y ?>" <?= $y === $ano_selecionado ? 'selected' : '' ?>><?= $y ?></option>
-            <?php endfor; ?>
-          </select>
-        </form>
+        <canvas id="grafico-publicacoes" height="80"></canvas>
       </div>
-      <canvas id="grafico-publicacoes" height="45"></canvas>
+
+      <!-- Painel Top Utilizadores -->
+      <div style="background:var(--branco);border-radius:var(--radius-lg);box-shadow:var(--sombra-sm);padding:1.75rem;display:flex;flex-direction:column;gap:1rem;">
+
+        <!-- Total likes -->
+        <div style="display:flex;align-items:center;gap:.75rem;padding:.85rem 1rem;background:var(--creme);border-radius:var(--radius);border-left:4px solid #e74c3c;">
+          <i class="fas fa-heart" style="color:#e74c3c;font-size:1.2rem;"></i>
+          <div>
+            <div style="font-family:'Playfair Display',serif;font-size:1.5rem;color:#e74c3c;font-weight:700;line-height:1;"><?= number_format($total_likes) ?></div>
+            <div style="font-size:.72rem;color:var(--texto-muted);text-transform:uppercase;letter-spacing:.05em;">Total de Likes</div>
+          </div>
+        </div>
+
+        <!-- Título -->
+        <div style="font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--texto-muted);padding-top:.25rem;">
+          <i class="fas fa-trophy" style="color:var(--dourado);margin-right:.35rem;"></i> Top Exploradores
+        </div>
+
+        <!-- Top locais publicados -->
+        <div>
+          <div style="font-size:.76rem;color:var(--texto-muted);margin-bottom:.45rem;">
+            <i class="fas fa-map-marker-alt" style="color:var(--verde);margin-right:.3rem;"></i>Mais locais publicados
+          </div>
+          <?= render_top_user($top_locais ?? null, 'locais') ?>
+        </div>
+
+        <hr style="border:none;border-top:1px solid var(--creme-escuro);">
+
+        <!-- Top comentários -->
+        <div>
+          <div style="font-size:.76rem;color:var(--texto-muted);margin-bottom:.45rem;">
+            <i class="fas fa-comments" style="color:var(--verde-claro);margin-right:.3rem;"></i>Mais comentários
+          </div>
+          <?= render_top_user($top_comentarios ?? null, 'comentários') ?>
+        </div>
+
+        <hr style="border:none;border-top:1px solid var(--creme-escuro);">
+
+        <!-- Top likes recebidos -->
+        <div>
+          <div style="font-size:.76rem;color:var(--texto-muted);margin-bottom:.45rem;">
+            <i class="fas fa-heart" style="color:#e74c3c;margin-right:.3rem;"></i>Mais likes recebidos
+          </div>
+          <?= render_top_user($top_likes ?? null, 'likes') ?>
+        </div>
+
+        <!-- Link estatísticas -->
+        <a href="<?= SITE_URL ?>/admin/estatisticas.php" class="btn btn-sm btn-verde" style="justify-content:center;margin-top:auto;">
+          <i class="fas fa-chart-bar"></i> Estatísticas Completas
+        </a>
+      </div>
     </div>
 
     <!-- CARDS DE ESTATÍSTICAS -->
-    <div class="admin-cards" style="grid-template-columns: repeat(6, 1fr);">
+    <div class="admin-cards" style="grid-template-columns: repeat(6, 1fr); margin-bottom:2rem;">
       <a href="<?= SITE_URL ?>/admin/locais.php" style="text-decoration:none;">
         <div class="admin-stat-card" style="cursor:pointer;">
           <div class="num"><?= $total_locais ?></div>
@@ -125,7 +231,7 @@ include dirname(__DIR__) . '/includes/header.php';
         </div>
       </a>
       <a href="<?= SITE_URL ?>/admin/utilizadores.php" style="text-decoration:none;">
-        <div class="admin-stat-card" style="border-color:var(--dourado); cursor:pointer;">
+        <div class="admin-stat-card" style="border-color:var(--dourado);cursor:pointer;">
           <div class="num" style="color:var(--dourado);"><?= $total_users ?></div>
           <div class="lbl">Utilizadores</div>
         </div>
@@ -135,19 +241,19 @@ include dirname(__DIR__) . '/includes/header.php';
         <div class="lbl">Comentários</div>
       </div>
       <a href="#denuncias" style="text-decoration:none;">
-        <div class="admin-stat-card" style="border-color:#e74c3c; cursor:pointer;">
+        <div class="admin-stat-card" style="border-color:#e74c3c;cursor:pointer;">
           <div class="num" style="color:#e74c3c;"><?= $total_denuncias ?></div>
           <div class="lbl">Denúncias Abertas</div>
         </div>
       </a>
       <a href="<?= SITE_URL ?>/admin/locais.php?bloqueado=1" style="text-decoration:none;">
-        <div class="admin-stat-card" style="border-color:#8e44ad; cursor:pointer;">
+        <div class="admin-stat-card" style="border-color:#8e44ad;cursor:pointer;">
           <div class="num" style="color:#8e44ad;"><?= $total_bloqueados ?></div>
           <div class="lbl">Locais Bloqueados</div>
         </div>
       </a>
       <a href="<?= SITE_URL ?>/admin/utilizadores.php?filtro=suspensos" style="text-decoration:none;">
-        <div class="admin-stat-card" style="border-color:#e67e22; cursor:pointer;">
+        <div class="admin-stat-card" style="border-color:#e67e22;cursor:pointer;">
           <div class="num" style="color:#e67e22;"><?= $total_suspensos ?></div>
           <div class="lbl">Utilizadores Suspensos</div>
         </div>
@@ -155,7 +261,7 @@ include dirname(__DIR__) . '/includes/header.php';
     </div>
 
     <!-- DENÚNCIAS ABERTAS -->
-    <h2 style="font-size:1.3rem; margin-bottom:1rem;" id="denuncias">
+    <h2 style="font-size:1.3rem;margin-bottom:1rem;" id="denuncias">
       <i class="fas fa-flag"></i> Denúncias Abertas
     </h2>
 
@@ -163,13 +269,7 @@ include dirname(__DIR__) . '/includes/header.php';
     <table class="data-table">
       <thead>
         <tr>
-          <th>Tipo</th>
-          <th>Ref.</th>
-          <th>Conteúdo</th>
-          <th>Motivo</th>
-          <th>Estado</th>
-          <th>Data</th>
-          <th>Ação Rápida</th>
+          <th>Tipo</th><th>Ref.</th><th>Conteúdo</th><th>Motivo</th><th>Estado</th><th>Data</th><th>Ação Rápida</th>
         </tr>
       </thead>
       <tbody>
@@ -179,9 +279,7 @@ include dirname(__DIR__) . '/includes/header.php';
           <td><span class="badge badge-cat"><?= h($den['tipo']) ?></span></td>
           <td>#<?= (int)$den['referencia_id'] ?></td>
           <td>
-            <!-- Botão que abre o modal com o conteúdo completo -->
-            <button type="button"
-                    class="btn btn-sm btn-verde"
+            <button type="button" class="btn btn-sm btn-verde"
                     onclick="abrirModalDenuncia(this)"
                     data-id="<?= (int)$den['id'] ?>"
                     data-tipo="<?= h($den['tipo']) ?>"
@@ -202,13 +300,10 @@ include dirname(__DIR__) . '/includes/header.php';
           </td>
           <td><?= date('d/m/Y', strtotime($den['criado_em'])) ?></td>
           <td>
-            <!-- Devolver diretamente da tabela -->
             <form method="POST" style="display:inline;">
               <input type="hidden" name="den_id" value="<?= (int)$den['id'] ?>">
-              <button type="submit" name="devolver_denuncia"
-                      class="btn btn-sm"
-                      style="border:1px solid var(--creme-escuro);color:var(--texto-muted);"
-                      title="Devolver — manter conteúdo e fechar denúncia">
+              <button type="submit" name="devolver_denuncia" class="btn btn-sm"
+                      style="border:1px solid var(--creme-escuro);color:var(--texto-muted);">
                 <i class="fas fa-undo"></i> Devolver
               </button>
             </form>
@@ -217,7 +312,6 @@ include dirname(__DIR__) . '/includes/header.php';
         <?php endforeach; ?>
       </tbody>
     </table>
-
     <?php else: ?>
       <div class="empty-state" style="padding:2rem;">
         <i class="fas fa-shield-alt"></i>
@@ -229,11 +323,9 @@ include dirname(__DIR__) . '/includes/header.php';
 </div>
 </div>
 
-<!-- ── MODAL DE CONTEÚDO DA DENÚNCIA ── -->
+<!-- MODAL DENÚNCIA -->
 <div id="modal-denuncia" style="display:none;position:fixed;inset:0;z-index:5000;background:rgba(0,0,0,.5);align-items:center;justify-content:center;padding:1rem;">
   <div style="background:#fff;border-radius:var(--radius-lg);width:100%;max-width:560px;box-shadow:0 8px 32px rgba(0,0,0,.2);display:flex;flex-direction:column;max-height:90vh;overflow:hidden;">
-
-    <!-- Cabeçalho -->
     <div style="display:flex;align-items:center;justify-content:space-between;padding:1.25rem 1.5rem;border-bottom:1px solid var(--creme-escuro);">
       <div>
         <h3 style="margin:0;font-size:1.05rem;">
@@ -246,117 +338,88 @@ include dirname(__DIR__) . '/includes/header.php';
         <i class="fas fa-times"></i>
       </button>
     </div>
-
-    <!-- Corpo do modal -->
     <div style="padding:1.25rem 1.5rem;overflow-y:auto;flex:1;">
-
-      <!-- Motivo -->
       <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:1rem;">
         <span style="font-size:.8rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-muted);">Motivo:</span>
         <span id="modal-den-motivo" style="font-size:.9rem;font-weight:600;color:#e74c3c;"></span>
       </div>
-
-      <!-- Conteúdo denunciado -->
       <div style="font-size:.8rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-muted);margin-bottom:.5rem;">Conteúdo denunciado</div>
-      <div id="modal-den-conteudo"
-           style="background:var(--creme);border:1.5px solid var(--creme-escuro);border-radius:10px;padding:1rem;font-size:.95rem;white-space:pre-wrap;line-height:1.6;margin-bottom:1.25rem;">
-      </div>
-
-      <!-- Link para abrir o local -->
-      <a id="modal-den-link" href="#" target="_blank" rel="noopener"
-         class="btn btn-sm btn-verde" style="display:none;">
+      <div id="modal-den-conteudo" style="background:var(--creme);border:1.5px solid var(--creme-escuro);border-radius:10px;padding:1rem;font-size:.95rem;white-space:pre-wrap;line-height:1.6;margin-bottom:1.25rem;"></div>
+      <a id="modal-den-link" href="#" target="_blank" rel="noopener" class="btn btn-sm btn-verde" style="display:none;">
         <i class="fas fa-external-link-alt"></i> Abrir local
       </a>
     </div>
-
-    <!-- Botões de ação -->
     <div style="padding:1rem 1.5rem;border-top:1px solid var(--creme-escuro);display:flex;gap:.75rem;">
-
-      <!-- Devolver: fecha a denúncia sem bloquear o conteúdo -->
       <form method="POST" style="flex:1;">
         <input type="hidden" name="den_id" id="modal-input-den-id">
-        <button type="submit" name="devolver_denuncia"
-                class="btn btn-sm"
+        <button type="submit" name="devolver_denuncia" class="btn btn-sm"
                 style="width:100%;justify-content:center;border:1.5px solid var(--creme-escuro);color:var(--texto-muted);">
           <i class="fas fa-undo"></i> Devolver
         </button>
       </form>
-
-      <!-- Bloquear ou Permitir conteúdo -->
       <form method="POST" style="flex:1;">
         <input type="hidden" name="tipo"   id="modal-input-tipo">
         <input type="hidden" name="ref_id" id="modal-input-ref-id">
         <input type="hidden" name="acao"   id="modal-input-acao">
-        <button type="submit" name="moderar_denuncia_item"
-                id="modal-btn-moderar"
-                class="btn btn-sm btn-danger"
-                style="width:100%;justify-content:center;">
-        </button>
+        <button type="submit" name="moderar_denuncia_item" id="modal-btn-moderar"
+                class="btn btn-sm btn-danger" style="width:100%;justify-content:center;"></button>
       </form>
-
     </div>
   </div>
 </div>
 
 <script>
-// Abrir modal com os dados da denúncia selecionada
 function abrirModalDenuncia(btn) {
-  const id          = btn.getAttribute('data-id');
-  const tipo        = btn.getAttribute('data-tipo')        || '';
-  const ref         = btn.getAttribute('data-ref')         || '';
-  const conteudo    = btn.getAttribute('data-conteudo')    || '[indisponível]';
-  const motivo      = btn.getAttribute('data-motivo')      || '';
+  const id = btn.getAttribute('data-id');
+  const tipo = btn.getAttribute('data-tipo') || '';
+  const ref = btn.getAttribute('data-ref') || '';
+  const conteudo = btn.getAttribute('data-conteudo') || '[indisponível]';
+  const motivo = btn.getAttribute('data-motivo') || '';
   const denunciante = btn.getAttribute('data-denunciante') || '';
-  const bloqueado   = btn.getAttribute('data-bloqueado')   === '1';
-  const link        = btn.getAttribute('data-link')        || '';
+  const bloqueado = btn.getAttribute('data-bloqueado') === '1';
+  const link = btn.getAttribute('data-link') || '';
 
-  document.getElementById('modal-den-ref').textContent      = ref;
-  document.getElementById('modal-den-meta').textContent     = tipo.charAt(0).toUpperCase() + tipo.slice(1) + ' · Denunciado por @' + denunciante;
+  document.getElementById('modal-den-ref').textContent = ref;
+  document.getElementById('modal-den-meta').textContent = tipo.charAt(0).toUpperCase() + tipo.slice(1) + ' · Denunciado por @' + denunciante;
   document.getElementById('modal-den-conteudo').textContent = conteudo;
-  document.getElementById('modal-den-motivo').textContent   = motivo;
+  document.getElementById('modal-den-motivo').textContent = motivo;
 
   const linkEl = document.getElementById('modal-den-link');
   if (link) { linkEl.href = link; linkEl.style.display = 'inline-flex'; }
-  else       { linkEl.style.display = 'none'; }
+  else { linkEl.style.display = 'none'; }
 
-  document.getElementById('modal-input-den-id').value  = id;
-  document.getElementById('modal-input-tipo').value    = tipo;
-  document.getElementById('modal-input-ref-id').value  = ref.replace('#', '');
+  document.getElementById('modal-input-den-id').value = id;
+  document.getElementById('modal-input-tipo').value = tipo;
+  document.getElementById('modal-input-ref-id').value = ref.replace('#', '');
 
   const btnModerar = document.getElementById('modal-btn-moderar');
   if (bloqueado) {
     document.getElementById('modal-input-acao').value = 'permitir';
-    btnModerar.innerHTML   = '<i class="fas fa-check"></i> Permitir Conteúdo';
-    btnModerar.className   = 'btn btn-sm btn-verde';
+    btnModerar.innerHTML = '<i class="fas fa-check"></i> Permitir Conteúdo';
+    btnModerar.className = 'btn btn-sm btn-verde';
   } else {
     document.getElementById('modal-input-acao').value = 'bloquear';
-    btnModerar.innerHTML   = '<i class="fas fa-ban"></i> Bloquear Conteúdo';
-    btnModerar.className   = 'btn btn-sm btn-danger';
+    btnModerar.innerHTML = '<i class="fas fa-ban"></i> Bloquear Conteúdo';
+    btnModerar.className = 'btn btn-sm btn-danger';
   }
-  btnModerar.style.width          = '100%';
+  btnModerar.style.width = '100%';
   btnModerar.style.justifyContent = 'center';
-
   document.getElementById('modal-denuncia').style.display = 'flex';
 }
-
-// Fechar modal
 function fecharModalDenuncia() {
   document.getElementById('modal-denuncia').style.display = 'none';
 }
-
-// Fechar ao clicar fora do modal
 document.getElementById('modal-denuncia').addEventListener('click', function(e) {
   if (e.target === this) fecharModalDenuncia();
 });
 </script>
 
-<!-- Chart.js -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script>
 (function() {
   const meses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
   const dados = <?= $grafico_json ?>;
-  const ctx   = document.getElementById('grafico-publicacoes').getContext('2d');
+  const ctx = document.getElementById('grafico-publicacoes').getContext('2d');
   new Chart(ctx, {
     type: 'bar',
     data: {
@@ -373,14 +436,7 @@ document.getElementById('modal-denuncia').addEventListener('click', function(e) 
     },
     options: {
       responsive: true,
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          callbacks: {
-            label: ctx => ' ' + ctx.parsed.y + (ctx.parsed.y === 1 ? ' publicação' : ' publicações')
-          }
-        }
-      },
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ' ' + ctx.parsed.y + (ctx.parsed.y === 1 ? ' publicação' : ' publicações') } } },
       scales: {
         x: { grid: { display: false }, ticks: { font: { family: 'Outfit', size: 12 }, color: '#6b7280' } },
         y: { beginAtZero: true, ticks: { stepSize: 1, precision: 0, font: { family: 'Outfit', size: 12 }, color: '#6b7280' }, grid: { color: 'rgba(0,0,0,.06)' } }
