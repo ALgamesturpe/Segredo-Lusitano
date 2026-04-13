@@ -93,8 +93,8 @@ function enviar_codigo_verificacao(string $email, string $nome, string $codigo, 
         $mail->Password   = MAIL_PASS;
         // ⚠️ XAMPP Local: usar SMTPS com contexto SSL que ignora certificado
         // Em produção, usar STARTTLS na porta 587
-        $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
-        $mail->Port       = 465;
+        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+        $mail->Port       = MAIL_PORT;
         $mail->CharSet    = 'UTF-8';
         
         // Opções SSL para ignorar erro de certificado em ambiente local
@@ -149,11 +149,11 @@ function gerar_e_guardar_codigo(int $utilizador_id, string $tipo = 'registo'): s
     // Gerar código de 6 dígitos
     $codigo = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
 
-    // Expira em 15 minutos
+    // Expira em 60 minutos
     $expira = date('Y-m-d H:i:s', strtotime('+15 minutes'));
 
-    db()->prepare('INSERT INTO codigos_verificacao (utilizador_id, codigo, tipo, expira_em) VALUES (?,?,?,?)')
-         ->execute([$utilizador_id, $codigo, $tipo, $expira]);
+    db()->prepare('INSERT INTO codigos_verificacao (utilizador_id, codigo, tipo, expira_em) VALUES (?,?,?, DATE_ADD(NOW(), INTERVAL 15 MINUTE))')
+     ->execute([$utilizador_id, $codigo, $tipo]);
 
     return $codigo;
 }
