@@ -192,7 +192,16 @@ include dirname(__DIR__) . '/includes/header.php';
         <!-- Galeria de Fotos -->
         <?php if ($fotos || is_admin()): ?>
         <div class="info-card" style="margin-bottom:1.5rem;">
-          <h3><i class="fas fa-images"></i> Galeria</h3>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
+            <h3 style="margin:0;"><i class="fas fa-images"></i> Galeria</h3>
+            <?php if ($user && !is_admin()): ?>
+              <button onclick="abrirModalDenuncia('foto', <?= $id ?>, 'Fotografia')"
+                      class="btn btn-sm"
+                      style="color:var(--texto-muted);border:1px solid var(--creme-escuro);border-radius:50px;font-size:.8rem;">
+                <i class="fas fa-flag"></i> Denunciar foto
+              </button>
+            <?php endif; ?>
+          </div>
           <div class="galeria">
             <?php foreach ($fotos as $foto): ?>
               <div class="galeria-item" style="position:relative;">

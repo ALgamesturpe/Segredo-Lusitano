@@ -49,20 +49,40 @@ $top_likes = db()->query(
      GROUP BY u.id ORDER BY total DESC LIMIT 1'
 )->fetch() ?: null;
 
-// ── Gráfico: publicações por mês ─────────────────────────
+// ── Gráfico: publicações por dia (mês) ou por mês (ano) ──
 $ano_atual       = date('Y');
+$mes_atual       = (int)date('m');
 $ano_selecionado = isset($_GET['ano']) ? (int)$_GET['ano'] : $ano_atual;
+$mes_selecionado = isset($_GET['mes']) ? (int)$_GET['mes'] : 0; // 0 = mostrar ano todo
 if ($ano_selecionado < 2020 || $ano_selecionado > $ano_atual) $ano_selecionado = $ano_atual;
+if ($mes_selecionado < 0 || $mes_selecionado > 12) $mes_selecionado = 0;
 
-$st_g = db()->prepare(
-    'SELECT MONTH(criado_em) AS mes, COUNT(*) AS total
-     FROM locais WHERE YEAR(criado_em) = ? AND estado = "aprovado"
-     GROUP BY MONTH(criado_em) ORDER BY mes ASC'
-);
-$st_g->execute([$ano_selecionado]);
-$dados_g = array_fill(1, 12, 0);
-foreach ($st_g->fetchAll() as $r) $dados_g[(int)$r['mes']] = (int)$r['total'];
+if ($mes_selecionado > 0) {
+    // Modo dia: mostrar dias do mês selecionado
+    $dias_no_mes = (int)date('t', mktime(0, 0, 0, $mes_selecionado, 1, $ano_selecionado));
+    $st_g = db()->prepare(
+        'SELECT DAY(criado_em) AS dia, COUNT(*) AS total
+         FROM locais WHERE YEAR(criado_em) = ? AND MONTH(criado_em) = ? AND estado = "aprovado"
+         GROUP BY DAY(criado_em) ORDER BY dia ASC'
+    );
+    $st_g->execute([$ano_selecionado, $mes_selecionado]);
+    $dados_g = array_fill(1, $dias_no_mes, 0);
+    foreach ($st_g->fetchAll() as $r) $dados_g[(int)$r['dia']] = (int)$r['total'];
+    $labels_g = json_encode(array_map(fn($d) => $d . '', range(1, $dias_no_mes)));
+} else {
+    // Modo mês: mostrar meses do ano selecionado
+    $st_g = db()->prepare(
+        'SELECT MONTH(criado_em) AS mes, COUNT(*) AS total
+         FROM locais WHERE YEAR(criado_em) = ? AND estado = "aprovado"
+         GROUP BY MONTH(criado_em) ORDER BY mes ASC'
+    );
+    $st_g->execute([$ano_selecionado]);
+    $dados_g = array_fill(1, 12, 0);
+    foreach ($st_g->fetchAll() as $r) $dados_g[(int)$r['mes']] = (int)$r['total'];
+    $labels_g = json_encode(['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez']);
+}
 $grafico_json = json_encode(array_values($dados_g));
+$nomes_meses_g = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 
 // ── Ações de moderação ────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -157,8 +177,14 @@ function render_top_user(?array $u, string $valor_label): string {
             <i class="fa-solid fa-chart-column" style="color:var(--dourado);font-size:1.1rem;"></i>
             <h2 style="font-size:1.15rem;margin:0;">Publicações por Mês</h2>
           </div>
-          <form method="GET" style="display:flex;align-items:center;gap:.5rem;">
-            <label style="font-size:.85rem;color:var(--texto-muted);">Ano:</label>
+          <form method="GET" style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;">
+            <select name="mes" onchange="this.form.submit()"
+                    style="padding:.3rem .75rem;border:1.5px solid var(--creme-escuro);border-radius:8px;background:var(--creme);font-size:.9rem;color:var(--texto);cursor:pointer;">
+              <option value="0" <?= $mes_selecionado === 0 ? 'selected' : '' ?>>Ano todo</option>
+              <?php foreach ($nomes_meses_g as $i => $nome): ?>
+                <option value="<?= $i+1 ?>" <?= ($i+1) === $mes_selecionado ? 'selected' : '' ?>><?= $nome ?></option>
+              <?php endforeach; ?>
+            </select>
             <select name="ano" onchange="this.form.submit()"
                     style="padding:.3rem .75rem;border:1.5px solid var(--creme-escuro);border-radius:8px;background:var(--creme);font-size:.9rem;color:var(--texto);cursor:pointer;">
               <?php for ($y = $ano_atual; $y >= 2024; $y--): ?>
@@ -172,15 +198,6 @@ function render_top_user(?array $u, string $valor_label): string {
 
       <!-- Painel Top Utilizadores -->
       <div style="background:var(--branco);border-radius:var(--radius-lg);box-shadow:var(--sombra-sm);padding:1.75rem;display:flex;flex-direction:column;gap:1rem;">
-
-        <!-- Total likes -->
-        <div style="display:flex;align-items:center;gap:.75rem;padding:.85rem 1rem;background:var(--creme);border-radius:var(--radius);border-left:4px solid #e74c3c;">
-          <i class="fas fa-heart" style="color:#e74c3c;font-size:1.2rem;"></i>
-          <div>
-            <div style="font-family:'Playfair Display',serif;font-size:1.5rem;color:#e74c3c;font-weight:700;line-height:1;"><?= number_format($total_likes) ?></div>
-            <div style="font-size:.72rem;color:var(--texto-muted);text-transform:uppercase;letter-spacing:.05em;">Total de Likes</div>
-          </div>
-        </div>
 
         <!-- Título -->
         <div style="font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--texto-muted);padding-top:.25rem;">
@@ -339,6 +356,13 @@ function render_top_user(?array $u, string $valor_label): string {
       </button>
     </div>
     <div style="padding:1.25rem 1.5rem;overflow-y:auto;flex:1;">
+      <!-- Tipo de conteúdo -->
+      <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.65rem;">
+        <span style="font-size:.8rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-muted);">Tipo:</span>
+        <span id="modal-den-tipo-label" style="font-size:.9rem;font-weight:600;color:var(--verde);"></span>
+      </div>
+
+      <!-- Motivo -->
       <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:1rem;">
         <span style="font-size:.8rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-muted);">Motivo:</span>
         <span id="modal-den-motivo" style="font-size:.9rem;font-weight:600;color:#e74c3c;"></span>
@@ -380,9 +404,11 @@ function abrirModalDenuncia(btn) {
   const link = btn.getAttribute('data-link') || '';
 
   document.getElementById('modal-den-ref').textContent = ref;
-  document.getElementById('modal-den-meta').textContent = tipo.charAt(0).toUpperCase() + tipo.slice(1) + ' · Denunciado por @' + denunciante;
   document.getElementById('modal-den-conteudo').textContent = conteudo;
-  document.getElementById('modal-den-motivo').textContent = motivo;
+document.getElementById('modal-den-motivo').textContent = motivo;
+  document.getElementById('modal-den-conteudo').textContent = conteudo;
+  const tipoLabels = { 'local': 'Local', 'comentario': 'Comentário', 'foto': 'Fotografia' };
+  document.getElementById('modal-den-tipo-label').textContent = tipoLabels[tipo] || tipo;
 
   const linkEl = document.getElementById('modal-den-link');
   if (link) { linkEl.href = link; linkEl.style.display = 'inline-flex'; }
@@ -417,7 +443,7 @@ document.getElementById('modal-denuncia').addEventListener('click', function(e) 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script>
 (function() {
-  const meses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const meses = <?= $labels_g ?>;
   const dados = <?= $grafico_json ?>;
   const ctx = document.getElementById('grafico-publicacoes').getContext('2d');
   new Chart(ctx, {

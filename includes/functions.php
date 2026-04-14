@@ -347,7 +347,7 @@ function get_denuncias(): array {
 }
 
 function reportar(string $tipo, int $ref_id, int $user_id, string $motivo): bool {
-    $tipos_validos = ['local', 'comentario'];
+    $tipos_validos = ['local', 'comentario', 'foto'];
     if (!in_array($tipo, $tipos_validos, true)) return false;
 
     $motivos_validos = array_keys(motivos_denuncia());
