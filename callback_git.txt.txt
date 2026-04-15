@@ -1,0 +1,7 @@
+veriricar com Pedrinho.
+
+http://localhost/PAP/pages/github_auth.php
+
+ou este
+
+http://localhost/Segredo-Lusitano/pages/github_auth.php

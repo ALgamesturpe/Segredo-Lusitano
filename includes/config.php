@@ -8,7 +8,7 @@ define('DB_PASS', '123456');
 define('DB_NAME', 'segredo_lusitano');
 define('SITE_NAME', 'Segredo Lusitano');
 define('GITHUB_CLIENT_ID', 'Ov23lioKbY34xSU0fQK1');
-define('GITHUB_CLIENT_SECRET', '15566b9fcf05438957d1e123e8fa3a45fa5b1f3c');
+define('GITHUB_CLIENT_SECRET', 'f28729cd84f0b8d531195ce8a795aa46fe7e3040');
 
 // Automatically detect SITE_URL based on current script location
 if (!defined('SITE_URL')) {

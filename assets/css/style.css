@@ -245,7 +245,7 @@ main { flex: 1; }
 }
 
 .hero {
-  min-height: 100vh;
+  min-height: 75vh;
   background-color: #0f2316;
   display: flex; align-items: center; justify-content: center;
   text-align: center;
@@ -929,6 +929,11 @@ main { flex: 1; }
   flex-direction: column;
   height: 100vh;
   padding-top: var(--nav-h);
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50%       { transform: translateX(-50%) translateY(8px); }
 }
 
 /*FOOTER*/

@@ -21,15 +21,20 @@ include __DIR__ . '/includes/header.php';
         <img src="<?= SITE_URL ?>/assets/images/logo_icon.png" alt="Segredo Lusitano" class="hero-logo-img" style="height:180px;width:180px;max-width:180px;object-fit:contain;display:block;margin:0 auto;">
       </div>
       <h1>O Portugal que os<br><em>mapas não mostram</em></h1>
-      <div class="hero-actions">
-        <a href="<?= SITE_URL ?>/pages/explorar.php" class="btn btn-primary"><i class="fa-solid fa-earth-americas"></i> Explorar Locais</a>
-        <a href="<?= SITE_URL ?>/pages/mapa.php"     class="btn btn-outline"><i class="fas fa-map"></i> Ver no Mapa</a>
+       <div class="hero-actions">
+          <a href="<?= SITE_URL ?>/pages/explorar.php" class="btn btn-primary"><i class="fa-solid fa-earth-americas"></i> Explorar Locais</a>
+          <a href="<?= SITE_URL ?>/pages/mapa.php"     class="btn btn-outline"><i class="fas fa-map"></i> Ver no Mapa</a>
+        </div>
       </div>
-    </div>
+      <!-- Seta de scroll -->
+      <a href="#destaque" style="position:absolute;bottom:2rem;left:50%;transform:translateX(-50%);
+        color:rgba(255,255,255,.7);font-size:1.5rem;animation:bounce 2s infinite;text-decoration:none;">
+        <i class="fas fa-chevron-down"></i>
+      </a>
   </section>
 
   <!-- LOCAIS EM DESTAQUE -->
-  <section class="section">
+  <section class="section" id="destaque">
     <div class="container">
       <div class="section-header">
         <br>
