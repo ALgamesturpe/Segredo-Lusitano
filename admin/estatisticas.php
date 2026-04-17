@@ -191,7 +191,7 @@ function avatar_cell(array $u): string {
     <h2 style="font-size:.9rem;color:var(--texto-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.85rem;">
       <i class="fas fa-users" style="color:var(--verde);margin-right:.4rem;"></i> Rankings de Utilizadores
     </h2>
-    <div class="admin-rankings-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem;">
+    <div class="admin-rankings-grid" style="display:grid;gap:1.5rem;margin-bottom:1.5rem;grid-template-columns:1fr 1fr;">
 
       <!-- Por locais -->
       <div>
@@ -291,7 +291,7 @@ function avatar_cell(array $u): string {
     <h2 style="font-size:.9rem;color:var(--texto-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.85rem;">
       <i class="fas fa-location-dot" style="color:var(--verde);margin-right:.4rem;"></i> Rankings de Locais
     </h2>
-    <div class="admin-rankings-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;">
+    <div class="admin-rankings-grid" style="display:grid;gap:1.5rem;grid-template-columns:1fr 1fr;">
 
       <!-- Mais vistos -->
       <div>

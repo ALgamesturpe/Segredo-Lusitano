@@ -572,8 +572,8 @@ main { flex: 1; }
   .admin-content { padding: 1rem; }
 
   /* Admin dashboard main layout - stack on mobile */
-  .admin-dashboard-grid { grid-template-columns: 1fr !important; }
-  .admin-rankings-grid { grid-template-columns: 1fr !important; }
+  .admin-dashboard-grid { grid-template-columns: 1fr !important; display: grid !important; }
+  .admin-rankings-grid { grid-template-columns: 1fr !important; display: grid !important; }
 }
 
 /* ============================================================
