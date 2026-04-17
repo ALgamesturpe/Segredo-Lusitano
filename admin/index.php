@@ -193,7 +193,9 @@ function render_top_user(?array $u, string $valor_label): string {
             </select>
           </form>
         </div>
-        <canvas id="grafico-publicacoes" height="80"></canvas>
+        <div class="admin-chart-container">
+          <canvas id="grafico-publicacoes" height="80"></canvas>
+        </div>
       </div>
 
       <!-- Painel Top Utilizadores -->
