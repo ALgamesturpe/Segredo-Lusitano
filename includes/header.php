@@ -90,7 +90,6 @@ $page_title = $page_title ?? SITE_NAME;
     </ul>
   </div>
 </nav>
-
 <?php
 // Flash messages globais
 $flash_success = flash('success');
