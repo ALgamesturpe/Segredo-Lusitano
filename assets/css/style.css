@@ -570,6 +570,10 @@ main { flex: 1; }
   /* Admin */
   .admin-cards { grid-template-columns: repeat(2, 1fr) !important; }
   .admin-content { padding: 1rem; }
+
+  /* Admin dashboard main layout - stack on mobile */
+  .admin-dashboard-grid { grid-template-columns: 1fr !important; }
+  .admin-rankings-grid { grid-template-columns: 1fr !important; }
 }
 
 /* ============================================================
@@ -582,6 +586,8 @@ main { flex: 1; }
   .form-container { padding: 1.5rem; }
   .detalhe-hero { height: 280px; }
   .admin-cards { grid-template-columns: 1fr !important; }
+  .admin-dashboard-grid { grid-template-columns: 1fr !important; }
+  .admin-rankings-grid { grid-template-columns: 1fr !important; }
 }
 
 /* ============================================================

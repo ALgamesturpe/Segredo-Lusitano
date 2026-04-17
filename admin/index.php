@@ -168,7 +168,7 @@ function render_top_user(?array $u, string $valor_label): string {
     <h1 class="admin-title">Dashboard</h1>
 
     <!-- GRÁFICO (60%) + TOP UTILIZADORES (40%) -->
-    <div style="display:grid;grid-template-columns:3fr 2fr;gap:1.5rem;margin-bottom:2rem;">
+    <div class="admin-dashboard-grid" style="display:grid;grid-template-columns:3fr 2fr;gap:1.5rem;margin-bottom:2rem;">
 
       <!-- Gráfico -->
       <div style="background:var(--branco);border-radius:var(--radius-lg);box-shadow:var(--sombra-sm);padding:1.75rem;">
@@ -240,7 +240,7 @@ function render_top_user(?array $u, string $valor_label): string {
     </div>
 
     <!-- CARDS DE ESTATÍSTICAS -->
-    <div class="admin-cards" style="grid-template-columns: repeat(6, 1fr); margin-bottom:2rem;">
+    <div class="admin-cards" style="grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); margin-bottom:2rem;">
       <a href="<?= SITE_URL ?>/admin/locais.php" style="text-decoration:none;">
         <div class="admin-stat-card" style="cursor:pointer;">
           <div class="num"><?= $total_locais ?></div>
