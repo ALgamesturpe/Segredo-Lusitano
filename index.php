@@ -37,7 +37,6 @@ include __DIR__ . '/includes/header.php';
   <section class="section" id="destaque">
     <div class="container">
       <div class="section-header">
-        <br>
         <h2>Locais em Destaque</h2>
         <p>Os segredos com mais likes da comunidade de exploradores.</p>
       </div>
