@@ -15,6 +15,7 @@ DROP TABLE IF EXISTS regioes;
 DROP TABLE IF EXISTS categorias;
 DROP TABLE IF EXISTS utilizadores;
 DROP TABLE IF EXISTS seguidores;
+DROP TABLE IF EXISTS mensagens;
 DROP TABLE IF EXISTS codigos_verificacao;
 SET FOREIGN_KEY_CHECKS = 1;
 
@@ -183,6 +184,23 @@ CREATE TABLE denuncias (
     criado_em DATETIME DEFAULT CURRENT_TIMESTAMP,
     KEY idx_denuncias_abertas (resolvida, tipo, referencia_id),
     FOREIGN KEY (utilizador_id) REFERENCES utilizadores(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- ============================================================
+-- TABELA: mensagens
+-- Mensagens privadas entre utilizadores que se seguem mutuamente
+-- ============================================================
+CREATE TABLE mensagens (
+    id              INT AUTO_INCREMENT PRIMARY KEY,
+    remetente_id    INT NOT NULL,
+    destinatario_id INT NOT NULL,
+    texto           TEXT NOT NULL,
+    lida            TINYINT(1) DEFAULT 0,
+    criado_em       DATETIME DEFAULT CURRENT_TIMESTAMP,
+    KEY idx_conversa (remetente_id, destinatario_id),
+    KEY idx_nao_lidas (destinatario_id, lida),
+    FOREIGN KEY (remetente_id)    REFERENCES utilizadores(id) ON DELETE CASCADE,
+    FOREIGN KEY (destinatario_id) REFERENCES utilizadores(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 -- ============================================================

@@ -5,6 +5,14 @@
 require_once dirname(__DIR__) . '/includes/auth.php';
 $user = auth_user();
 $page_title = $page_title ?? SITE_NAME;
+
+// Contador de mensagens não lidas
+$nao_lidas_msg = 0;
+if ($user) {
+    $stNL = db()->prepare('SELECT COUNT(*) FROM mensagens WHERE destinatario_id=? AND lida=0');
+    $stNL->execute([$user['id']]);
+    $nao_lidas_msg = (int)$stNL->fetchColumn();
+}
 ?>
 <!DOCTYPE html>
 <html lang="pt">
@@ -58,6 +66,22 @@ $page_title = $page_title ?? SITE_NAME;
       <li><a href="<?= SITE_URL ?>/pages/ranking.php"><i class="fas fa-trophy"></i> Ranking</a></li>
       <?php if ($user): ?>
       <li><a href="<?= SITE_URL ?>/pages/feed.php"><i class="fas fa-users"></i> Amigos</a></li>
+      <li>
+        <a href="<?= SITE_URL ?>/pages/mensagens.php" style="position:relative;">
+          <i class="fas fa-comments"></i> Mensagens
+          <?php if ($nao_lidas_msg > 0): ?>
+            <span id="msg-badge" style="position:absolute;top:-6px;right:-8px;background:#e74c3c;color:#fff;
+                   border-radius:50px;padding:.1rem .4rem;font-size:.7rem;font-weight:700;line-height:1.4;">
+              <?= $nao_lidas_msg ?>
+            </span>
+          <?php else: ?>
+            <span id="msg-badge" style="position:absolute;top:-6px;right:-8px;background:#e74c3c;color:#fff;
+                   border-radius:50px;padding:.1rem .4rem;font-size:.7rem;font-weight:700;line-height:1.4;display:none;">
+              0
+            </span>
+          <?php endif; ?>
+        </a>
+      </li>
       <?php endif; ?>
 
       <?php if ($user): ?>
@@ -73,6 +97,11 @@ $page_title = $page_title ?? SITE_NAME;
           <ul class="dropdown-menu" id="user-dropdown-menu">
             <li><a href="<?= SITE_URL ?>/pages/perfil.php"><i class="fas fa-user"></i> O meu Perfil</a></li>
             <li><a href="<?= SITE_URL ?>/pages/local_novo.php"><i class="fas fa-plus-circle"></i> Partilhar Local</a></li>
+            <li><a href="<?= SITE_URL ?>/pages/mensagens.php"><i class="fas fa-comments"></i> Mensagens
+              <?php if ($nao_lidas_msg > 0): ?>
+                <span style="background:#e74c3c;color:#fff;border-radius:50px;padding:.1rem .45rem;font-size:.72rem;font-weight:700;margin-left:.3rem;"><?= $nao_lidas_msg ?></span>
+              <?php endif; ?>
+            </a></li>
             <?php if (is_admin()): ?>
             <li style="border-top:1px solid rgba(201,168,76,.2); margin-top:.25rem; padding-top:.25rem;">
               <a href="<?= SITE_URL ?>/admin/index.php"><i class="fas fa-shield-alt"></i> Administração</a>
@@ -90,8 +119,8 @@ $page_title = $page_title ?? SITE_NAME;
     </ul>
   </div>
 </nav>
+
 <?php
-// Flash messages globais
 $flash_success = flash('success');
 $flash_error   = flash('error');
 if ($flash_success): ?>
@@ -99,4 +128,22 @@ if ($flash_success): ?>
 <?php endif; ?>
 <?php if ($flash_error): ?>
 <div class="flash flash-error"><i class="fas fa-exclamation-circle"></i> <?= h($flash_error) ?></div>
+<?php endif;
+
+// Atualizar badge de mensagens a cada 10 segundos
+if ($user): ?>
+<script>
+setInterval(async () => {
+  const res = await fetch(`${SITE_URL}/pages/mensagens_api.php?acao=nao_lidas`);
+  const data = await res.json();
+  const badge = document.getElementById('msg-badge');
+  if (!badge) return;
+  if (data.total > 0) {
+    badge.textContent = data.total;
+    badge.style.display = '';
+  } else {
+    badge.style.display = 'none';
+  }
+}, 30000);
+</script>
 <?php endif;

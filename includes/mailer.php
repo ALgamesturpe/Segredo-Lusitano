@@ -138,9 +138,7 @@ function enviar_codigo_verificacao(string $email, string $nome, string $codigo, 
     }
 }
 
-/**
- * Gera um código de 6 dígitos, guarda na BD e retorna o código
- */
+/*Gera um código de 6 dígitos, guarda na BD e retorna o código*/
 function gerar_e_guardar_codigo(int $utilizador_id, string $tipo = 'registo'): string {
     // Invalidar códigos anteriores do mesmo tipo
     db()->prepare('UPDATE codigos_verificacao SET usado = 1 WHERE utilizador_id = ? AND tipo = ? AND usado = 0')
