@@ -83,4 +83,73 @@ if ($acao === 'nao_lidas') {
     exit;
 }
 
+// ── Enviar ficheiro ───────────────────────────────────────
+if ($acao === 'ficheiro') {
+    $dest_id = (int)($_POST['destinatario_id'] ?? 0);
+    if (!$dest_id || empty($_FILES['ficheiro'])) {
+        echo json_encode(['ok'=>false,'erro'=>'Dados inválidos']); exit;
+    }
+
+    // Verificar acesso
+    $stChk = db()->prepare(
+        'SELECT (SELECT COUNT(*) FROM seguidores s1
+         JOIN seguidores s2 ON s2.seguidor_id=? AND s2.seguido_id=?
+         WHERE s1.seguidor_id=? AND s1.seguido_id=?) +
+        (SELECT COUNT(*) FROM mensagens
+         WHERE (remetente_id=? AND destinatario_id=?)
+            OR (remetente_id=? AND destinatario_id=?) LIMIT 1) AS total'
+    );
+    $stChk->execute([$dest_id,$uid,$uid,$dest_id,$uid,$dest_id,$dest_id,$uid]);
+    if ((int)$stChk->fetchColumn() < 1) {
+        echo json_encode(['ok'=>false,'erro'=>'Sem permissão']); exit;
+    }
+
+    $f = $_FILES['ficheiro'];
+    if ($f['error'] !== 0 || $f['size'] > 10*1024*1024) {
+        echo json_encode(['ok'=>false,'erro'=>'Erro no ficheiro']); exit;
+    }
+
+    $ext  = strtolower(pathinfo($f['name'], PATHINFO_EXTENSION));
+    $nome = uniqid('msg_') . '.' . $ext;
+    $dir  = dirname(__DIR__) . '/uploads/mensagens/';
+    if (!is_dir($dir)) mkdir($dir, 0755, true);
+
+    if (!move_uploaded_file($f['tmp_name'], $dir . $nome)) {
+        echo json_encode(['ok'=>false,'erro'=>'Erro ao guardar']); exit;
+    }
+
+    // Guardar na BD com ficheiro no campo texto e flag na coluna ficheiro
+    $st = db()->prepare('INSERT INTO mensagens (remetente_id, destinatario_id, texto, ficheiro) VALUES (?,?,?,?)');
+    $st->execute([$uid, $dest_id, '', $nome]);
+    $id = (int)db()->lastInsertId();
+
+    $stMsg = db()->prepare('SELECT * FROM mensagens WHERE id = ?');
+    $stMsg->execute([$id]);
+    echo json_encode(['ok'=>true, 'mensagem'=>$stMsg->fetch()]);
+    exit;
+}
+
+// ── Eliminar mensagem ─────────────────────────────────────
+if ($acao === 'eliminar') {
+    $msg_id = (int)($_POST['msg_id'] ?? 0);
+    if (!$msg_id) { echo json_encode(['ok'=>false]); exit; }
+
+    $st = db()->prepare(
+        'SELECT id, ficheiro FROM mensagens
+         WHERE id = ? AND (remetente_id = ? OR destinatario_id = ?)'
+    );
+    $st->execute([$msg_id, $uid, $uid]);
+    $msg = $st->fetch();
+    if (!$msg) { echo json_encode(['ok'=>false,'erro'=>'Sem permissão']); exit; }
+
+    if (!empty($msg['ficheiro'])) {
+        $path = dirname(__DIR__) . '/uploads/mensagens/' . $msg['ficheiro'];
+        if (is_file($path)) @unlink($path);
+    }
+
+    db()->prepare('DELETE FROM mensagens WHERE id = ?')->execute([$msg_id]);
+    echo json_encode(['ok'=>true]);
+    exit;
+}
+
 echo json_encode(['ok'=>false,'erro'=>'Ação desconhecida']);

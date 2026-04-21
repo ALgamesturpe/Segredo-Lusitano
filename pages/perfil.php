@@ -112,13 +112,19 @@ include dirname(__DIR__) . '/includes/header.php';
   <?php if ($user_auth && !$is_own): ?>
     <div style="margin-bottom:1rem;">
       <button id="btn-seguir"
-              data-id="<?= $id ?>"
-              data-seguindo="<?= $ja_segue ? '1' : '0' ?>"
-              class="btn btn-sm <?= $ja_segue ? '' : 'btn-primary' ?>"
-              style="<?= $ja_segue ? 'border:1.5px solid var(--creme-escuro);color:var(--texto-muted);' : '' ?>">
+        data-id="<?= $id ?>"
+        data-seguindo="<?= $ja_segue ? '1' : '0' ?>"
+        class="btn btn-sm <?= $ja_segue ? '' : 'btn-primary' ?>"
+        style="<?= $ja_segue ? 'border:1.5px solid var(--creme-escuro);color:var(--texto-muted);' : '' ?>">
         <i class="fas <?= $ja_segue ? 'fa-user-check' : 'fa-user-plus' ?>"></i>
         <span><?= $ja_segue ? 'A Seguir' : 'Seguir' ?></span>
       </button>
+      <?php if ($ja_segue): ?>
+        <a href="<?= SITE_URL ?>/pages/mensagens.php?com=<?= $id ?>"
+          class="btn btn-sm btn-verde" style="margin-left:.5rem;">
+          <i class="fas fa-comments"></i> Mensagem
+        </a>
+      <?php endif; ?>
     </div>
   <?php elseif ($is_own): ?>
     <!-- Botão Editar Perfil (só para o próprio) -->
