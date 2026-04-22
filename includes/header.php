@@ -64,10 +64,9 @@ if ($user) {
       <li><a href="<?= SITE_URL ?>/pages/explorar.php"><i class="fa-solid fa-earth-americas"></i> Explorar</a></li>
       <li><a href="<?= SITE_URL ?>/pages/mapa.php"><i class="fas fa-map"></i> Mapa</a></li>
       <li><a href="<?= SITE_URL ?>/pages/ranking.php"><i class="fas fa-trophy"></i> Ranking</a></li>
-      <?php if ($user): ?>
-      <li><a href="<?= SITE_URL ?>/pages/feed.php"><i class="fas fa-users"></i> Amigos</a></li>
+      <li><a href="<?= $user ? SITE_URL . '/pages/feed.php' : SITE_URL . '/pages/login.php' ?>"><i class="fas fa-users"></i> Amigos</a></li>
       <li>
-        <a href="<?= SITE_URL ?>/pages/mensagens.php" style="position:relative;">
+        <a href="<?= $user ? SITE_URL . '/pages/mensagens.php' : SITE_URL . '/pages/login.php' ?>" style="position:relative;">
           <i class="fas fa-comments"></i> Mensagens
           <?php if ($nao_lidas_msg > 0): ?>
             <span id="msg-badge" style="position:absolute;top:-6px;right:-8px;background:#e74c3c;color:#fff;
@@ -82,7 +81,6 @@ if ($user) {
           <?php endif; ?>
         </a>
       </li>
-      <?php endif; ?>
 
       <?php if ($user): ?>
         <li class="nav-dropdown" id="nav-user-dropdown">
@@ -97,16 +95,12 @@ if ($user) {
           <ul class="dropdown-menu" id="user-dropdown-menu">
             <li><a href="<?= SITE_URL ?>/pages/perfil.php"><i class="fas fa-user"></i> O meu Perfil</a></li>
             <li><a href="<?= SITE_URL ?>/pages/local_novo.php"><i class="fas fa-plus-circle"></i> Partilhar Local</a></li>
-              <?php if ($nao_lidas_msg > 0): ?>
-                <span style="background:#e74c3c;color:#fff;border-radius:50px;padding:.1rem .45rem;font-size:.72rem;font-weight:700;margin-left:.3rem;"><?= $nao_lidas_msg ?></span>
-              <?php endif; ?>
-            </a></li>
             <?php if (is_admin()): ?>
-            <li style="border-top:1px solid rgba(201,168,76,.2); margin-top:.25rem; padding-top:.25rem;">
+            <li style="border-top:1px solid rgba(201,168,76,.2);margin-top:.25rem;padding-top:.25rem;">
               <a href="<?= SITE_URL ?>/admin/index.php"><i class="fas fa-shield-alt"></i> Administração</a>
             </li>
             <?php endif; ?>
-            <li style="border-top:1px solid rgba(201,168,76,.2); margin-top:.25rem; padding-top:.25rem;">
+            <li style="border-top:1px solid rgba(201,168,76,.2);margin-top:.25rem;padding-top:.25rem;">
               <a href="<?= SITE_URL ?>/pages/logout.php"><i class="fas fa-sign-out-alt"></i> Sair</a>
             </li>
           </ul>
@@ -129,7 +123,7 @@ if ($flash_success): ?>
 <div class="flash flash-error"><i class="fas fa-exclamation-circle"></i> <?= h($flash_error) ?></div>
 <?php endif;
 
-// Atualizar badge de mensagens a cada 10 segundos
+// Atualizar badge de mensagens a cada 30 segundos
 if ($user): ?>
 <script>
 setInterval(async () => {
