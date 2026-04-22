@@ -147,7 +147,6 @@ include dirname(__DIR__) . '/includes/header.php';
         <div class="stat-item"><span class="stat-num">-</span><span class="stat-label">Sem pontos</span></div>
       <?php endif; ?>
     <?php endif; ?>
-    <div class="stat-item"><span class="stat-num"><?= $rank_pos ?>º</span><span class="stat-label">Ranking</span></div>
     <div class="stat-item" style="cursor:pointer;" onclick="abrirModalSeg('seguidores')">
       <span class="stat-num" id="total-seguidores"><?= $total_seguidores ?></span>
       <span class="stat-label">Seguidores</span>
