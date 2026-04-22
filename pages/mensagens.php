@@ -241,12 +241,11 @@ include dirname(__DIR__) . '/includes/header.php';
        style="max-width:90vw;max-height:90vh;object-fit:contain;border-radius:var(--radius);">
 </div>
 
-<!-- ── SCRIPTS ── -->
+<!-- ── SCRIPTS globais ── -->
 <script>
 const TEM_CONVERSA = <?= $tem_conversa_ativa ? 'true' : 'false' ?>;
 const SITE_URL_JS  = '<?= SITE_URL ?>';
 
-// ── Layout responsivo ─────────────────────────────────────
 function isMobile() { return window.innerWidth <= 768; }
 
 function voltarLista() {
@@ -278,11 +277,9 @@ function aplicarLayout() {
     if (btnVoltar) btnVoltar.style.display = 'none';
   }
 }
-
 aplicarLayout();
 window.addEventListener('resize', aplicarLayout);
 
-// ── Foto modal ────────────────────────────────────────────
 function abrirFotoMsg(src) {
   document.getElementById('modal-foto-msg-img').src = src;
   document.getElementById('modal-foto-msg').style.display = 'flex';
@@ -315,11 +312,10 @@ function toggleMenu(btnEl, msgId) {
     eliminarMensagem(msgId);
   });
   menu.appendChild(btnEliminar);
-
   btnEl.parentElement.appendChild(menu);
 }
 
-// Fechar menus ao clicar fora (ignorar cliques no botão e no menu)
+// Fechar menus ao clicar fora
 document.addEventListener('click', (e) => {
   if (!e.target.closest('.btn-msg-opts') && !e.target.closest('.msg-menu')) {
     document.querySelectorAll('.msg-menu').forEach(m => m.remove());
@@ -331,7 +327,7 @@ async function eliminarMensagem(msgId) {
   document.querySelectorAll('.msg-menu').forEach(m => m.remove());
   if (!confirm('Eliminar esta mensagem para ambos?')) return;
   const wrapper = document.querySelector(`[data-msg-id="${msgId}"]`);
-  const res  = await fetch(SITE_URL_JS + '/pages/mensagens_api.php', {
+  const res = await fetch(SITE_URL_JS + '/pages/mensagens_api.php', {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: `acao=eliminar&msg_id=${msgId}`
@@ -352,14 +348,12 @@ function scrollFundo() {
 }
 scrollFundo();
 
-// Hover + long press nas mensagens já renderizadas pelo PHP
+// Hover + long press nas mensagens PHP
 document.querySelectorAll('[data-msg-id]').forEach(wrapper => {
-  const btn = wrapper.querySelector('.btn-msg-opts');
+  const btn   = wrapper.querySelector('.btn-msg-opts');
   if (!btn) return;
-
   const msgId = wrapper.dataset.msgId;
 
-  // Ligar o onclick via JS para evitar conflito com o listener global
   btn.addEventListener('click', (e) => {
     e.stopPropagation();
     toggleMenu(btn, msgId);
@@ -370,7 +364,6 @@ document.querySelectorAll('[data-msg-id]').forEach(wrapper => {
     if (!wrapper.contains(e.relatedTarget)) btn.style.display = 'none';
   });
 
-  // Long press mobile (2 segundos)
   const bubble = wrapper.querySelector('div:not(.msg-opts-wrap)');
   let pressTimer, tocando = false;
   if (bubble) {
@@ -383,7 +376,7 @@ document.querySelectorAll('[data-msg-id]').forEach(wrapper => {
   }
 });
 
-// ── Criar wrapper de mensagem nova (via JS) ───────────────
+// ── Criar wrapper JS ──────────────────────────────────────
 function criarWrapper(msgId, propria, innerHtml) {
   const wrapper = document.createElement('div');
   wrapper.style.cssText = `display:flex;justify-content:${propria ? 'flex-end' : 'flex-start'};position:relative;align-items:center;gap:6px;`;
@@ -400,10 +393,7 @@ function criarWrapper(msgId, propria, innerHtml) {
   btnOpts.style.cssText = `display:none;background:var(--branco);color:var(--texto-muted);
       border:1px solid var(--creme-escuro);border-radius:50%;width:26px;height:26px;
       cursor:pointer;font-size:.72rem;align-items:center;justify-content:center;box-shadow:var(--sombra-sm);`;
-  btnOpts.addEventListener('click', (e) => {
-    e.stopPropagation();
-    toggleMenu(btnOpts, msgId);
-  });
+  btnOpts.addEventListener('click', (e) => { e.stopPropagation(); toggleMenu(btnOpts, msgId); });
   optsWrap.appendChild(btnOpts);
 
   const bubble = document.createElement('div');
@@ -426,17 +416,11 @@ function criarWrapper(msgId, propria, innerHtml) {
   bubble.addEventListener('touchend',  () => { tocando = false; clearTimeout(pressTimer); });
   bubble.addEventListener('touchmove', () => { tocando = false; clearTimeout(pressTimer); });
 
-  if (propria) {
-    wrapper.appendChild(optsWrap);
-    wrapper.appendChild(bubble);
-  } else {
-    wrapper.appendChild(bubble);
-    wrapper.appendChild(optsWrap);
-  }
+  if (propria) { wrapper.appendChild(optsWrap); wrapper.appendChild(bubble); }
+  else         { wrapper.appendChild(bubble);   wrapper.appendChild(optsWrap); }
   return wrapper;
 }
 
-// ── Adicionar mensagens ao DOM ────────────────────────────
 function adicionarMensagem(msg, propria) {
   const chat  = document.getElementById('chat-mensagens');
   const vazio = chat.querySelector('.chat-vazio');
@@ -462,7 +446,6 @@ function adicionarMensagemFicheiro(msg, propria) {
   chat.appendChild(criarWrapper(msg.id, propria, inner));
 }
 
-// ── Enviar mensagem de texto ──────────────────────────────
 async function enviarMensagem() {
   if (ficheiroSelecionado) { await enviarFicheiroConfirmado(); return; }
   const input = document.getElementById('msg-input');
@@ -476,14 +459,9 @@ async function enviarMensagem() {
     body: `acao=enviar&destinatario_id=${CONVERSA_COM}&texto=${encodeURIComponent(texto)}`
   });
   const data = await res.json();
-  if (data.ok) {
-    adicionarMensagem(data.mensagem, true);
-    ultimaMsg = data.mensagem.criado_em;
-    scrollFundo();
-  }
+  if (data.ok) { adicionarMensagem(data.mensagem, true); ultimaMsg = data.mensagem.criado_em; scrollFundo(); }
 }
 
-// ── Ficheiro ──────────────────────────────────────────────
 let ficheiroSelecionado = null;
 
 function selecionarFicheiro(input) {
@@ -519,15 +497,10 @@ async function enviarFicheiroConfirmado() {
   form.append('ficheiro', ficheiroSelecionado);
   const res  = await fetch(SITE_URL_JS + '/pages/mensagens_api.php', { method: 'POST', body: form });
   const data = await res.json();
-  if (data.ok) {
-    adicionarMensagemFicheiro(data.mensagem, true);
-    ultimaMsg = data.mensagem.criado_em;
-    scrollFundo();
-  }
+  if (data.ok) { adicionarMensagemFicheiro(data.mensagem, true); ultimaMsg = data.mensagem.criado_em; scrollFundo(); }
   cancelarFicheiro();
 }
 
-// ── Polling ───────────────────────────────────────────────
 let ultimaMsg = <?= $mensagens ? '"' . end($mensagens)['criado_em'] . '"' : '"0"' ?>;
 
 setInterval(async () => {
