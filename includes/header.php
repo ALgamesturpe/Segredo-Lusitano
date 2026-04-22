@@ -97,7 +97,6 @@ if ($user) {
           <ul class="dropdown-menu" id="user-dropdown-menu">
             <li><a href="<?= SITE_URL ?>/pages/perfil.php"><i class="fas fa-user"></i> O meu Perfil</a></li>
             <li><a href="<?= SITE_URL ?>/pages/local_novo.php"><i class="fas fa-plus-circle"></i> Partilhar Local</a></li>
-            <li><a href="<?= SITE_URL ?>/pages/mensagens.php"><i class="fas fa-comments"></i> Mensagens
               <?php if ($nao_lidas_msg > 0): ?>
                 <span style="background:#e74c3c;color:#fff;border-radius:50px;padding:.1rem .45rem;font-size:.72rem;font-weight:700;margin-left:.3rem;"><?= $nao_lidas_msg ?></span>
               <?php endif; ?>
