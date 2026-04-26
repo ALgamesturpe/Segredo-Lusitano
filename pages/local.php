@@ -195,20 +195,28 @@ include dirname(__DIR__) . '/includes/header.php';
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
             <h3 style="margin:0;"><i class="fas fa-images"></i> Galeria</h3>
             <?php if ($user && !is_admin()): ?>
-              <button onclick="abrirModalDenuncia('foto', <?= $id ?>, 'Fotografia')"
+              <button id="btn-denunciar-foto" onclick="toggleModoDenuncia()"
                       class="btn btn-sm"
-                      style="color:var(--texto-muted);border:1px solid var(--creme-escuro);border-radius:50px;font-size:.8rem;">
+                      style="color:var(--texto-muted);border:1px solid var(--creme-escuro);border-radius:50px;font-size:.8rem;transition:all .2s;">
                 <i class="fas fa-flag"></i> Denunciar foto
               </button>
             <?php endif; ?>
           </div>
           <div class="galeria">
             <?php foreach ($fotos as $foto): ?>
-              <div class="galeria-item" style="position:relative;">
+              <div class="galeria-item" style="position:relative;" data-foto-id="<?= $foto['id'] ?>">
                 <img src="<?= SITE_URL ?>/uploads/locais/<?= h($foto['ficheiro']) ?>"
                     alt="Foto do local" loading="lazy"
-                    onclick="abrirFoto('<?= SITE_URL ?>/uploads/locais/<?= h($foto['ficheiro']) ?>')"
-                    style="cursor:pointer;">
+                    onclick="clicarFotoGaleria(this)"
+                    style="cursor:pointer;width:100%;height:100%;object-fit:cover;">
+                <div class="foto-denuncia-overlay"
+                    style="display:none;position:absolute;inset:0;background:rgba(192,57,43,.45);
+                            border:3px solid #c0392b;border-radius:var(--radius);
+                            align-items:center;justify-content:center;cursor:pointer;flex-direction:column;gap:.35rem;"
+                    onclick="confirmarDenunciaFoto(<?= $foto['id'] ?>)">
+                  <i class="fas fa-flag" style="color:#fff;font-size:1.6rem;"></i>
+                  <span style="color:#fff;font-size:.78rem;font-weight:700;">Denunciar</span>
+                </div>
                 <?php if (is_admin()): ?>
                   <a href="<?= SITE_URL ?>/pages/local.php?id=<?= $id ?>&apagar_foto=<?= $foto['id'] ?>"
                     onclick="return confirm('Eliminar esta foto?')"
@@ -219,6 +227,11 @@ include dirname(__DIR__) . '/includes/header.php';
                 <?php endif; ?>
               </div>
             <?php endforeach; ?>
+            <div id="aviso-modo-denuncia" style="display:none;margin-top:.75rem;padding:.6rem 1rem;
+                background:rgba(192,57,43,.08);border:1px solid #c0392b;border-radius:8px;
+                font-size:.85rem;color:#c0392b;text-align:center;">
+              <i class="fas fa-hand-pointer"></i> Clica na foto que queres denunciar
+            </div>
           </div>
 
           <?php if (is_admin()): ?>
@@ -498,6 +511,41 @@ include dirname(__DIR__) . '/includes/header.php';
 
 <!-- Mapa mini sidebar -->
 <script>
+let modoDenunciaFoto = false;
+
+function toggleModoDenuncia() {
+  modoDenunciaFoto = !modoDenunciaFoto;
+  const btn      = document.getElementById('btn-denunciar-foto');
+  const overlays = document.querySelectorAll('.foto-denuncia-overlay');
+  const aviso    = document.getElementById('aviso-modo-denuncia');
+  if (modoDenunciaFoto) {
+    btn.style.background  = '#c0392b';
+    btn.style.color       = '#fff';
+    btn.style.borderColor = '#c0392b';
+    btn.innerHTML         = '<i class="fas fa-times"></i> Cancelar';
+    overlays.forEach(o => o.style.display = 'flex');
+    if (aviso) aviso.style.display = 'block';
+  } else {
+    btn.style.background  = '';
+    btn.style.color       = 'var(--texto-muted)';
+    btn.style.borderColor = 'var(--creme-escuro)';
+    btn.innerHTML         = '<i class="fas fa-flag"></i> Denunciar foto';
+    overlays.forEach(o => o.style.display = 'none');
+    if (aviso) aviso.style.display = 'none';
+  }
+}
+
+function confirmarDenunciaFoto(fotoId) {
+  if (!confirm('Tens a certeza que queres denunciar esta fotografia?')) return;
+  toggleModoDenuncia();
+  abrirModalDenuncia('foto', fotoId, 'Fotografia');
+}
+
+function clicarFotoGaleria(img) {
+  if (modoDenunciaFoto) return;
+  abrirFoto(img.src);
+}
+
 function abrirModalDenuncia(tipo, refId, alvo) {
   document.getElementById('denuncia-titulo').textContent = 'Denunciar ' + alvo;
   document.getElementById('denuncia-tipo').value = tipo;
