@@ -125,6 +125,10 @@ document.addEventListener('DOMContentLoaded', () => {
 // Upload areas com preview visual de imagem
 // ============================================================
 function initAllUploadAreas() {
+  // Prevenir que o browser navegue para o URL da imagem arrastada
+  document.addEventListener('dragover', e => e.preventDefault());
+  document.addEventListener('drop',     e => e.preventDefault());
+
   document.querySelectorAll('.upload-area').forEach(area => {
     const inputId = area.dataset.inputId;
     let input = inputId ? document.getElementById(inputId) : null;
@@ -146,32 +150,75 @@ function initAllUploadAreas() {
       if (e.target === preview) return;
       input.click();
     });
-    area.addEventListener('dragover', e => { e.preventDefault(); area.classList.add('drag'); });
-    area.addEventListener('dragleave', () => area.classList.remove('drag'));
-    area.addEventListener('drop', e => {
+
+    area.addEventListener('dragover', e => {
       e.preventDefault();
+      e.stopPropagation();
+      area.classList.add('drag');
+    });
+
+    area.addEventListener('dragleave', e => {
+      e.stopPropagation();
       area.classList.remove('drag');
-      if (e.dataTransfer.files.length) {
+    });
+
+    area.addEventListener('drop', async e => {
+      e.preventDefault();
+      e.stopPropagation();
+      area.classList.remove('drag');
+
+      const files = e.dataTransfer.files;
+
+      if (files && files.length > 0) {
+        // Ficheiro local arrastado diretamente
         const dt = new DataTransfer();
-        Array.from(e.dataTransfer.files).forEach(f => dt.items.add(f));
+        Array.from(files).forEach(f => dt.items.add(f));
         input.files = dt.files;
-        showUploadPreview(input, area, preview);
+        input.dispatchEvent(new Event('change'));
+
+      } else {
+        // Imagem arrastada do browser (URL) — buscar como blob
+        const url = e.dataTransfer.getData('text/uri-list') || e.dataTransfer.getData('text/plain');
+        if (!url || !url.startsWith('http')) return;
+
+        const label = area.querySelector('.upload-label');
+        if (label) label.textContent = 'A carregar imagem...';
+
+        try {
+          const res  = await fetch(url);
+          const blob = await res.blob();
+          if (!blob.type.startsWith('image/')) { if (label) label.textContent = 'Só são aceites imagens.'; return; }
+          const ext  = blob.type.split('/')[1] || 'jpg';
+          const file = new File([blob], 'imagem.' + ext, { type: blob.type });
+          const dt   = new DataTransfer();
+          dt.items.add(file);
+          input.files = dt.files;
+          input.dispatchEvent(new Event('change'));
+        } catch {
+          if (label) label.textContent = 'Não foi possível carregar a imagem. Guarda-a primeiro e arrasta o ficheiro.';
+        }
       }
     });
+
     input.addEventListener('change', () => showUploadPreview(input, area, preview));
   });
 }
 
 function showUploadPreview(input, area, preview) {
-  const file = input.files[0];
-  if (!file || !file.type.startsWith('image/')) return;
+  const files = Array.from(input.files).filter(f => f.type.startsWith('image/'));
+  if (!files.length) return;
+  const file = files[0];
   const reader = new FileReader();
   reader.onload = (e) => {
     preview.src = e.target.result;
     preview.style.display = 'block';
     area.classList.add('has-file');
     const label = area.querySelector('.upload-label');
-    if (label) label.textContent = '✓ ' + file.name;
+    if (label) {
+      label.textContent = files.length > 1
+        ? `✓ ${files.length} fotos selecionadas`
+        : `✓ ${file.name}`;
+    }
     const icon = area.querySelector('.upload-icon');
     if (icon) { icon.className = 'fas fa-check-circle upload-icon'; icon.style.color = '#40916c'; }
   };

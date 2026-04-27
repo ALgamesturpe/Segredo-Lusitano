@@ -299,7 +299,14 @@ main { flex: 1; }
 .info-row:last-child { border-bottom: none; }
 .info-row .label { color: var(--texto-muted); }
 .info-row .val { font-weight: 600; }
-.galeria { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px,1fr)); gap: .75rem; }
+.galeria {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px,1fr));
+  gap: .75rem;
+  max-height: 450px;
+  overflow-y: auto;
+  padding-right: .25rem;
+}
 .galeria-item { border-radius: var(--radius); overflow: hidden; aspect-ratio: 4/3; }
 .galeria-item img { width: 100%; height: 100%; object-fit: cover; transition: none; transform: none; }
 .galeria-item:hover img { transform: none; }
