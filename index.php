@@ -4,7 +4,7 @@
 require_once __DIR__ . '/includes/functions.php';
 
 $page_title = 'Início';
-$locais_destaque = get_locais(['ordem' => 'likes'], 6);
+$locais_destaque = get_locais(['ordem' => 'likes']
 $stats_locais = (int)(db()->query('SELECT COUNT(*) FROM locais WHERE estado="aprovado"')->fetchColumn());
 $stats_users  = (int)(db()->query('SELECT COUNT(*) FROM utilizadores WHERE ativo=1 AND role="user"')->fetchColumn());
 $stats_regioes = 7;
