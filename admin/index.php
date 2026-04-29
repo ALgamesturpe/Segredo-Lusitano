@@ -304,6 +304,8 @@ function render_top_user(?array $u, string $valor_label): string {
                     data-tipo="<?= h($den['tipo']) ?>"
                     data-ref="#<?= (int)$den['referencia_id'] ?>"
                     data-conteudo="<?= h((string)($den['alvo_conteudo_completo'] ?? '[indisponível]')) ?>"
+                    data-ficheiro="<?= $den['tipo'] === 'foto' ? h((string)($den['alvo_conteudo'] ?? '')) : '' ?>"
+                    data-descricao="<?= h((string)($den['alvo_conteudo_completo'] ?? '')) ?>"
                     data-motivo="<?= h(motivo_denuncia_label((string)$den['motivo'])) ?>"
                     data-denunciante="<?= h($den['denunciante_username']) ?>"
                     data-bloqueado="<?= $bloqueado ? '1' : '0' ?>"
@@ -396,47 +398,65 @@ function render_top_user(?array $u, string $valor_label): string {
 
 <script>
 function abrirModalDenuncia(btn) {
-  const id = btn.getAttribute('data-id');
-  const tipo = btn.getAttribute('data-tipo') || '';
-  const ref = btn.getAttribute('data-ref') || '';
-  const conteudo = btn.getAttribute('data-conteudo') || '[indisponível]';
-  const motivo = btn.getAttribute('data-motivo') || '';
-  const denunciante = btn.getAttribute('data-denunciante') || '';
-  const bloqueado = btn.getAttribute('data-bloqueado') === '1';
-  const link = btn.getAttribute('data-link') || '';
+  const id          = btn.getAttribute('data-id');
+  const tipo        = btn.getAttribute('data-tipo') || '';
+  const ref         = btn.getAttribute('data-ref') || '';
+  const conteudo    = btn.getAttribute('data-conteudo') || '[indisponível]';
+  const motivo      = btn.getAttribute('data-motivo') || '';
+  const bloqueado   = btn.getAttribute('data-bloqueado') === '1';
+  const link        = btn.getAttribute('data-link') || '';
+  const ficheiro    = btn.getAttribute('data-ficheiro') || '';
 
-  document.getElementById('modal-den-ref').textContent = ref;
-  document.getElementById('modal-den-conteudo').textContent = conteudo;
-document.getElementById('modal-den-motivo').textContent = motivo;
-  document.getElementById('modal-den-conteudo').textContent = conteudo;
+  document.getElementById('modal-den-ref').textContent    = ref;
+  document.getElementById('modal-den-motivo').textContent = motivo;
+
   const tipoLabels = { 'local': 'Local', 'comentario': 'Comentário', 'foto': 'Fotografia' };
   document.getElementById('modal-den-tipo-label').textContent = tipoLabels[tipo] || tipo;
 
+  const conteudoEl = document.getElementById('modal-den-conteudo');
+  if (tipo === 'foto' && ficheiro) {
+    conteudoEl.innerHTML = `<img src="${SITE_URL}/uploads/locais/${ficheiro}"
+      style="max-width:100%;max-height:300px;object-fit:contain;border-radius:8px;display:block;margin:0 auto;">`;
+  } else if (tipo === 'local') {
+    const nome = ref;
+    conteudoEl.innerHTML = `
+      <div style="font-weight:700;font-size:1rem;margin-bottom:.5rem;color:var(--verde-escuro);">
+        <i class="fas fa-map-marker-alt"></i> ${conteudo}
+      </div>
+      <div style="font-size:.88rem;color:var(--texto-muted);white-space:pre-wrap;line-height:1.6;">
+        ${btn.getAttribute('data-descricao') || '(sem descrição)'}
+      </div>`;
+  } else {
+      conteudoEl.textContent = conteudo;
+  }
+
   const linkEl = document.getElementById('modal-den-link');
   if (link) { linkEl.href = link; linkEl.style.display = 'inline-flex'; }
-  else { linkEl.style.display = 'none'; }
+  else       { linkEl.style.display = 'none'; }
 
-  document.getElementById('modal-input-den-id').value = id;
-  document.getElementById('modal-input-tipo').value = tipo;
-  document.getElementById('modal-input-ref-id').value = ref.replace('#', '');
+  document.getElementById('modal-input-den-id').value  = id;
+  document.getElementById('modal-input-tipo').value    = tipo;
+  document.getElementById('modal-input-ref-id').value  = ref.replace('#', '');
 
   const btnModerar = document.getElementById('modal-btn-moderar');
   if (bloqueado) {
     document.getElementById('modal-input-acao').value = 'permitir';
-    btnModerar.innerHTML = '<i class="fas fa-check"></i> Permitir Conteúdo';
-    btnModerar.className = 'btn btn-sm btn-verde';
+    btnModerar.innerHTML   = '<i class="fas fa-check"></i> Permitir Conteúdo';
+    btnModerar.className   = 'btn btn-sm btn-verde';
   } else {
     document.getElementById('modal-input-acao').value = 'bloquear';
-    btnModerar.innerHTML = '<i class="fas fa-ban"></i> Bloquear Conteúdo';
-    btnModerar.className = 'btn btn-sm btn-danger';
+    btnModerar.innerHTML   = '<i class="fas fa-ban"></i> Bloquear Conteúdo';
+    btnModerar.className   = 'btn btn-sm btn-danger';
   }
-  btnModerar.style.width = '100%';
+  btnModerar.style.width          = '100%';
   btnModerar.style.justifyContent = 'center';
   document.getElementById('modal-denuncia').style.display = 'flex';
 }
+
 function fecharModalDenuncia() {
   document.getElementById('modal-denuncia').style.display = 'none';
 }
+
 document.getElementById('modal-denuncia').addEventListener('click', function(e) {
   if (e.target === this) fecharModalDenuncia();
 });

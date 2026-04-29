@@ -301,10 +301,11 @@ main { flex: 1; }
 .info-row .val { font-weight: 600; }
 .galeria {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px,1fr));
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   gap: .75rem;
   max-height: 450px;
-  overflow-y: auto;
+  overflow-y: scroll;
+  overflow-x: hidden;
   padding-right: .25rem;
 }
 .galeria-item { border-radius: var(--radius); overflow: hidden; aspect-ratio: 4/3; }

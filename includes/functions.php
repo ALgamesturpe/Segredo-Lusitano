@@ -316,29 +316,33 @@ function get_denuncias(): array {
     $st = db()->prepare(
         'SELECT d.*, u.username AS denunciante_username,
                 CASE
-                    WHEN d.tipo = "local" THEN COALESCE(l.bloqueado, 0)
+                    WHEN d.tipo = "local"      THEN COALESCE(l.bloqueado, 0)
                     WHEN d.tipo = "comentario" THEN COALESCE(c.denunciado, 0)
                     ELSE 0
                 END AS alvo_bloqueado,
                 CASE
-                    WHEN d.tipo = "local" THEN COALESCE(l.nome, "[indisponivel]")
+                    WHEN d.tipo = "local"      THEN COALESCE(l.nome, "[indisponivel]")
                     WHEN d.tipo = "comentario" THEN COALESCE(c.texto, "[indisponivel]")
+                    WHEN d.tipo = "foto"       THEN COALESCE(f.ficheiro, "[indisponivel]")
                     ELSE "[indisponivel]"
                 END AS alvo_conteudo,
                 CASE
-                    WHEN d.tipo = "local" THEN COALESCE(l.descricao, "[indisponivel]")
+                    WHEN d.tipo = "local"      THEN COALESCE(l.descricao, "[indisponivel]")
                     WHEN d.tipo = "comentario" THEN COALESCE(c.texto, "[indisponivel]")
+                    WHEN d.tipo = "foto"       THEN COALESCE(f.ficheiro, "[indisponivel]")
                     ELSE "[indisponivel]"
                 END AS alvo_conteudo_completo,
                 CASE
-                    WHEN d.tipo = "local" THEN l.id
+                    WHEN d.tipo = "local"      THEN l.id
                     WHEN d.tipo = "comentario" THEN c.local_id
+                    WHEN d.tipo = "foto"       THEN f.local_id
                     ELSE NULL
                 END AS alvo_local_id
          FROM denuncias d
          JOIN utilizadores u ON u.id = d.utilizador_id
-         LEFT JOIN locais l ON d.tipo = "local" AND l.id = d.referencia_id
+         LEFT JOIN locais      l ON d.tipo = "local"      AND l.id = d.referencia_id
          LEFT JOIN comentarios c ON d.tipo = "comentario" AND c.id = d.referencia_id
+         LEFT JOIN fotos       f ON d.tipo = "foto"       AND f.id = d.referencia_id
          WHERE d.resolvida = 0
          ORDER BY d.criado_em DESC'
     );
@@ -355,6 +359,8 @@ function reportar(string $tipo, int $ref_id, int $user_id, string $motivo): bool
 
     if ($tipo === 'local') {
         $stAlvo = db()->prepare('SELECT utilizador_id FROM locais WHERE id = ?');
+    } elseif ($tipo === 'foto') {
+        $stAlvo = db()->prepare('SELECT utilizador_id FROM fotos WHERE id = ?');
     } else {
         $stAlvo = db()->prepare('SELECT utilizador_id FROM comentarios WHERE id = ?');
     }
@@ -376,7 +382,7 @@ function reportar(string $tipo, int $ref_id, int $user_id, string $motivo): bool
 }
 
 function moderar_denuncias_item(string $tipo, int $ref_id, bool $bloquear): bool {
-    if (!in_array($tipo, ['local', 'comentario'], true)) return false;
+    if (!in_array($tipo, ['local', 'comentario', 'foto'], true)) return false;
 
     if ($tipo === 'local') {
         $stLocal = db()->prepare('SELECT id FROM locais WHERE id = ?');
@@ -394,6 +400,22 @@ function moderar_denuncias_item(string $tipo, int $ref_id, bool $bloquear): bool
         return true;
     }
 
+    if ($tipo === 'foto') {
+        $stFoto = db()->prepare('SELECT id, ficheiro FROM fotos WHERE id = ?');
+        $stFoto->execute([$ref_id]);
+        $foto = $stFoto->fetch();
+        if (!$foto) return false;
+
+        if ($bloquear) {
+            // Eliminar o ficheiro físico e o registo da BD
+            apagar_upload_local($foto['ficheiro']);
+            db()->prepare('DELETE FROM fotos WHERE id = ?')->execute([$ref_id]);
+        }
+
+        db()->prepare('UPDATE denuncias SET resolvida=1 WHERE tipo=? AND referencia_id=? AND resolvida=0')->execute([$tipo, $ref_id]);
+        return true;
+    }
+    
     $stCom = db()->prepare('SELECT id, local_id FROM comentarios WHERE id = ?');
     $stCom->execute([$ref_id]);
     $comentario = $stCom->fetch();

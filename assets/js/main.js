@@ -167,12 +167,13 @@ function initAllUploadAreas() {
       e.stopPropagation();
       area.classList.remove('drag');
 
-      const files = e.dataTransfer.files;
+      const droppedFiles = e.dataTransfer.files;
 
-      if (files && files.length > 0) {
-        // Ficheiro local arrastado diretamente
+      if (droppedFiles && droppedFiles.length > 0) {
+        // Ficheiros locais arrastados — acumular com os já existentes
         const dt = new DataTransfer();
-        Array.from(files).forEach(f => dt.items.add(f));
+        Array.from(input.files).forEach(f => dt.items.add(f));   // ficheiros anteriores
+        Array.from(droppedFiles).forEach(f => dt.items.add(f));  // novos ficheiros
         input.files = dt.files;
         input.dispatchEvent(new Event('change'));
 
@@ -187,15 +188,22 @@ function initAllUploadAreas() {
         try {
           const res  = await fetch(url);
           const blob = await res.blob();
-          if (!blob.type.startsWith('image/')) { if (label) label.textContent = 'Só são aceites imagens.'; return; }
+          if (!blob.type.startsWith('image/')) {
+            if (label) label.textContent = 'Só são aceites imagens.';
+            return;
+          }
           const ext  = blob.type.split('/')[1] || 'jpg';
           const file = new File([blob], 'imagem.' + ext, { type: blob.type });
-          const dt   = new DataTransfer();
+
+          // Acumular com ficheiros já existentes
+          const dt = new DataTransfer();
+          Array.from(input.files).forEach(f => dt.items.add(f));
           dt.items.add(file);
           input.files = dt.files;
           input.dispatchEvent(new Event('change'));
         } catch {
-          if (label) label.textContent = 'Não foi possível carregar a imagem. Guarda-a primeiro e arrasta o ficheiro.';
+          const label2 = area.querySelector('.upload-label');
+          if (label2) label2.textContent = 'Não foi possível carregar a imagem. Guarda-a primeiro e arrasta o ficheiro.';
         }
       }
     });
@@ -287,11 +295,9 @@ function initMiniMap() {
 // Mapa principal (mapa.php)
 // ============================================================
 function initMainMap(locais) {
-  // Verificar se há um local para abrir via URL
   const params = new URLSearchParams(window.location.search);
   const abrirId = params.get('abrir') ? parseInt(params.get('abrir')) : null;
 
-  // Se houver um local para abrir, centrar nele; caso contrário mostrar Portugal
   let localAbrir = null;
   if (abrirId) {
     localAbrir = locais.find(l => l.id === abrirId) || null;
@@ -329,7 +335,6 @@ function initMainMap(locais) {
       </div>
     `);
 
-    // Abrir popup do local pretendido
     if (abrirId && l.id === abrirId) {
       m.openPopup();
     }

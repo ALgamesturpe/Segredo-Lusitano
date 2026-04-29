@@ -12,12 +12,23 @@ if (!$local || ($local['estado'] !== 'aprovado' && !is_admin())) {
 
 incrementar_vistas($id);
 
-$user       = auth_user();
-$comentarios = get_comentarios($id);
-$fotos      = get_fotos($id);
-$liked      = $user ? user_liked($id, $user['id']) : false;
+$user            = auth_user();
+$comentarios     = get_comentarios($id);
+$fotos           = get_fotos($id);
+$liked           = $user ? user_liked($id, $user['id']) : false;
 $motivos_denuncia = motivos_denuncia();
-$local_bloqueado = ((int)($local['bloqueado'] ?? 0) === 1);
+$local_bloqueado  = ((int)($local['bloqueado'] ?? 0) === 1);
+
+// Verificar se há fotos de outros utilizadores (para mostrar botão de denúncia)
+$tem_fotos_alheias = false;
+if ($user && !is_admin()) {
+    foreach ($fotos as $foto) {
+        if ((int)$foto['utilizador_id'] !== (int)$user['id']) {
+            $tem_fotos_alheias = true;
+            break;
+        }
+    }
+}
 
 // --- POST: Comentário ---
 $erro_com = '';
@@ -25,8 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['comentario'])) {
     if (!$user) { header('Location: ' . SITE_URL . '/pages/login.php'); exit; }
     if ($local_bloqueado) {
         flash('error', 'Este post esta bloqueado e nao aceita novos comentarios.');
-        header('Location: ' . SITE_URL . '/pages/local.php?id=' . $id . '#comentarios');
-        exit;
+        header('Location: ' . SITE_URL . '/pages/local.php?id=' . $id . '#comentarios'); exit;
     }
     $texto = trim($_POST['comentario']);
     if (strlen($texto) < 3) {
@@ -34,8 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['comentario'])) {
     } else {
         add_comentario($id, $user['id'], $texto);
         flash('success', 'Comentário publicado!');
-        header('Location: ' . SITE_URL . '/pages/local.php?id=' . $id . '#comentarios');
-        exit;
+        header('Location: ' . SITE_URL . '/pages/local.php?id=' . $id . '#comentarios'); exit;
     }
 }
 
@@ -45,8 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['fotos'])) {
     if (!$user) { header('Location: ' . SITE_URL . '/pages/login.php'); exit; }
     if ($local_bloqueado) {
         flash('error', 'Este post esta bloqueado e nao aceita novas imagens.');
-        header('Location: ' . SITE_URL . '/pages/local.php?id=' . $id);
-        exit;
+        header('Location: ' . SITE_URL . '/pages/local.php?id=' . $id); exit;
     }
     $files = $_FILES['fotos'];
     $count = count($files['name']);
@@ -61,19 +69,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['fotos'])) {
         if ($f['error'] === 0) upload_foto($f, $id, $user['id']);
     }
     flash('success', 'Foto(s) adicionada(s)!');
-    header('Location: ' . SITE_URL . '/pages/local.php?id=' . $id);
-    exit;
+    header('Location: ' . SITE_URL . '/pages/local.php?id=' . $id); exit;
 }
 
 // --- POST: Upload de foto pelo admin ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload_admin']) && is_admin()) {
     $f = $_FILES['foto_admin'];
-    if ($f['error'] === 0) {
-        upload_foto($f, $id, $user['id']);
-        flash('success', 'Foto adicionada.');
-    }
-    header('Location: ' . SITE_URL . '/pages/local.php?id=' . $id);
-    exit;
+    if ($f['error'] === 0) { upload_foto($f, $id, $user['id']); flash('success', 'Foto adicionada.'); }
+    header('Location: ' . SITE_URL . '/pages/local.php?id=' . $id); exit;
 }
 
 // --- GET: Apagar foto pelo admin ---
@@ -87,36 +90,28 @@ if (isset($_GET['apagar_foto']) && is_admin()) {
         db()->prepare('DELETE FROM fotos WHERE id = ?')->execute([$fid]);
         flash('success', 'Foto eliminada.');
     }
-    header('Location: ' . SITE_URL . '/pages/local.php?id=' . $id . '#galeria');
-    exit;
+    header('Location: ' . SITE_URL . '/pages/local.php?id=' . $id . '#galeria'); exit;
 }
 
 // --- GET: Apagar comentário pelo admin ---
 if (isset($_GET['apagar_comentario']) && is_admin()) {
     db()->prepare('DELETE FROM comentarios WHERE id = ?')->execute([(int)$_GET['apagar_comentario']]);
     flash('success', 'Comentário eliminado.');
-    header('Location: ' . SITE_URL . '/pages/local.php?id=' . $id . '#comentarios');
-    exit;
+    header('Location: ' . SITE_URL . '/pages/local.php?id=' . $id . '#comentarios'); exit;
 }
 
 // --- POST: Denúncia ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['denunciar'])) {
     if (!$user) { header('Location: ' . SITE_URL . '/pages/login.php'); exit; }
-
     $ok = reportar(
         (string)($_POST['tipo'] ?? ''),
         (int)($_POST['ref_id'] ?? 0),
         $user['id'],
         (string)($_POST['motivo'] ?? '')
     );
-
-    if ($ok) {
-        flash('success', 'Denuncia registada. Obrigado!');
-    } else {
-        flash('error', 'Nao foi possivel registar a denuncia (duplicada, invalida ou proibida).');
-    }
-    header('Location: ' . SITE_URL . '/pages/local.php?id=' . $id);
-    exit;
+    if ($ok) { flash('success', 'Denuncia registada. Obrigado!'); }
+    else      { flash('error', 'Nao foi possivel registar a denuncia (duplicada, invalida ou proibida).'); }
+    header('Location: ' . SITE_URL . '/pages/local.php?id=' . $id); exit;
 }
 
 $page_title = local_nome_publico($local);
@@ -151,7 +146,7 @@ include dirname(__DIR__) . '/includes/header.php';
       <!-- COLUNA PRINCIPAL -->
       <div>
         <!-- Ações -->
-        <div style="display:flex; align-items:center; gap:1rem; margin-bottom:2rem; flex-wrap:wrap;">
+        <div style="display:flex;align-items:center;gap:1rem;margin-bottom:2rem;flex-wrap:wrap;">
           <button class="like-btn <?= $liked ? 'liked' : '' ?>" id="like-btn" data-local="<?= $id ?>">
             <i class="fas fa-heart"></i>
             <span id="like-count"><?= $local['total_likes'] ?></span>
@@ -180,21 +175,22 @@ include dirname(__DIR__) . '/includes/header.php';
                     class="btn btn-sm" style="color:var(--texto-muted);border:1px solid var(--creme-escuro);border-radius:50px;">
               <i class="fas fa-flag"></i> Denunciar
             </button>
-        <?php endif; ?>
+          <?php endif; ?>
         </div>
 
         <!-- Descrição -->
         <div class="info-card" style="margin-bottom:1.5rem;">
           <h3><i class="fas fa-align-left"></i> Descrição</h3>
-          <p class="text-wrap-anywhere" style="line-height:1.8; color:var(--texto);"><?= nl2br(h(local_descricao_publica($local))) ?></p>
+          <p class="text-wrap-anywhere" style="line-height:1.8;color:var(--texto);"><?= nl2br(h(local_descricao_publica($local))) ?></p>
         </div>
 
         <!-- Galeria de Fotos -->
         <?php if ($fotos || is_admin()): ?>
-        <div class="info-card" style="margin-bottom:1.5rem;">
+        <div class="info-card" style="margin-bottom:1.5rem;" id="galeria">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
             <h3 style="margin:0;"><i class="fas fa-images"></i> Galeria</h3>
-            <?php if ($user && !is_admin()): ?>
+            <?php if ($tem_fotos_alheias): ?>
+              <!-- Só aparece se há fotos de outros utilizadores -->
               <button id="btn-denunciar-foto" onclick="toggleModoDenuncia()"
                       class="btn btn-sm"
                       style="color:var(--texto-muted);border:1px solid var(--creme-escuro);border-radius:50px;font-size:.8rem;transition:all .2s;">
@@ -202,43 +198,60 @@ include dirname(__DIR__) . '/includes/header.php';
               </button>
             <?php endif; ?>
           </div>
-          <div class="galeria">
+
+          <div class="galeria" id="galeria-fotos">
             <?php foreach ($fotos as $foto): ?>
+              <?php $foto_propria = ($user && (int)$foto['utilizador_id'] === (int)$user['id']); ?>
               <div class="galeria-item" style="position:relative;" data-foto-id="<?= $foto['id'] ?>">
                 <img src="<?= SITE_URL ?>/uploads/locais/<?= h($foto['ficheiro']) ?>"
-                    alt="Foto do local" loading="lazy"
-                    onclick="clicarFotoGaleria(this)"
-                    style="cursor:pointer;width:100%;height:100%;object-fit:cover;">
-                <div class="foto-denuncia-overlay"
-                    style="display:none;position:absolute;inset:0;background:rgba(192,57,43,.45);
-                            border:3px solid #c0392b;border-radius:var(--radius);
-                            align-items:center;justify-content:center;cursor:pointer;flex-direction:column;gap:.35rem;"
-                    onclick="confirmarDenunciaFoto(<?= $foto['id'] ?>)">
-                  <i class="fas fa-flag" style="color:#fff;font-size:1.6rem;"></i>
-                  <span style="color:#fff;font-size:.78rem;font-weight:700;">Denunciar</span>
-                </div>
+                     alt="Foto do local" loading="lazy"
+                     onclick="clicarFotoGaleria(this)"
+                     style="cursor:pointer;width:100%;height:100%;object-fit:cover;">
+
+                <?php if (!$foto_propria && $user && !is_admin()): ?>
+                  <!-- Overlay de denúncia — só em fotos alheias -->
+                  <div class="foto-denuncia-overlay"
+                       style="display:none;position:absolute;inset:0;background:rgba(192,57,43,.45);
+                              border:3px solid #c0392b;border-radius:var(--radius);
+                              align-items:center;justify-content:center;cursor:pointer;flex-direction:column;gap:.35rem;"
+                       onclick="confirmarDenunciaFoto(<?= $foto['id'] ?>)">
+                    <i class="fas fa-flag" style="color:#fff;font-size:1.6rem;"></i>
+                    <span style="color:#fff;font-size:.78rem;font-weight:700;">Denunciar</span>
+                  </div>
+                <?php endif; ?>
+
+                <?php if ($foto_propria && $user && !is_admin()): ?>
+                  <!-- Indicador "Minha" nas fotos próprias -->
+                  <span style="position:absolute;top:.35rem;left:.35rem;background:var(--verde);color:#fff;
+                               border-radius:6px;padding:.15rem .45rem;font-size:.7rem;font-weight:700;z-index:5;">
+                    Minha
+                  </span>
+                <?php endif; ?>
+
                 <?php if (is_admin()): ?>
                   <a href="<?= SITE_URL ?>/pages/local.php?id=<?= $id ?>&apagar_foto=<?= $foto['id'] ?>"
-                    onclick="return confirm('Eliminar esta foto?')"
-                    style="position:absolute;top:.35rem;right:.35rem;background:#c0392b;color:#fff;
-                            border-radius:6px;padding:.2rem .45rem;font-size:.75rem;text-decoration:none;z-index:10;">
+                     onclick="return confirm('Eliminar esta foto?')"
+                     style="position:absolute;top:.35rem;right:.35rem;background:#c0392b;color:#fff;
+                             border-radius:6px;padding:.2rem .45rem;font-size:.75rem;text-decoration:none;z-index:10;">
                     <i class="fas fa-trash"></i>
                   </a>
                 <?php endif; ?>
               </div>
             <?php endforeach; ?>
-            <div id="aviso-modo-denuncia" style="display:none;margin-top:.75rem;padding:.6rem 1rem;
-                background:rgba(192,57,43,.08);border:1px solid #c0392b;border-radius:8px;
-                font-size:.85rem;color:#c0392b;text-align:center;">
-              <i class="fas fa-hand-pointer"></i> Clica na foto que queres denunciar
-            </div>
+          </div>
+
+          <!-- Aviso do modo denúncia -->
+          <div id="aviso-modo-denuncia" style="display:none;margin-top:.75rem;padding:.6rem 1rem;
+               background:rgba(192,57,43,.08);border:1px solid #c0392b;border-radius:8px;
+               font-size:.85rem;color:#c0392b;text-align:center;">
+            <i class="fas fa-hand-pointer"></i> Clica na foto que queres denunciar
           </div>
 
           <?php if (is_admin()): ?>
           <form method="POST" enctype="multipart/form-data" style="margin-top:1rem;display:flex;gap:.75rem;align-items:center;flex-wrap:wrap;">
             <input type="hidden" name="local_id_upload" value="<?= $id ?>">
             <input type="file" name="foto_admin" accept="image/*" required
-                  style="border:1.5px solid var(--creme-escuro);border-radius:8px;padding:.4rem .75rem;background:var(--creme);font-size:.9rem;">
+                   style="border:1.5px solid var(--creme-escuro);border-radius:8px;padding:.4rem .75rem;background:var(--creme);font-size:.9rem;">
             <button type="submit" name="upload_admin" class="btn btn-sm btn-verde">
               <i class="fas fa-upload"></i> Adicionar Foto
             </button>
@@ -255,10 +268,10 @@ include dirname(__DIR__) . '/includes/header.php';
             <div class="upload-area" data-input-id="fotos">
               <i class="fas fa-cloud-upload-alt upload-icon" style="font-size:2.5rem;color:var(--verde-claro);margin-bottom:.75rem;display:block;"></i>
               <p class="upload-label" style="font-weight:500;margin-bottom:.25rem;">Clica ou arrasta as fotos aqui</p>
-              <small style="color:var(--texto-muted);">JPG, PNG ou WebP · Máx. 5MB</small>
+              <small style="color:var(--texto-muted);">JPG, PNG ou WebP · Máx. 5MB · Várias fotos de uma vez</small>
             </div>
             <input type="file" id="fotos" name="fotos[]" multiple accept="image/*" style="display:none;">
-            <button type="submit" class="btn btn-verde" style="margin-top:1rem; width:100%;">
+            <button type="submit" class="btn btn-verde" style="margin-top:1rem;width:100%;">
               <i class="fas fa-upload"></i> Enviar Fotos
             </button>
           </form>
@@ -270,9 +283,7 @@ include dirname(__DIR__) . '/includes/header.php';
           <h3><i class="fas fa-comments"></i> Comentários <span style="color:var(--texto-muted);font-size:.9rem;">(<?= count($comentarios) ?>)</span></h3>
 
           <?php if ($local_bloqueado): ?>
-            <p style="margin-bottom:1.5rem; color:var(--texto-muted); font-size:.9rem;">
-              Este post esta bloqueado. Novos comentarios estao desativados.
-            </p>
+            <p style="margin-bottom:1.5rem;color:var(--texto-muted);font-size:.9rem;">Este post esta bloqueado. Novos comentarios estao desativados.</p>
           <?php elseif ($user): ?>
             <form method="POST" style="margin-bottom:1.5rem;">
               <div class="form-group" style="margin-bottom:.75rem;">
@@ -284,7 +295,7 @@ include dirname(__DIR__) . '/includes/header.php';
               <button type="submit" class="btn btn-verde btn-sm"><i class="fas fa-paper-plane"></i> Publicar Comentário</button>
             </form>
           <?php else: ?>
-            <p style="margin-bottom:1.5rem; color:var(--texto-muted); font-size:.9rem;">
+            <p style="margin-bottom:1.5rem;color:var(--texto-muted);font-size:.9rem;">
               <a href="#" onclick="mostrarAvisoLogin('Precisas de iniciar sessão para comentar.', '<?= SITE_URL ?>/pages/login.php'); return false;" class="form-link">Inicia sessão</a> para deixar um comentário.
             </p>
           <?php endif; ?>
@@ -307,8 +318,8 @@ include dirname(__DIR__) . '/includes/header.php';
                       &bull; <?= date('d M Y', strtotime($com['criado_em'])) ?>
                       <?php if (is_admin()): ?>
                         <a href="?id=<?= $id ?>&apagar_comentario=<?= $com['id'] ?>"
-                          onclick="return confirm('Eliminar este comentário permanentemente?')"
-                          style="margin-left:auto;color:#c0392b;font-size:.8rem;text-decoration:none;">
+                           onclick="return confirm('Eliminar este comentário permanentemente?')"
+                           style="margin-left:auto;color:#c0392b;font-size:.8rem;text-decoration:none;">
                           <i class="fas fa-trash"></i>
                         </a>
                       <?php endif; ?>
@@ -334,57 +345,35 @@ include dirname(__DIR__) . '/includes/header.php';
 
       <!-- SIDEBAR -->
       <div class="detalhe-sidebar">
-        <!-- Mapa mini -->
-        <p style="font-size:.75rem;color:var(--texto-muted); margin-bottom:.35rem; display:flex; align-items:center; gap:.35rem;">
+        <p style="font-size:.75rem;color:var(--texto-muted);margin-bottom:.35rem;display:flex;align-items:center;gap:.35rem;">
           <i class="fas fa-info-circle" style="color:var(--verde);"></i>
           Clica no <strong>PINO</strong> para obter direções via Maps
         </p>
-        <div class="info-card" style="padding:0; overflow:hidden; position:relative;">
-          <div id="mini-map-detalhe" style="height:220px; border-radius:var(--radius-lg);"></div>
+        <div class="info-card" style="padding:0;overflow:hidden;position:relative;">
+          <div id="mini-map-detalhe" style="height:220px;border-radius:var(--radius-lg);"></div>
           <button onclick="<?= $user ? 'abrirMapaFullscreen()' : 'window.location.href=\'' . SITE_URL . '/pages/login.php\'' ?>"
-                  style="position:absolute;top:.6rem;right:.6rem;z-index:999;
-                        background:var(--verde-escuro);color:#fff;border:none;
-                        border-radius:8px;padding:.4rem .65rem;cursor:pointer;
-                        font-size:.8rem;display:flex;align-items:center;gap:.35rem;
-                        box-shadow:0 2px 8px rgba(0,0,0,.3);">
+                  style="position:absolute;top:.6rem;right:.6rem;z-index:999;background:var(--verde-escuro);color:#fff;border:none;
+                         border-radius:8px;padding:.4rem .65rem;cursor:pointer;font-size:.8rem;display:flex;align-items:center;gap:.35rem;box-shadow:0 2px 8px rgba(0,0,0,.3);">
             <i class="fas fa-expand"></i> Expandir
           </button>
           <div id="mapa-estado" style="position:absolute;bottom:.6rem;left:.6rem;z-index:999;
-              background:rgba(26,58,42,.85);color:#c9a84c;font-size:.75rem;
-              padding:.3rem .65rem;border-radius:6px;display:none;">
+               background:rgba(26,58,42,.85);color:#c9a84c;font-size:.75rem;padding:.3rem .65rem;border-radius:6px;display:none;">
             <i class="fas fa-spinner fa-spin"></i> A obter localização...
           </div>
         </div>
 
-        <!-- Info -->
         <div class="info-card">
           <h3>Informações</h3>
-          <div class="info-row">
-            <span class="label"><i class="fas fa-map-marker-alt"></i> Região</span>
-            <span class="val"><?= h($local['regiao_nome']) ?></span>
-          </div>
-          <div class="info-row">
-            <span class="label"><i class="fas fa-tag"></i> Categoria</span>
-            <span class="val"><?= h($local['categoria_nome']) ?></span>
-          </div>
-          <div class="info-row">
-            <span class="label"><i class="fas fa-hiking"></i> Dificuldade</span>
-            <span class="val"><?= $dif_label ?></span>
-          </div>
-          <div class="info-row">
-            <span class="label"><i class="fas fa-eye"></i> Visualizações</span>
-            <span class="val"><?= number_format($local['vistas']) ?></span>
-          </div>
-          <div class="info-row">
-            <span class="label"><i class="fas fa-calendar"></i> Publicado em</span>
-            <span class="val"><?= date('d/m/Y', strtotime($local['criado_em'])) ?></span>
-          </div>
+          <div class="info-row"><span class="label"><i class="fas fa-map-marker-alt"></i> Região</span><span class="val"><?= h($local['regiao_nome']) ?></span></div>
+          <div class="info-row"><span class="label"><i class="fas fa-tag"></i> Categoria</span><span class="val"><?= h($local['categoria_nome']) ?></span></div>
+          <div class="info-row"><span class="label"><i class="fas fa-hiking"></i> Dificuldade</span><span class="val"><?= $dif_label ?></span></div>
+          <div class="info-row"><span class="label"><i class="fas fa-eye"></i> Visualizações</span><span class="val"><?= number_format($local['vistas']) ?></span></div>
+          <div class="info-row"><span class="label"><i class="fas fa-calendar"></i> Publicado em</span><span class="val"><?= date('d/m/Y', strtotime($local['criado_em'])) ?></span></div>
         </div>
 
-        <!-- Autor -->
         <div class="info-card">
           <h3>Explorador</h3>
-          <div style="display:flex; align-items:center; gap:.75rem;">
+          <div style="display:flex;align-items:center;gap:.75rem;">
             <div class="rank-avatar">
               <?php if (!empty($local['avatar'])): ?>
                 <img src="<?= SITE_URL ?>/uploads/locais/<?= h($local['avatar']) ?>" alt="<?= h($local['autor_nome']) ?>">
@@ -394,27 +383,24 @@ include dirname(__DIR__) . '/includes/header.php';
             </div>
             <div class="rank-user-info">
               <div style="font-weight:700;"><?= h($local['autor_nome']) ?></div>
-              <a href="<?= SITE_URL ?>/pages/perfil.php?id=<?= $local['utilizador_id'] ?>"
-                 style="color:var(--verde); font-size:.85rem;"><?= h($local['username']) ?></a>
+              <a href="<?= SITE_URL ?>/pages/perfil.php?id=<?= $local['utilizador_id'] ?>" style="color:var(--verde);font-size:.85rem;"><?= h($local['username']) ?></a>
             </div>
           </div>
         </div>
 
-        <!-- Coordenadas -->
         <div class="info-card">
           <h3>Coordenadas GPS</h3>
-          <code style="font-size:.85rem; word-break:break-all; color:var(--verde-escuro);">
+          <code style="font-size:.85rem;word-break:break-all;color:var(--verde-escuro);">
             <?= number_format($local['latitude'],6,',','') ?>°N,
             <?= number_format(abs($local['longitude']),6,',','') ?>°O
           </code>
           <?php if ($user): ?>
             <a href="https://www.google.com/maps/dir/?api=1&destination=<?= $local['latitude'] ?>,<?= $local['longitude'] ?>"
-              target="_blank" rel="noopener"
-              class="btn btn-sm btn-verde" style="margin-top:.75rem; width:100%;">
+               target="_blank" rel="noopener" class="btn btn-sm btn-verde" style="margin-top:.75rem;width:100%;">
               <i class="fas fa-external-link-alt"></i> Abrir no Google Maps
             </a>
           <?php else: ?>
-            <a href="<?= SITE_URL ?>/pages/login.php" class="btn btn-sm btn-verde" style="margin-top:.75rem; width:100%;">
+            <a href="<?= SITE_URL ?>/pages/login.php" class="btn btn-sm btn-verde" style="margin-top:.75rem;width:100%;">
               <i class="fas fa-sign-in-alt"></i> Inicia sessão para navegar
             </a>
           <?php endif; ?>
@@ -430,34 +416,26 @@ include dirname(__DIR__) . '/includes/header.php';
     <span style="font-family:'Playfair Display',serif;color:var(--dourado);font-weight:700;">
       <i class="fas fa-map"></i> <?= h(local_nome_publico($local)) ?>
     </span>
-    <!-- Modos de transporte -->
     <div style="display:flex;gap:.4rem;">
       <button class="btn-modo" data-modo="driving" onclick="mudarModo('driving')"
-              style="background:var(--dourado);color:var(--verde-escuro);border:none;border-radius:8px;
-                     padding:.35rem .75rem;cursor:pointer;font-size:.82rem;font-weight:700;display:flex;align-items:center;gap:.3rem;">
+              style="background:var(--dourado);color:var(--verde-escuro);border:none;border-radius:8px;padding:.35rem .75rem;cursor:pointer;font-size:.82rem;font-weight:700;display:flex;align-items:center;gap:.3rem;">
         <i class="fas fa-car"></i> Carro
       </button>
       <button class="btn-modo" data-modo="foot" onclick="mudarModo('foot')"
-              style="background:rgba(255,255,255,.15);color:#fff;border:none;border-radius:8px;
-                     padding:.35rem .75rem;cursor:pointer;font-size:.82rem;display:flex;align-items:center;gap:.3rem;">
+              style="background:rgba(255,255,255,.15);color:#fff;border:none;border-radius:8px;padding:.35rem .75rem;cursor:pointer;font-size:.82rem;display:flex;align-items:center;gap:.3rem;">
         <i class="fas fa-walking"></i> A Pé
       </button>
       <button class="btn-modo" data-modo="bike" onclick="mudarModo('bike')"
-              style="background:rgba(255,255,255,.15);color:#fff;border:none;border-radius:8px;
-                     padding:.35rem .75rem;cursor:pointer;font-size:.82rem;display:flex;align-items:center;gap:.3rem;">
+              style="background:rgba(255,255,255,.15);color:#fff;border:none;border-radius:8px;padding:.35rem .75rem;cursor:pointer;font-size:.82rem;display:flex;align-items:center;gap:.3rem;">
         <i class="fas fa-bicycle"></i> Bicicleta
       </button>
     </div>
     <button onclick="fecharMapaFullscreen()"
-            style="background:rgba(255,255,255,.15);border:none;color:#fff;
-                   border-radius:8px;padding:.4rem .85rem;cursor:pointer;font-size:.9rem;">
+            style="background:rgba(255,255,255,.15);border:none;color:#fff;border-radius:8px;padding:.4rem .85rem;cursor:pointer;font-size:.9rem;">
       <i class="fas fa-times"></i> Fechar
     </button>
   </div>
-  <!-- Info da rota -->
-  <div id="rota-info" style="display:none;background:var(--verde-escuro);color:#fff;
-     padding:.5rem 1rem;font-size:.85rem;border-top:1px solid rgba(201,168,76,.3);
-     flex-shrink:0;">
+  <div id="rota-info" style="display:none;background:var(--verde-escuro);color:#fff;padding:.5rem 1rem;font-size:.85rem;border-top:1px solid rgba(201,168,76,.3);flex-shrink:0;">
     <i class="fas fa-route" style="color:var(--dourado);margin-right:.4rem;"></i>
     <span id="rota-info-texto"></span>
   </div>
@@ -465,7 +443,7 @@ include dirname(__DIR__) . '/includes/header.php';
 </div>
 
 <!-- MODAL DENUNCIA -->
-<div id="modal-denuncia" style="display:none; position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:3000;align-items:center;justify-content:center;padding:1rem;">
+<div id="modal-denuncia" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:3000;align-items:center;justify-content:center;padding:1rem;">
   <div style="background:#fff;border-radius:var(--radius-lg);padding:2rem;max-width:460px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,.18);">
     <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:1.25rem;">
       <i class="fas fa-flag" style="color:#e74c3c;font-size:1.1rem;"></i>
@@ -475,7 +453,6 @@ include dirname(__DIR__) . '/includes/header.php';
       <input type="hidden" name="denunciar" value="1">
       <input type="hidden" name="tipo" id="denuncia-tipo" value="local">
       <input type="hidden" name="ref_id" id="denuncia-ref-id" value="<?= $id ?>">
-
       <div style="margin-bottom:1.25rem;">
         <p style="font-size:.85rem;color:var(--texto-muted);margin-bottom:.75rem;">Seleciona o motivo da denúncia:</p>
         <div style="display:flex;flex-direction:column;gap:.5rem;">
@@ -499,7 +476,6 @@ include dirname(__DIR__) . '/includes/header.php';
           <?php endforeach; ?>
         </div>
       </div>
-
       <div style="display:flex;gap:.75rem;">
         <button type="submit" class="btn btn-danger" style="flex:1;justify-content:center;"><i class="fas fa-paper-plane"></i> Enviar Denúncia</button>
         <button type="button" onclick="document.getElementById('modal-denuncia').style.display='none'" class="btn" style="border:1px solid var(--creme-escuro);color:var(--texto-muted);">Cancelar</button>
@@ -509,8 +485,14 @@ include dirname(__DIR__) . '/includes/header.php';
 </div>
 </div>
 
-<!-- Mapa mini sidebar -->
+<!-- Modal para ampliar foto da galeria -->
+<div id="modal-foto" onclick="fecharFoto()"
+     style="display:none;position:fixed;inset:0;z-index:6000;background:rgba(0,0,0,.92);align-items:center;justify-content:center;cursor:zoom-out;">
+  <img id="modal-foto-img" src="" alt="" style="max-width:90vw;max-height:90vh;object-fit:contain;border-radius:var(--radius);">
+</div>
+
 <script>
+// ── Denúncia de foto — modo de seleção ────────────────────
 let modoDenunciaFoto = false;
 
 function toggleModoDenuncia() {
@@ -548,92 +530,75 @@ function clicarFotoGaleria(img) {
 
 function abrirModalDenuncia(tipo, refId, alvo) {
   document.getElementById('denuncia-titulo').textContent = 'Denunciar ' + alvo;
-  document.getElementById('denuncia-tipo').value = tipo;
+  document.getElementById('denuncia-tipo').value  = tipo;
   document.getElementById('denuncia-ref-id').value = refId;
-  const radios = document.querySelectorAll('#modal-denuncia input[name="motivo"]');
-  radios.forEach((r) => { r.checked = false; });
+  document.querySelectorAll('#modal-denuncia input[name="motivo"]').forEach(r => r.checked = false);
   document.getElementById('modal-denuncia').style.display = 'flex';
 }
+
+function abrirFoto(src) {
+  document.getElementById('modal-foto-img').src = src;
+  document.getElementById('modal-foto').style.display = 'flex';
+}
+function fecharFoto() {
+  document.getElementById('modal-foto').style.display = 'none';
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { fecharFoto(); document.getElementById('modal-denuncia').style.display = 'none'; } });
 
 document.addEventListener('DOMContentLoaded', () => {
   const destLat = <?= $local['latitude'] ?>;
   const destLng = <?= $local['longitude'] ?>;
 
-  // ── Mapa mini ────────────────────────────────────────────
   const map2 = L.map('mini-map-detalhe', { zoomControl:false, dragging:false, scrollWheelZoom:false })
     .setView([destLat, destLng], 15);
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-    attribution: '© CARTO', maxZoom: 18
-  }).addTo(map2);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { attribution:'© CARTO', maxZoom:18 }).addTo(map2);
+
   const iconePersonalizado = L.divIcon({
-  className: '',
-  html: `<i class="fa-solid fa-location-dot" style="color:#2d6a4f;font-size:2rem;"></i>`,  iconSize: [20, 20],
-  iconAnchor: [10, 32]
-});
-L.marker([destLat, destLng], { icon: iconePersonalizado }).addTo(map2)
-  .on('click', () => {
-    <?php if ($user): ?>
-      window.open(`https://www.google.com/maps?q=${destLat},${destLng}`, '_blank');
-    <?php else: ?>
-      mostrarAvisoLogin('Precisas de iniciar sessão para obter direções.', '<?= SITE_URL ?>/pages/login.php');
-    <?php endif; ?>
+    className: '',
+    html: `<i class="fa-solid fa-location-dot" style="color:#2d6a4f;font-size:2rem;"></i>`,
+    iconSize: [20,20], iconAnchor: [10,32]
   });
 
-
-  
+  L.marker([destLat, destLng], { icon: iconePersonalizado }).addTo(map2)
+    .on('click', () => {
+      <?php if ($user): ?>
+        window.open(`https://www.google.com/maps?q=${destLat},${destLng}`, '_blank');
+      <?php else: ?>
+        mostrarAvisoLogin('Precisas de iniciar sessão para obter direções.', '<?= SITE_URL ?>/pages/login.php');
+      <?php endif; ?>
+    });
 
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(pos => {
-      L.circleMarker([pos.coords.latitude, pos.coords.longitude], {
-        radius: 7, fillColor: '#269b3f', fillOpacity: 1, color: '#fff', weight: 2
-      }).addTo(map2);
-      map2.fitBounds(L.latLngBounds(
-        [pos.coords.latitude, pos.coords.longitude], [destLat, destLng]
-      ), { padding: [20, 20] });
+      L.circleMarker([pos.coords.latitude, pos.coords.longitude], { radius:7, fillColor:'#269b3f', fillOpacity:1, color:'#fff', weight:2 }).addTo(map2);
+      map2.fitBounds(L.latLngBounds([pos.coords.latitude, pos.coords.longitude], [destLat, destLng]), { padding:[20,20] });
     }, () => {});
   }
 
-  // ── Mapa fullscreen ───────────────────────────────────────
-  let mapFS = null;
-  let rotaLayer = null;
-  let userMarker = null;
-  let modoAtual = 'driving';
-  let userLat = null;
-  let userLng = null;
-
-  const osrmModo = { driving: 'driving', foot: 'foot', bike: 'bike' };
-  const modoCores = { driving: '#c9a84c', foot: '#2d6a4f', bike: '#3498db' };
+  let mapFS = null, rotaLayer = null, userMarker = null, modoAtual = 'driving', userLat = null, userLng = null;
+  const osrmModo  = { driving:'driving', foot:'foot', bike:'bike' };
+  const modoCores = { driving:'#c9a84c', foot:'#2d6a4f', bike:'#3498db' };
 
   window.abrirMapaFullscreen = function() {
     document.getElementById('modal-mapa').style.display = 'flex';
     if (!mapFS) {
       mapFS = L.map('mapa-fullscreen').setView([destLat, destLng], 13);
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-        attribution: '© CARTO', maxZoom: 18
-      }).addTo(mapFS);
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { attribution:'© CARTO', maxZoom:18 }).addTo(mapFS);
       L.marker([destLat, destLng], { icon: iconePersonalizado }).addTo(mapFS)
         .bindPopup('<strong><?= h(local_nome_publico($local)) ?></strong><br><?= h($local['regiao_nome']) ?>').openPopup();
     }
     setTimeout(() => mapFS.invalidateSize(), 100);
-
-    if (!userLat) {
-      pedirLocalizacao();
-    } else {
-      tracarRota(userLat, userLng, modoAtual);
-    }
+    if (!userLat) pedirLocalizacao(); else tracarRota(userLat, userLng, modoAtual);
   };
 
-  window.fecharMapaFullscreen = function() {
-    document.getElementById('modal-mapa').style.display = 'none';
-  };
+  window.fecharMapaFullscreen = function() { document.getElementById('modal-mapa').style.display = 'none'; };
 
   window.mudarModo = function(modo) {
     modoAtual = modo;
-    // Atualizar visual dos botões
     document.querySelectorAll('.btn-modo').forEach(btn => {
       const ativo = btn.dataset.modo === modo;
       btn.style.background = ativo ? 'var(--dourado)' : 'rgba(255,255,255,.15)';
-      btn.style.color = ativo ? 'var(--verde-escuro)' : '#fff';
+      btn.style.color      = ativo ? 'var(--verde-escuro)' : '#fff';
       btn.style.fontWeight = ativo ? '700' : '400';
     });
     if (userLat) tracarRota(userLat, userLng, modo);
@@ -643,71 +608,34 @@ L.marker([destLat, destLng], { icon: iconePersonalizado }).addTo(map2)
     const estado = document.getElementById('mapa-estado');
     if (!navigator.geolocation) return;
     estado.style.display = 'block';
-    navigator.geolocation.getCurrentPosition(
-      pos => {
-        estado.style.display = 'none';
-        userLat = pos.coords.latitude;
-        userLng = pos.coords.longitude;
-
-        if (userMarker) userMarker.remove();
-        userMarker = L.circleMarker([userLat, userLng], {
-          radius: 8, fillColor: '#2d6a4f', fillOpacity: 1, color: '#fff', weight: 2
-        }).addTo(mapFS).bindPopup('A tua localização');
-
-        tracarRota(userLat, userLng, modoAtual);
-      },
-      () => { estado.style.display = 'none'; }
-    );
+    navigator.geolocation.getCurrentPosition(pos => {
+      estado.style.display = 'none';
+      userLat = pos.coords.latitude; userLng = pos.coords.longitude;
+      if (userMarker) userMarker.remove();
+      userMarker = L.circleMarker([userLat, userLng], { radius:8, fillColor:'#2d6a4f', fillOpacity:1, color:'#fff', weight:2 }).addTo(mapFS).bindPopup('A tua localização');
+      tracarRota(userLat, userLng, modoAtual);
+    }, () => { estado.style.display = 'none'; });
   }
 
   function tracarRota(uLat, uLng, modo) {
-    const url = `https://router.project-osrm.org/route/v1/${osrmModo[modo]}/${uLng},${uLat};${destLng},${destLat}?overview=full&geometries=geojson`;
-    fetch(url)
+    fetch(`https://router.project-osrm.org/route/v1/${osrmModo[modo]}/${uLng},${uLat};${destLng},${destLat}?overview=full&geometries=geojson`)
       .then(r => r.json())
       .then(data => {
         if (!data.routes || !data.routes[0]) return;
         if (rotaLayer) rotaLayer.remove();
-        rotaLayer = L.geoJSON(data.routes[0].geometry, {
-          style: { color: modoCores[modo], weight: 4, opacity: .9 }
-        }).addTo(mapFS);
-
-        mapFS.fitBounds(L.latLngBounds([[uLat, uLng], [destLat, destLng]]), { padding: [50, 50] });
-
-        const dist = (data.routes[0].distance / 1000).toFixed(1);
-        const velocidades = { driving: 100, foot: 4, bike: 25 };
-        const minsCalc = Math.round((data.routes[0].distance / 1000) / velocidades[modo] * 60);
-        const tempo = minsCalc >= 60 ? Math.floor(minsCalc/60) + 'h ' + (minsCalc%60) + 'min' : minsCalc + ' min';
-        const icones = { driving: '🚗', foot: '🚶', bike: '🚲' };
-        const infoEl = document.getElementById('rota-info');
-        //onde aparece o tempo e distancia da rota
-        document.getElementById('rota-info-texto').textContent =
-          `${icones[modo]} ${dist} km · ⏱ ${tempo}`;
-        infoEl.style.display = 'block';
+        rotaLayer = L.geoJSON(data.routes[0].geometry, { style:{ color:modoCores[modo], weight:4, opacity:.9 } }).addTo(mapFS);
+        mapFS.fitBounds(L.latLngBounds([[uLat,uLng],[destLat,destLng]]), { padding:[50,50] });
+        const dist = (data.routes[0].distance/1000).toFixed(1);
+        const velocidades = { driving:100, foot:4, bike:25 };
+        const minsCalc = Math.round((data.routes[0].distance/1000)/velocidades[modo]*60);
+        const tempo = minsCalc >= 60 ? Math.floor(minsCalc/60)+'h '+(minsCalc%60)+'min' : minsCalc+' min';
+        const icones = { driving:'🚗', foot:'🚶', bike:'🚲' };
+        document.getElementById('rota-info-texto').textContent = `${icones[modo]} ${dist} km · ⏱ ${tempo}`;
+        document.getElementById('rota-info').style.display = 'block';
       })
-      .catch(() => {
-        mapFS.fitBounds([[uLat, uLng], [destLat, destLng]], { padding: [40, 40] });
-      });
+      .catch(() => { mapFS.fitBounds([[uLat,uLng],[destLat,destLng]], { padding:[40,40] }); });
   }
 });
-</script>
-
-<!-- Modal para ampliar foto da galeria -->
-<div id="modal-foto" onclick="fecharFoto()"
-     style="display:none;position:fixed;inset:0;z-index:6000;background:rgba(0,0,0,.92);
-            align-items:center;justify-content:center;cursor:zoom-out;">
-  <img id="modal-foto-img" src="" alt=""
-       style="max-width:90vw;max-height:90vh;object-fit:contain;border-radius:var(--radius);">
-</div>
-
-<script>
-function abrirFoto(src) {
-  document.getElementById('modal-foto-img').src = src;
-  document.getElementById('modal-foto').style.display = 'flex';
-}
-function fecharFoto() {
-  document.getElementById('modal-foto').style.display = 'none';
-}
-document.addEventListener('keydown', e => { if (e.key === 'Escape') fecharFoto(); });
 </script>
 
 <?php include dirname(__DIR__) . '/includes/footer.php'; ?>
