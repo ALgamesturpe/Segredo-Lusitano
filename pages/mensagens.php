@@ -327,13 +327,21 @@ async function eliminarMensagem(msgId) {
   document.querySelectorAll('.msg-menu').forEach(m => m.remove());
   if (!confirm('Eliminar esta mensagem para ambos?')) return;
   const wrapper = document.querySelector(`[data-msg-id="${msgId}"]`);
-  const res = await fetch(SITE_URL_JS + '/pages/mensagens_api.php', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: `acao=eliminar&msg_id=${msgId}`
-  });
-  const data = await res.json();
-  if (data.ok && wrapper) wrapper.remove();
+  try {
+    const res = await fetch(SITE_URL_JS + '/pages/mensagens_api.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: `acao=eliminar&msg_id=${msgId}`
+    });
+    const data = await res.json();
+    if (data.ok && wrapper) {
+      wrapper.remove();
+    } else {
+      alert(data.erro || 'Não foi possível eliminar a mensagem.');
+    }
+  } catch (e) {
+    alert('Erro de ligação. Tenta novamente.');
+  }
 }
 </script>
 
