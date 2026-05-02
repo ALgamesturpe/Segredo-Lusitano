@@ -7,11 +7,14 @@ require_admin();
 
 $page_title = 'Admin · Estatísticas';
 
-// ── Filtro de mês e ano ───────────────────────────────────
+// ── Filtro de mês, ano e top ──────────────────────────────
 $mes_sel = isset($_GET['mes']) ? (int)$_GET['mes'] : (int)date('m');
 $ano_sel = isset($_GET['ano']) ? (int)$_GET['ano'] : (int)date('Y');
 if ($mes_sel < 1 || $mes_sel > 12) $mes_sel = (int)date('m');
 if ($ano_sel < 2024 || $ano_sel > (int)date('Y')) $ano_sel = (int)date('Y');
+
+$top_sel = isset($_GET['top']) ? (int)$_GET['top'] : 10;
+if (!in_array($top_sel, [1,3,5,10,20])) $top_sel = 10;
 
 $nomes_meses = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 
@@ -20,6 +23,7 @@ $stats = [
     'total_likes'      => (int)db()->query('SELECT COUNT(*) FROM likes')->fetchColumn(),
     'total_seguidores' => (int)db()->query('SELECT COUNT(*) FROM seguidores')->fetchColumn(),
     'media_pontos'     => (float)db()->query('SELECT AVG(pontos) FROM utilizadores WHERE role="user" AND ativo=1')->fetchColumn(),
+    'total_mensagens'  => (int)db()->query('SELECT COUNT(*) FROM mensagens')->fetchColumn(),
 ];
 
 $st = db()->prepare('SELECT COUNT(*) FROM utilizadores WHERE role="user" AND MONTH(criado_em)=? AND YEAR(criado_em)=?');
@@ -34,74 +38,108 @@ $st = db()->prepare('SELECT COUNT(*) FROM comentarios WHERE MONTH(criado_em)=? A
 $st->execute([$mes_sel, $ano_sel]);
 $stats['comentarios_mes'] = (int)$st->fetchColumn();
 
-// ── Rankings (sempre globais) ─────────────────────────────
+// ── Rankings ──────────────────────────────────────────────
 
-// Top 10 por locais publicados
-$rank_locais = db()->query(
-    'SELECT u.id, u.nome, u.username, u.avatar, u.pontos,
-            COUNT(l.id) AS total_locais
+$st = db()->prepare('SELECT u.id, u.nome, u.username, u.avatar, u.pontos,
+        COUNT(l.id) AS total_locais
      FROM utilizadores u
      LEFT JOIN locais l ON l.utilizador_id = u.id AND l.estado = "aprovado"
      WHERE u.role = "user" AND u.ativo = 1
-     GROUP BY u.id ORDER BY total_locais DESC LIMIT 10'
-)->fetchAll();
+     GROUP BY u.id ORDER BY total_locais DESC LIMIT ?');
+$st->execute([$top_sel]);
+$rank_locais = $st->fetchAll();
 
-// Top 10 por comentários
-$rank_comentarios = db()->query(
-    'SELECT u.id, u.nome, u.username, u.avatar,
-            COUNT(c.id) AS total_comentarios
+$st = db()->prepare('SELECT u.id, u.nome, u.username, u.avatar,
+        COUNT(c.id) AS total_comentarios
      FROM utilizadores u
      LEFT JOIN comentarios c ON c.utilizador_id = u.id
      WHERE u.role = "user" AND u.ativo = 1
-     GROUP BY u.id ORDER BY total_comentarios DESC LIMIT 10'
-)->fetchAll();
+     GROUP BY u.id ORDER BY total_comentarios DESC LIMIT ?');
+$st->execute([$top_sel]);
+$rank_comentarios = $st->fetchAll();
 
-// Top 10 por likes recebidos
-$rank_likes = db()->query(
-    'SELECT u.id, u.nome, u.username, u.avatar,
-            COUNT(lk.id) AS total_likes
+$st = db()->prepare('SELECT u.id, u.nome, u.username, u.avatar,
+        COUNT(lk.id) AS total_likes
      FROM utilizadores u
      LEFT JOIN locais l ON l.utilizador_id = u.id
      LEFT JOIN likes lk ON lk.local_id = l.id
      WHERE u.role = "user" AND u.ativo = 1
-     GROUP BY u.id ORDER BY total_likes DESC LIMIT 10'
-)->fetchAll();
+     GROUP BY u.id ORDER BY total_likes DESC LIMIT ?');
+$st->execute([$top_sel]);
+$rank_likes = $st->fetchAll();
 
-// Top 10 por pontos
-$rank_pontos = db()->query(
-    'SELECT u.id, u.nome, u.username, u.avatar, u.pontos
+$st = db()->prepare('SELECT u.id, u.nome, u.username, u.avatar, u.pontos
      FROM utilizadores u
      WHERE u.role = "user" AND u.ativo = 1 AND u.pontos > 0
-     ORDER BY u.pontos DESC LIMIT 10'
-)->fetchAll();
+     ORDER BY u.pontos DESC LIMIT ?');
+$st->execute([$top_sel]);
+$rank_pontos = $st->fetchAll();
 
-// Top 10 locais mais vistos
-$rank_locais_vistos = db()->query(
-    'SELECT l.id, l.nome, l.vistas,
-            u.username, c.nome AS categoria_nome
+$st = db()->prepare('SELECT u.id, u.nome, u.username, u.avatar,
+        COUNT(s.seguidor_id) AS total_seguidores
+     FROM utilizadores u
+     LEFT JOIN seguidores s ON s.seguido_id = u.id
+     WHERE u.role = "user" AND u.ativo = 1
+     GROUP BY u.id ORDER BY total_seguidores DESC LIMIT ?');
+$st->execute([$top_sel]);
+$rank_seguidores = $st->fetchAll();
+
+$st = db()->prepare('SELECT u.id, u.nome, u.username, u.avatar,
+        COUNT(f.id) AS total_fotos
+     FROM utilizadores u
+     LEFT JOIN locais l ON l.utilizador_id = u.id AND l.estado = "aprovado"
+     LEFT JOIN fotos f ON f.local_id = l.id
+     WHERE u.role = "user" AND u.ativo = 1
+     GROUP BY u.id ORDER BY total_fotos DESC LIMIT ?');
+$st->execute([$top_sel]);
+$rank_utilizadores_fotos = $st->fetchAll();
+
+$st = db()->prepare('SELECT l.id, l.nome, l.vistas,
+        u.username, c.nome AS categoria_nome
      FROM locais l
      JOIN utilizadores u ON u.id = l.utilizador_id
      JOIN categorias c ON c.id = l.categoria_id
      WHERE l.estado = "aprovado" AND l.bloqueado = 0
-     ORDER BY l.vistas DESC LIMIT 10'
-)->fetchAll();
+     ORDER BY l.vistas DESC LIMIT ?');
+$st->execute([$top_sel]);
+$rank_locais_vistos = $st->fetchAll();
 
-// Top 10 locais mais curtidos
-$rank_locais_likes = db()->query(
-    'SELECT l.id, l.nome,
-            u.username, c.nome AS categoria_nome,
-            COUNT(lk.id) AS total_likes
+$st = db()->prepare('SELECT l.id, l.nome,
+        u.username, c.nome AS categoria_nome,
+        COUNT(lk.id) AS total_likes
      FROM locais l
      JOIN utilizadores u ON u.id = l.utilizador_id
      JOIN categorias c ON c.id = l.categoria_id
      LEFT JOIN likes lk ON lk.local_id = l.id
      WHERE l.estado = "aprovado" AND l.bloqueado = 0
-     GROUP BY l.id ORDER BY total_likes DESC LIMIT 10'
-)->fetchAll();
+     GROUP BY l.id ORDER BY total_likes DESC LIMIT ?');
+$st->execute([$top_sel]);
+$rank_locais_likes = $st->fetchAll();
+
+$st = db()->prepare('SELECT l.id, l.nome,
+        u.username, c.nome AS categoria_nome,
+        COUNT(f.id) AS total_fotos
+     FROM locais l
+     JOIN utilizadores u ON u.id = l.utilizador_id
+     JOIN categorias c ON c.id = l.categoria_id
+     LEFT JOIN fotos f ON f.local_id = l.id
+     WHERE l.estado = "aprovado" AND l.bloqueado = 0
+     GROUP BY l.id ORDER BY total_fotos DESC LIMIT ?');
+$st->execute([$top_sel]);
+$rank_locais_fotografados = $st->fetchAll();
+
+$st = db()->prepare('SELECT l.id, l.nome, l.criado_em,
+        u.username, c.nome AS categoria_nome
+     FROM locais l
+     JOIN utilizadores u ON u.id = l.utilizador_id
+     JOIN categorias c ON c.id = l.categoria_id
+     WHERE l.estado = "aprovado" AND l.bloqueado = 0
+     ORDER BY l.criado_em DESC LIMIT ?');
+$st->execute([$top_sel]);
+$rank_recentes = $st->fetchAll();
 
 include dirname(__DIR__) . '/includes/header.php';
 
-// Função auxiliar para avatar
 function avatar_cell(array $u): string {
     $av = !empty($u['avatar'])
         ? '<img src="' . SITE_URL . '/uploads/locais/' . h($u['avatar']) . '" style="width:100%;height:100%;object-fit:cover;">'
@@ -114,9 +152,8 @@ function avatar_cell(array $u): string {
 <div class="page-content">
 <div class="admin-wrapper">
 
-  <!-- SIDEBAR -->
   <aside class="admin-sidebar">
-    <div style="color:var(--dourado); font-family:'Playfair Display',serif; font-size:1.1rem; font-weight:700; margin-bottom:1.5rem; padding:.5rem .85rem;">
+    <div style="color:var(--dourado);font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;margin-bottom:1.5rem;padding:.5rem .85rem;">
       <i class="fas fa-shield-alt"></i> Administração
     </div>
     <nav class="admin-nav">
@@ -131,8 +168,6 @@ function avatar_cell(array $u): string {
   <main class="admin-content">
     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1.5rem;">
       <h1 class="admin-title" style="margin:0;"><i class="fas fa-chart-bar"></i> Estatísticas</h1>
-
-      <!-- Seletor de mês e ano -->
       <form method="GET" style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;">
         <select name="mes" style="padding:.45rem .75rem;border:1.5px solid var(--creme-escuro);border-radius:8px;background:var(--creme);font-size:.9rem;color:var(--texto);">
           <?php foreach ($nomes_meses as $i => $nome): ?>
@@ -144,16 +179,22 @@ function avatar_cell(array $u): string {
             <option value="<?= $y ?>" <?= $y == $ano_sel ? 'selected' : '' ?>><?= $y ?></option>
           <?php endfor; ?>
         </select>
+        <select name="top" style="padding:.45rem .75rem;border:1.5px solid var(--creme-escuro);border-radius:8px;background:var(--creme);font-size:.9rem;color:var(--texto);">
+          <?php foreach ([1,3,5,10,20] as $t): ?>
+            <option value="<?= $t ?>" <?= $top_sel == $t ? 'selected' : '' ?>>Top <?= $t ?></option>
+          <?php endforeach; ?>
+        </select>
         <button type="submit" class="btn btn-sm btn-verde"><i class="fas fa-filter"></i> Filtrar</button>
         <?php $is_hoje = ($mes_sel == (int)date('m') && $ano_sel == (int)date('Y')); ?>
-        <a href="<?= SITE_URL ?>/admin/estatisticas.php?mes=<?= date('m') ?>&ano=<?= date('Y') ?>"
-        class="btn btn-sm <?= $is_hoje ? 'btn-verde' : '' ?>"style="<?= !$is_hoje ? 'border:1px solid var(--creme-escuro);color:var(--texto-muted);' : '' ?>">
-        <i class="fas fa-calendar-day"></i> Hoje
+        <a href="<?= SITE_URL ?>/admin/estatisticas.php?mes=<?= date('m') ?>&ano=<?= date('Y') ?>&top=<?= $top_sel ?>"
+           class="btn btn-sm <?= $is_hoje ? 'btn-verde' : '' ?>"
+           style="<?= !$is_hoje ? 'border:1px solid var(--creme-escuro);color:var(--texto-muted);' : '' ?>">
+          <i class="fas fa-calendar-day"></i> Hoje
         </a>
       </form>
     </div>
 
-    <!-- CARDS DO MÊS SELECIONADO -->
+    <!-- CARDS DO MÊS -->
     <div style="margin-bottom:2rem;">
       <h2 style="font-size:.9rem;color:var(--texto-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.85rem;">
         <i class="fas fa-calendar" style="color:var(--dourado);margin-right:.4rem;"></i>
@@ -178,11 +219,15 @@ function avatar_cell(array $u): string {
         </div>
         <div class="admin-stat-card" style="border-color:#3498db;">
           <div class="num" style="color:#3498db;"><?= number_format($stats['total_seguidores']) ?></div>
-          <div class="lbl">Ligações de Seguimento</div>
+          <div class="lbl">Seguidores Totais</div>
         </div>
         <div class="admin-stat-card" style="border-color:#8e44ad;">
           <div class="num" style="color:#8e44ad;"><?= number_format($stats['media_pontos'], 0) ?></div>
           <div class="lbl">Média de Pontos</div>
+        </div>
+        <div class="admin-stat-card" style="border-color:#e67e22;">
+          <div class="num" style="color:#e67e22;"><?= number_format($stats['total_mensagens']) ?></div>
+          <div class="lbl">Mensagens Enviadas</div>
         </div>
       </div>
     </div>
@@ -193,21 +238,15 @@ function avatar_cell(array $u): string {
     </h2>
     <div class="admin-rankings-grid" style="display:grid;gap:1.5rem;margin-bottom:1.5rem;grid-template-columns:1fr 1fr;">
 
-      <!-- Por locais -->
       <div>
-        <h3 style="font-size:1rem;margin-bottom:.75rem;">
-          <i class="fas fa-map-marker-alt" style="color:var(--verde);margin-right:.35rem;"></i> Mais Locais Publicados
-        </h3>
+        <h3 style="font-size:1rem;margin-bottom:.75rem;"><i class="fas fa-map-marker-alt" style="color:var(--verde);margin-right:.35rem;"></i> Mais Locais Publicados</h3>
         <table class="data-table">
           <thead><tr><th>#</th><th>Explorador</th><th>Locais</th><th>Pontos</th></tr></thead>
           <tbody>
             <?php foreach ($rank_locais as $i => $u): ?>
             <tr>
               <td style="font-weight:700;color:var(--dourado);"><?= $i+1 ?>º</td>
-              <td style="display:flex;align-items:center;gap:.5rem;">
-                <?= avatar_cell($u) ?>
-                <a href="<?= SITE_URL ?>/pages/perfil.php?id=<?= $u['id'] ?>" style="color:var(--verde);font-size:.85rem;">@<?= h($u['username']) ?></a>
-              </td>
+              <td style="display:flex;align-items:center;gap:.5rem;"><?= avatar_cell($u) ?><a href="<?= SITE_URL ?>/pages/perfil.php?id=<?= $u['id'] ?>" style="color:var(--verde);font-size:.85rem;">@<?= h($u['username']) ?></a></td>
               <td style="font-weight:700;"><?= $u['total_locais'] ?></td>
               <td style="color:var(--dourado);font-weight:600;"><?= number_format($u['pontos']) ?></td>
             </tr>
@@ -217,21 +256,15 @@ function avatar_cell(array $u): string {
         </table>
       </div>
 
-      <!-- Por comentários -->
       <div>
-        <h3 style="font-size:1rem;margin-bottom:.75rem;">
-          <i class="fas fa-comments" style="color:var(--verde-claro);margin-right:.35rem;"></i> Mais Comentários
-        </h3>
+        <h3 style="font-size:1rem;margin-bottom:.75rem;"><i class="fas fa-comments" style="color:var(--verde-claro);margin-right:.35rem;"></i> Mais Comentários</h3>
         <table class="data-table">
           <thead><tr><th>#</th><th>Explorador</th><th>Comentários</th></tr></thead>
           <tbody>
             <?php foreach ($rank_comentarios as $i => $u): ?>
             <tr>
               <td style="font-weight:700;color:var(--dourado);"><?= $i+1 ?>º</td>
-              <td style="display:flex;align-items:center;gap:.5rem;">
-                <?= avatar_cell($u) ?>
-                <a href="<?= SITE_URL ?>/pages/perfil.php?id=<?= $u['id'] ?>" style="color:var(--verde);font-size:.85rem;">@<?= h($u['username']) ?></a>
-              </td>
+              <td style="display:flex;align-items:center;gap:.5rem;"><?= avatar_cell($u) ?><a href="<?= SITE_URL ?>/pages/perfil.php?id=<?= $u['id'] ?>" style="color:var(--verde);font-size:.85rem;">@<?= h($u['username']) ?></a></td>
               <td style="font-weight:700;"><?= $u['total_comentarios'] ?></td>
             </tr>
             <?php endforeach; ?>
@@ -240,21 +273,15 @@ function avatar_cell(array $u): string {
         </table>
       </div>
 
-      <!-- Por likes recebidos -->
       <div>
-        <h3 style="font-size:1rem;margin-bottom:.75rem;">
-          <i class="fas fa-heart" style="color:#e74c3c;margin-right:.35rem;"></i> Mais Likes Recebidos
-        </h3>
+        <h3 style="font-size:1rem;margin-bottom:.75rem;"><i class="fas fa-heart" style="color:#e74c3c;margin-right:.35rem;"></i> Mais Likes Recebidos</h3>
         <table class="data-table">
           <thead><tr><th>#</th><th>Explorador</th><th>Likes</th></tr></thead>
           <tbody>
             <?php foreach ($rank_likes as $i => $u): ?>
             <tr>
               <td style="font-weight:700;color:var(--dourado);"><?= $i+1 ?>º</td>
-              <td style="display:flex;align-items:center;gap:.5rem;">
-                <?= avatar_cell($u) ?>
-                <a href="<?= SITE_URL ?>/pages/perfil.php?id=<?= $u['id'] ?>" style="color:var(--verde);font-size:.85rem;">@<?= h($u['username']) ?></a>
-              </td>
+              <td style="display:flex;align-items:center;gap:.5rem;"><?= avatar_cell($u) ?><a href="<?= SITE_URL ?>/pages/perfil.php?id=<?= $u['id'] ?>" style="color:var(--verde);font-size:.85rem;">@<?= h($u['username']) ?></a></td>
               <td style="font-weight:700;color:#e74c3c;"><?= $u['total_likes'] ?></td>
             </tr>
             <?php endforeach; ?>
@@ -263,21 +290,15 @@ function avatar_cell(array $u): string {
         </table>
       </div>
 
-      <!-- Por pontos -->
       <div>
-        <h3 style="font-size:1rem;margin-bottom:.75rem;">
-          <i class="fas fa-star" style="color:var(--dourado);margin-right:.35rem;"></i> Ranking de Pontos
-        </h3>
+        <h3 style="font-size:1rem;margin-bottom:.75rem;"><i class="fas fa-star" style="color:var(--dourado);margin-right:.35rem;"></i> Ranking de Pontos</h3>
         <table class="data-table">
           <thead><tr><th>#</th><th>Explorador</th><th>Pontos</th></tr></thead>
           <tbody>
             <?php foreach ($rank_pontos as $i => $u): ?>
             <tr>
               <td style="font-weight:700;color:var(--dourado);"><?= $i+1 ?>º</td>
-              <td style="display:flex;align-items:center;gap:.5rem;">
-                <?= avatar_cell($u) ?>
-                <a href="<?= SITE_URL ?>/pages/perfil.php?id=<?= $u['id'] ?>" style="color:var(--verde);font-size:.85rem;">@<?= h($u['username']) ?></a>
-              </td>
+              <td style="display:flex;align-items:center;gap:.5rem;"><?= avatar_cell($u) ?><a href="<?= SITE_URL ?>/pages/perfil.php?id=<?= $u['id'] ?>" style="color:var(--verde);font-size:.85rem;">@<?= h($u['username']) ?></a></td>
               <td style="font-weight:700;color:var(--dourado);"><?= number_format($u['pontos']) ?></td>
             </tr>
             <?php endforeach; ?>
@@ -285,6 +306,41 @@ function avatar_cell(array $u): string {
           </tbody>
         </table>
       </div>
+
+      <div>
+        <h3 style="font-size:1rem;margin-bottom:.75rem;"><i class="fas fa-user-friends" style="color:#3498db;margin-right:.35rem;"></i> Mais Seguidores</h3>
+        <table class="data-table">
+          <thead><tr><th>#</th><th>Explorador</th><th>Seguidores</th></tr></thead>
+          <tbody>
+            <?php foreach ($rank_seguidores as $i => $u): ?>
+            <tr>
+              <td style="font-weight:700;color:var(--dourado);"><?= $i+1 ?>º</td>
+              <td style="display:flex;align-items:center;gap:.5rem;"><?= avatar_cell($u) ?><a href="<?= SITE_URL ?>/pages/perfil.php?id=<?= $u['id'] ?>" style="color:var(--verde);font-size:.85rem;">@<?= h($u['username']) ?></a></td>
+              <td style="font-weight:700;color:#3498db;"><?= number_format($u['total_seguidores']) ?></td>
+            </tr>
+            <?php endforeach; ?>
+            <?php if (!$rank_seguidores): ?><tr><td colspan="3" style="text-align:center;color:var(--texto-muted);padding:1.5rem;">Sem dados.</td></tr><?php endif; ?>
+          </tbody>
+        </table>
+      </div>
+
+      <div>
+        <h3 style="font-size:1rem;margin-bottom:.75rem;"><i class="fas fa-camera" style="color:#e67e22;margin-right:.35rem;"></i> Mais Fotos Publicadas</h3>
+        <table class="data-table">
+          <thead><tr><th>#</th><th>Explorador</th><th>Fotos</th></tr></thead>
+          <tbody>
+            <?php foreach ($rank_utilizadores_fotos as $i => $u): ?>
+            <tr>
+              <td style="font-weight:700;color:var(--dourado);"><?= $i+1 ?>º</td>
+              <td style="display:flex;align-items:center;gap:.5rem;"><?= avatar_cell($u) ?><a href="<?= SITE_URL ?>/pages/perfil.php?id=<?= $u['id'] ?>" style="color:var(--verde);font-size:.85rem;">@<?= h($u['username']) ?></a></td>
+              <td style="font-weight:700;color:#e67e22;"><?= number_format($u['total_fotos']) ?></td>
+            </tr>
+            <?php endforeach; ?>
+            <?php if (!$rank_utilizadores_fotos): ?><tr><td colspan="3" style="text-align:center;color:var(--texto-muted);padding:1.5rem;">Sem dados.</td></tr><?php endif; ?>
+          </tbody>
+        </table>
+      </div>
+
     </div>
 
     <!-- RANKINGS DE LOCAIS -->
@@ -293,21 +349,15 @@ function avatar_cell(array $u): string {
     </h2>
     <div class="admin-rankings-grid" style="display:grid;gap:1.5rem;grid-template-columns:1fr 1fr;">
 
-      <!-- Mais vistos -->
       <div>
-        <h3 style="font-size:1rem;margin-bottom:.75rem;">
-          <i class="fas fa-eye" style="color:#8e44ad;margin-right:.35rem;"></i> Mais Vistos
-        </h3>
+        <h3 style="font-size:1rem;margin-bottom:.75rem;"><i class="fas fa-eye" style="color:#8e44ad;margin-right:.35rem;"></i> Mais Vistos</h3>
         <table class="data-table">
           <thead><tr><th>#</th><th>Local</th><th>Vistas</th></tr></thead>
           <tbody>
             <?php foreach ($rank_locais_vistos as $i => $l): ?>
             <tr>
               <td style="font-weight:700;color:var(--dourado);"><?= $i+1 ?>º</td>
-              <td>
-                <a href="<?= SITE_URL ?>/pages/local.php?id=<?= $l['id'] ?>" style="color:var(--verde);font-weight:600;font-size:.85rem;"><?= h($l['nome']) ?></a>
-                <div style="font-size:.76rem;color:var(--texto-muted);">@<?= h($l['username']) ?> · <?= h($l['categoria_nome']) ?></div>
-              </td>
+              <td><a href="<?= SITE_URL ?>/pages/local.php?id=<?= $l['id'] ?>" style="color:var(--verde);font-weight:600;font-size:.85rem;"><?= h($l['nome']) ?></a><div style="font-size:.76rem;color:var(--texto-muted);">@<?= h($l['username']) ?> · <?= h($l['categoria_nome']) ?></div></td>
               <td style="font-weight:700;color:#8e44ad;"><?= number_format($l['vistas']) ?></td>
             </tr>
             <?php endforeach; ?>
@@ -316,21 +366,15 @@ function avatar_cell(array $u): string {
         </table>
       </div>
 
-      <!-- Mais curtidos -->
       <div>
-        <h3 style="font-size:1rem;margin-bottom:.75rem;">
-          <i class="fas fa-heart" style="color:#e74c3c;margin-right:.35rem;"></i> Mais Curtidos
-        </h3>
+        <h3 style="font-size:1rem;margin-bottom:.75rem;"><i class="fas fa-heart" style="color:#e74c3c;margin-right:.35rem;"></i> Mais Curtidos</h3>
         <table class="data-table">
           <thead><tr><th>#</th><th>Local</th><th>Likes</th></tr></thead>
           <tbody>
             <?php foreach ($rank_locais_likes as $i => $l): ?>
             <tr>
               <td style="font-weight:700;color:var(--dourado);"><?= $i+1 ?>º</td>
-              <td>
-                <a href="<?= SITE_URL ?>/pages/local.php?id=<?= $l['id'] ?>" style="color:var(--verde);font-weight:600;font-size:.85rem;"><?= h($l['nome']) ?></a>
-                <div style="font-size:.76rem;color:var(--texto-muted);">@<?= h($l['username']) ?> · <?= h($l['categoria_nome']) ?></div>
-              </td>
+              <td><a href="<?= SITE_URL ?>/pages/local.php?id=<?= $l['id'] ?>" style="color:var(--verde);font-weight:600;font-size:.85rem;"><?= h($l['nome']) ?></a><div style="font-size:.76rem;color:var(--texto-muted);">@<?= h($l['username']) ?> · <?= h($l['categoria_nome']) ?></div></td>
               <td style="font-weight:700;color:#e74c3c;"><?= number_format($l['total_likes']) ?></td>
             </tr>
             <?php endforeach; ?>
@@ -338,8 +382,42 @@ function avatar_cell(array $u): string {
           </tbody>
         </table>
       </div>
-    </div>
 
+      <div>
+        <h3 style="font-size:1rem;margin-bottom:.75rem;"><i class="fas fa-camera" style="color:#8e44ad;margin-right:.35rem;"></i> Mais Fotografados</h3>
+        <table class="data-table">
+          <thead><tr><th>#</th><th>Local</th><th>Fotos</th></tr></thead>
+          <tbody>
+            <?php foreach ($rank_locais_fotografados as $i => $l): ?>
+            <tr>
+              <td style="font-weight:700;color:var(--dourado);"><?= $i+1 ?>º</td>
+              <td><a href="<?= SITE_URL ?>/pages/local.php?id=<?= $l['id'] ?>" style="color:var(--verde);font-weight:600;font-size:.85rem;"><?= h($l['nome']) ?></a><div style="font-size:.76rem;color:var(--texto-muted);">@<?= h($l['username']) ?> · <?= h($l['categoria_nome']) ?></div></td>
+              <td style="font-weight:700;color:#8e44ad;"><?= number_format($l['total_fotos']) ?></td>
+            </tr>
+            <?php endforeach; ?>
+            <?php if (!$rank_locais_fotografados): ?><tr><td colspan="3" style="text-align:center;color:var(--texto-muted);padding:1.5rem;">Sem dados.</td></tr><?php endif; ?>
+          </tbody>
+        </table>
+      </div>
+
+      <div>
+        <h3 style="font-size:1rem;margin-bottom:.75rem;"><i class="fas fa-clock" style="color:var(--dourado);margin-right:.35rem;"></i> Mais Recentes</h3>
+        <table class="data-table">
+          <thead><tr><th>#</th><th>Local</th><th>Data</th></tr></thead>
+          <tbody>
+            <?php foreach ($rank_recentes as $i => $l): ?>
+            <tr>
+              <td style="font-weight:700;color:var(--dourado);"><?= $i+1 ?>º</td>
+              <td><a href="<?= SITE_URL ?>/pages/local.php?id=<?= $l['id'] ?>" style="color:var(--verde);font-weight:600;font-size:.85rem;"><?= h($l['nome']) ?></a><div style="font-size:.76rem;color:var(--texto-muted);">@<?= h($l['username']) ?> · <?= h($l['categoria_nome']) ?></div></td>
+              <td style="font-weight:700;color:var(--dourado);font-size:.82rem;"><?= date('d/m/Y', strtotime($l['criado_em'])) ?></td>
+            </tr>
+            <?php endforeach; ?>
+            <?php if (!$rank_recentes): ?><tr><td colspan="3" style="text-align:center;color:var(--texto-muted);padding:1.5rem;">Sem dados.</td></tr><?php endif; ?>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
   </main>
 </div>
 </div>

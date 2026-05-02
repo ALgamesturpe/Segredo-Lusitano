@@ -105,7 +105,7 @@ INSERT INTO regioes (nome) VALUES
 -- ============================================================
 -- TABELA: locais
 -- Locais secretos partilhados pelos utilizadores
--- ============================================================
+-- ===========================================================
 CREATE TABLE locais (
     id INT AUTO_INCREMENT PRIMARY KEY,
     utilizador_id INT NOT NULL,

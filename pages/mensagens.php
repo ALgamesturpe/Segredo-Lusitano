@@ -325,7 +325,6 @@ document.addEventListener('click', (e) => {
 // ── Eliminar mensagem ─────────────────────────────────────
 async function eliminarMensagem(msgId) {
   document.querySelectorAll('.msg-menu').forEach(m => m.remove());
-  if (!confirm('Eliminar esta mensagem para ambos?')) return;
   const wrapper = document.querySelector(`[data-msg-id="${msgId}"]`);
   try {
     const res = await fetch(SITE_URL_JS + '/pages/mensagens_api.php', {
@@ -333,14 +332,14 @@ async function eliminarMensagem(msgId) {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: `acao=eliminar&msg_id=${msgId}`
     });
-    const data = await res.json();
-    if (data.ok && wrapper) {
-      wrapper.remove();
-    } else {
-      alert(data.erro || 'Não foi possível eliminar a mensagem.');
-    }
-  } catch (e) {
-    alert('Erro de ligação. Tenta novamente.');
+    if (!res.ok) { console.error('HTTP erro:', res.status); return; }
+    const text = await res.text();
+    console.log('Resposta raw:', text);
+    const data = JSON.parse(text);
+    if (data.ok && wrapper) wrapper.remove();
+    else console.error('Erro ao eliminar:', data);
+  } catch(err) {
+    console.error('Fetch error:', err);
   }
 }
 </script>

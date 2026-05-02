@@ -2,6 +2,8 @@
 // ============================================================
 // SEGREDO LUSITANO — API de Mensagens
 // ============================================================
+error_reporting(0);
+ini_set('display_errors', 0);
 require_once dirname(__DIR__) . '/includes/functions.php';
 require_login();
 
