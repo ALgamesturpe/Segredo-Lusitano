@@ -122,6 +122,7 @@ include dirname(__DIR__) . '/includes/header.php';
       <a href="<?= SITE_URL ?>/admin/index.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
       <a href="<?= SITE_URL ?>/admin/locais.php" class="active"><i class="fa-solid fa-location-dot"></i> Locais</a>
       <a href="<?= SITE_URL ?>/admin/utilizadores.php"><i class="fas fa-users"></i> Utilizadores</a>
+      <a href="<?= SITE_URL ?>/admin/estatisticas.php"><i class="fas fa-chart-bar"></i> Estatísticas</a>
     </nav>
   </aside>
 
@@ -211,7 +212,7 @@ include dirname(__DIR__) . '/includes/header.php';
     <?php else: ?>
     <!-- ── MODO LISTAGEM NORMAL ── -->
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:1rem;">
-      <h1 class="admin-title" style="margin:0;">Gerir Locais</h1>
+      <h1 class="admin-title" style="margin:0;"><i class="fa-solid fa-location-dot"></i> Locais</h1>
       <!-- Separadores de filtro -->
       <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
         <a href="?" class="btn btn-sm <?= (!$filtro && !$bloqueado) ? 'btn-verde' : '' ?>"

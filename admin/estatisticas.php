@@ -19,12 +19,7 @@ if (!in_array($top_sel, [1,3,5,10,20])) $top_sel = 10;
 $nomes_meses = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 
 // ── Estatísticas do mês selecionado ──────────────────────
-$stats = [
-    'total_likes'      => (int)db()->query('SELECT COUNT(*) FROM likes')->fetchColumn(),
-    'total_seguidores' => (int)db()->query('SELECT COUNT(*) FROM seguidores')->fetchColumn(),
-    'media_pontos'     => (float)db()->query('SELECT AVG(pontos) FROM utilizadores WHERE role="user" AND ativo=1')->fetchColumn(),
-    'total_mensagens'  => (int)db()->query('SELECT COUNT(*) FROM mensagens')->fetchColumn(),
-];
+$stats = [];
 
 $st = db()->prepare('SELECT COUNT(*) FROM utilizadores WHERE role="user" AND MONTH(criado_em)=? AND YEAR(criado_em)=?');
 $st->execute([$mes_sel, $ano_sel]);
@@ -38,24 +33,42 @@ $st = db()->prepare('SELECT COUNT(*) FROM comentarios WHERE MONTH(criado_em)=? A
 $st->execute([$mes_sel, $ano_sel]);
 $stats['comentarios_mes'] = (int)$st->fetchColumn();
 
+$st = db()->prepare('SELECT COUNT(*) FROM likes WHERE MONTH(criado_em)=? AND YEAR(criado_em)=?');
+$st->execute([$mes_sel, $ano_sel]);
+$stats['total_likes'] = (int)$st->fetchColumn();
+
+$st = db()->prepare('SELECT COUNT(*) FROM seguidores WHERE MONTH(criado_em)=? AND YEAR(criado_em)=?');
+$st->execute([$mes_sel, $ano_sel]);
+$stats['total_seguidores'] = (int)$st->fetchColumn();
+
+$st = db()->prepare('SELECT AVG(pontos) FROM utilizadores WHERE role="user" AND ativo=1 AND MONTH(criado_em)=? AND YEAR(criado_em)=?');
+$st->execute([$mes_sel, $ano_sel]);
+$stats['media_pontos'] = (float)$st->fetchColumn();
+
+$st = db()->prepare('SELECT COUNT(*) FROM mensagens WHERE MONTH(criado_em)=? AND YEAR(criado_em)=?');
+$st->execute([$mes_sel, $ano_sel]);
+$stats['total_mensagens'] = (int)$st->fetchColumn();
+
 // ── Rankings ──────────────────────────────────────────────
 
 $st = db()->prepare('SELECT u.id, u.nome, u.username, u.avatar, u.pontos,
         COUNT(l.id) AS total_locais
      FROM utilizadores u
      LEFT JOIN locais l ON l.utilizador_id = u.id AND l.estado = "aprovado"
+                       AND MONTH(l.criado_em) = ? AND YEAR(l.criado_em) = ?
      WHERE u.role = "user" AND u.ativo = 1
-     GROUP BY u.id ORDER BY total_locais DESC LIMIT ?');
-$st->execute([$top_sel]);
+     GROUP BY u.id HAVING total_locais > 0 ORDER BY total_locais DESC LIMIT ?');
+$st->execute([$mes_sel, $ano_sel, $top_sel]);
 $rank_locais = $st->fetchAll();
 
 $st = db()->prepare('SELECT u.id, u.nome, u.username, u.avatar,
         COUNT(c.id) AS total_comentarios
      FROM utilizadores u
      LEFT JOIN comentarios c ON c.utilizador_id = u.id
+                            AND MONTH(c.criado_em) = ? AND YEAR(c.criado_em) = ?
      WHERE u.role = "user" AND u.ativo = 1
-     GROUP BY u.id ORDER BY total_comentarios DESC LIMIT ?');
-$st->execute([$top_sel]);
+     GROUP BY u.id HAVING total_comentarios > 0 ORDER BY total_comentarios DESC LIMIT ?');
+$st->execute([$mes_sel, $ano_sel, $top_sel]);
 $rank_comentarios = $st->fetchAll();
 
 $st = db()->prepare('SELECT u.id, u.nome, u.username, u.avatar,
@@ -63,25 +76,28 @@ $st = db()->prepare('SELECT u.id, u.nome, u.username, u.avatar,
      FROM utilizadores u
      LEFT JOIN locais l ON l.utilizador_id = u.id
      LEFT JOIN likes lk ON lk.local_id = l.id
+                       AND MONTH(lk.criado_em) = ? AND YEAR(lk.criado_em) = ?
      WHERE u.role = "user" AND u.ativo = 1
-     GROUP BY u.id ORDER BY total_likes DESC LIMIT ?');
-$st->execute([$top_sel]);
+     GROUP BY u.id HAVING total_likes > 0 ORDER BY total_likes DESC LIMIT ?');
+$st->execute([$mes_sel, $ano_sel, $top_sel]);
 $rank_likes = $st->fetchAll();
 
 $st = db()->prepare('SELECT u.id, u.nome, u.username, u.avatar, u.pontos
      FROM utilizadores u
      WHERE u.role = "user" AND u.ativo = 1 AND u.pontos > 0
+       AND MONTH(u.criado_em) = ? AND YEAR(u.criado_em) = ?
      ORDER BY u.pontos DESC LIMIT ?');
-$st->execute([$top_sel]);
+$st->execute([$mes_sel, $ano_sel, $top_sel]);
 $rank_pontos = $st->fetchAll();
 
 $st = db()->prepare('SELECT u.id, u.nome, u.username, u.avatar,
         COUNT(s.seguidor_id) AS total_seguidores
      FROM utilizadores u
      LEFT JOIN seguidores s ON s.seguido_id = u.id
+                           AND MONTH(s.criado_em) = ? AND YEAR(s.criado_em) = ?
      WHERE u.role = "user" AND u.ativo = 1
-     GROUP BY u.id ORDER BY total_seguidores DESC LIMIT ?');
-$st->execute([$top_sel]);
+     GROUP BY u.id HAVING total_seguidores > 0 ORDER BY total_seguidores DESC LIMIT ?');
+$st->execute([$mes_sel, $ano_sel, $top_sel]);
 $rank_seguidores = $st->fetchAll();
 
 $st = db()->prepare('SELECT u.id, u.nome, u.username, u.avatar,
@@ -89,9 +105,10 @@ $st = db()->prepare('SELECT u.id, u.nome, u.username, u.avatar,
      FROM utilizadores u
      LEFT JOIN locais l ON l.utilizador_id = u.id AND l.estado = "aprovado"
      LEFT JOIN fotos f ON f.local_id = l.id
+                      AND MONTH(f.criado_em) = ? AND YEAR(f.criado_em) = ?
      WHERE u.role = "user" AND u.ativo = 1
-     GROUP BY u.id ORDER BY total_fotos DESC LIMIT ?');
-$st->execute([$top_sel]);
+     GROUP BY u.id HAVING total_fotos > 0 ORDER BY total_fotos DESC LIMIT ?');
+$st->execute([$mes_sel, $ano_sel, $top_sel]);
 $rank_utilizadores_fotos = $st->fetchAll();
 
 $st = db()->prepare('SELECT l.id, l.nome, l.vistas,
@@ -100,8 +117,9 @@ $st = db()->prepare('SELECT l.id, l.nome, l.vistas,
      JOIN utilizadores u ON u.id = l.utilizador_id
      JOIN categorias c ON c.id = l.categoria_id
      WHERE l.estado = "aprovado" AND l.bloqueado = 0
+       AND MONTH(l.criado_em) = ? AND YEAR(l.criado_em) = ?
      ORDER BY l.vistas DESC LIMIT ?');
-$st->execute([$top_sel]);
+$st->execute([$mes_sel, $ano_sel, $top_sel]);
 $rank_locais_vistos = $st->fetchAll();
 
 $st = db()->prepare('SELECT l.id, l.nome,
@@ -111,9 +129,10 @@ $st = db()->prepare('SELECT l.id, l.nome,
      JOIN utilizadores u ON u.id = l.utilizador_id
      JOIN categorias c ON c.id = l.categoria_id
      LEFT JOIN likes lk ON lk.local_id = l.id
+                       AND MONTH(lk.criado_em) = ? AND YEAR(lk.criado_em) = ?
      WHERE l.estado = "aprovado" AND l.bloqueado = 0
-     GROUP BY l.id ORDER BY total_likes DESC LIMIT ?');
-$st->execute([$top_sel]);
+     GROUP BY l.id HAVING total_likes > 0 ORDER BY total_likes DESC LIMIT ?');
+$st->execute([$mes_sel, $ano_sel, $top_sel]);
 $rank_locais_likes = $st->fetchAll();
 
 $st = db()->prepare('SELECT l.id, l.nome,
@@ -123,9 +142,10 @@ $st = db()->prepare('SELECT l.id, l.nome,
      JOIN utilizadores u ON u.id = l.utilizador_id
      JOIN categorias c ON c.id = l.categoria_id
      LEFT JOIN fotos f ON f.local_id = l.id
+                      AND MONTH(f.criado_em) = ? AND YEAR(f.criado_em) = ?
      WHERE l.estado = "aprovado" AND l.bloqueado = 0
-     GROUP BY l.id ORDER BY total_fotos DESC LIMIT ?');
-$st->execute([$top_sel]);
+     GROUP BY l.id HAVING total_fotos > 0 ORDER BY total_fotos DESC LIMIT ?');
+$st->execute([$mes_sel, $ano_sel, $top_sel]);
 $rank_locais_fotografados = $st->fetchAll();
 
 $st = db()->prepare('SELECT l.id, l.nome, l.criado_em,
@@ -134,8 +154,9 @@ $st = db()->prepare('SELECT l.id, l.nome, l.criado_em,
      JOIN utilizadores u ON u.id = l.utilizador_id
      JOIN categorias c ON c.id = l.categoria_id
      WHERE l.estado = "aprovado" AND l.bloqueado = 0
+       AND MONTH(l.criado_em) = ? AND YEAR(l.criado_em) = ?
      ORDER BY l.criado_em DESC LIMIT ?');
-$st->execute([$top_sel]);
+$st->execute([$mes_sel, $ano_sel, $top_sel]);
 $rank_recentes = $st->fetchAll();
 
 include dirname(__DIR__) . '/includes/header.php';

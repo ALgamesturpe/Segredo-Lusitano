@@ -372,12 +372,12 @@ main { flex: 1; }
 /* ============================================================
    ADMIN
    ============================================================ */
-.admin-wrapper { display: flex; min-height: 100vh; padding-top: var(--nav-h); }
-.admin-sidebar { width: 240px; flex-shrink: 0; background: var(--verde-escuro); padding: 1.5rem 1rem; position: sticky; top: var(--nav-h); height: calc(100vh - var(--nav-h)); overflow-y: auto; }
+.admin-wrapper { display: flex; min-height: 100vh; }
+.admin-sidebar { width: 240px; flex-shrink: 0; background: var(--verde-escuro); padding: 1.5rem 1rem; position: fixed; top: var(--nav-h); left: 0; height: calc(100vh - var(--nav-h)); overflow-y: auto; }
 .admin-nav a { display: flex; align-items: center; gap: .65rem; color: rgba(245,239,230,.75); padding: .6rem .85rem; border-radius: 8px; font-size: .9rem; margin-bottom: .2rem; transition: all var(--transition); }
 .admin-nav a:hover, .admin-nav a.active { background: rgba(201,168,76,.15); color: var(--dourado); }
 .admin-nav .nav-section { font-size: .7rem; text-transform: uppercase; letter-spacing: .1em; color: rgba(245,239,230,.35); padding: 1rem .85rem .4rem; }
-.admin-content { flex: 1; padding: 2rem; min-width: 0; max-width: 100%; overflow-x: hidden; }
+.admin-content { flex: 1; padding: 2rem; min-width: 0; max-width: 100%; overflow-x: hidden; margin-left: 240px; }
 .admin-title { font-size: 1.6rem; margin-bottom: 1.5rem; }
 .admin-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px,1fr)); gap: 1rem; margin-bottom: 2rem; }
 .admin-stat-card { background: var(--branco); border-radius: var(--radius-lg); padding: 1.5rem; box-shadow: var(--sombra-sm); border-left: 4px solid var(--verde); }
@@ -579,7 +579,7 @@ main { flex: 1; }
 
   /* Admin */
   .admin-cards { grid-template-columns: repeat(2, 1fr) !important; }
-  .admin-content { padding: 1rem; max-width: 100vw; overflow-x: hidden; }
+  .admin-content { padding: 1rem; max-width: 100vw; overflow-x: hidden; margin-left: 0; }
   .admin-wrapper { flex-direction: column; }
   .admin-sidebar { width: 100%; height: auto; position: static; }
 

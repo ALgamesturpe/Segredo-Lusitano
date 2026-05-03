@@ -27,7 +27,8 @@ if (isset($_GET['toggle'])) {
 
 // ── Banir utilizador ──────────────────────────────────────
 // Guarda os dados do utilizador na tabela 'banidos',
-// depois elimina a conta permanentemente da base de dados.
+// transfere o conteúdo para o utilizador fantasma (ID 1)
+// e elimina a conta permanentemente da base de dados.
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['banir_id'])) {
     $uid    = (int)$_POST['banir_id'];
     $motivo = trim($_POST['motivo'] ?? '');
@@ -38,14 +39,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['banir_id'])) {
 
     if ($row && $row['role'] !== 'admin' && $motivo) {
         // Guardar registo do ban antes de eliminar a conta
-        db()->prepare('INSERT INTO banidos (nome, username, email, motivo) VALUES (?, ?, ?, ?)
-        ON DUPLICATE KEY UPDATE nome = VALUES(nome), username = VALUES(username), motivo = VALUES(motivo), banido_em = NOW()')
-          ->execute([$row['nome'], $row['username'], $row['email'], $motivo]);
+        db()->prepare(
+            'INSERT INTO banidos (nome, username, email, motivo)
+             VALUES (?, ?, ?, ?)
+             ON DUPLICATE KEY UPDATE nome = VALUES(nome), username = VALUES(username), motivo = VALUES(motivo), banido_em = NOW()'
+        )->execute([$row['nome'], $row['username'], $row['email'], $motivo]);
 
         // Transferir conteúdo do utilizador para o utilizador fantasma (ID: 1)
-        db()->prepare('UPDATE locais SET utilizador_id = 1 WHERE utilizador_id = ?')->execute([$uid]);
+        db()->prepare('UPDATE locais      SET utilizador_id = 1 WHERE utilizador_id = ?')->execute([$uid]);
         db()->prepare('UPDATE comentarios SET utilizador_id = 1 WHERE utilizador_id = ?')->execute([$uid]);
-        db()->prepare('UPDATE fotos SET utilizador_id = 1 WHERE utilizador_id = ?')->execute([$uid]);
+        db()->prepare('UPDATE fotos       SET utilizador_id = 1 WHERE utilizador_id = ?')->execute([$uid]);
 
         // Eliminar a conta da base de dados
         db()->prepare('DELETE FROM utilizadores WHERE id = ?')->execute([$uid]);
@@ -58,7 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['banir_id'])) {
 
 // ── Desbanir utilizador ───────────────────────────────────
 // Remove o registo da tabela 'banidos', permitindo que o email
-// seja usado para criar uma nova conta
+// seja usado novamente para criar uma nova conta
 if (isset($_GET['desbanir'])) {
     $bid = (int)$_GET['desbanir'];
     db()->prepare('DELETE FROM banidos WHERE id = ?')->execute([$bid]);
@@ -67,10 +70,8 @@ if (isset($_GET['desbanir'])) {
     exit;
 }
 
-// ── Filtro ativo ─────────────────────────────────────────
-$filtro = $_GET['filtro'] ?? 'todos';
-
-// ── Pesquisa ─────────────────────────────────────────────
+// ── Filtro e pesquisa ─────────────────────────────────────
+$filtro   = $_GET['filtro'] ?? 'todos';
 $pesquisa = trim($_GET['q'] ?? '');
 
 // ── Buscar utilizadores conforme o filtro ────────────────
@@ -89,10 +90,10 @@ if ($filtro === 'banidos') {
 } else {
     $banidos = [];
 
+    // Filtrar por estado: suspensos ou todos os utilizadores normais
     if ($filtro === 'suspensos') {
         $where = 'WHERE u.ativo = 0 AND u.role = "user"';
     } else {
-        // "Todos" — inclui admin mas exclui o utilizador fantasma [deleted]
         $where = 'WHERE u.role = "user"';
     }
 
@@ -113,13 +114,24 @@ if ($filtro === 'banidos') {
     $users = $st->fetchAll();
 }
 
+// ── Mapa de motivos de ban para texto legível ─────────────
+$motivos_ban = [
+    'spam'                  => 'Spam',
+    'comportamento_abusivo' => 'Comportamento abusivo',
+    'conteudo_inapropriado' => 'Conteúdo inapropriado',
+    'fraude'                => 'Fraude',
+    'outro'                 => 'Outro',
+];
+
 include dirname(__DIR__) . '/includes/header.php';
 ?>
 
 <div class="page-content">
 <div class="admin-wrapper">
+
+  <!-- ── SIDEBAR ── -->
   <aside class="admin-sidebar">
-    <div style="color:var(--dourado); font-family:'Playfair Display',serif; font-size:1.1rem; font-weight:700; margin-bottom:1.5rem; padding:.5rem .85rem;">
+    <div style="color:var(--dourado);font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;margin-bottom:1.5rem;padding:.5rem .85rem;">
       <i class="fas fa-shield-alt"></i> Administração
     </div>
     <nav class="admin-nav">
@@ -127,25 +139,35 @@ include dirname(__DIR__) . '/includes/header.php';
       <a href="<?= SITE_URL ?>/admin/index.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
       <a href="<?= SITE_URL ?>/admin/locais.php"><i class="fa-solid fa-location-dot"></i> Locais</a>
       <a href="<?= SITE_URL ?>/admin/utilizadores.php" class="active"><i class="fas fa-users"></i> Utilizadores</a>
+      <a href="<?= SITE_URL ?>/admin/estatisticas.php"><i class="fas fa-chart-bar"></i> Estatísticas</a>
     </nav>
   </aside>
 
+  <!-- ── CONTEÚDO PRINCIPAL ── -->
   <main class="admin-content">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:1rem;">
-      <h1 class="admin-title" style="margin:0;"><i class="fas fa-users"></i> Gerir Utilizadores</h1>
 
-      <!-- Separadores de filtro -->
+    <!-- Cabeçalho com título e filtros -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:1rem;">
+      <h1 class="admin-title" style="margin:0;"><i class="fas fa-users"></i>  Utilizadores</h1>
+
+      <!-- Botões de filtro: Todos / Suspensos / Banidos -->
       <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
         <a href="?" class="btn btn-sm <?= $filtro === 'todos' ? 'btn-verde' : '' ?>"
-           style="<?= $filtro !== 'todos' ? 'border:1px solid var(--creme-escuro);color:var(--texto-muted);' : '' ?>">Todos</a>
+           style="<?= $filtro !== 'todos' ? 'border:1px solid var(--creme-escuro);color:var(--texto-muted);' : '' ?>">
+          Todos
+        </a>
         <a href="?filtro=suspensos" class="btn btn-sm"
-           style="<?= $filtro === 'suspensos' ? 'background:#e67e22;color:#fff;border:none;' : 'border:1px solid var(--creme-escuro);color:var(--texto-muted);' ?>">Suspensos</a>
+           style="<?= $filtro === 'suspensos' ? 'background:#e67e22;color:#fff;border:none;' : 'border:1px solid var(--creme-escuro);color:var(--texto-muted);' ?>">
+          Suspensos
+        </a>
         <a href="?filtro=banidos" class="btn btn-sm"
-           style="<?= $filtro === 'banidos' ? 'background:#7d0000;color:#fff;border:none;' : 'border:1px solid var(--creme-escuro);color:var(--texto-muted);' ?>">Banidos</a>
+           style="<?= $filtro === 'banidos' ? 'background:#7d0000;color:#fff;border:none;' : 'border:1px solid var(--creme-escuro);color:var(--texto-muted);' ?>">
+          Banidos
+        </a>
       </div>
     </div>
 
-    <!-- Barra de pesquisa -->
+    <!-- Barra de pesquisa por nome, username ou email -->
     <form method="GET" style="margin-bottom:1.25rem;">
       <?php if ($filtro !== 'todos'): ?>
         <input type="hidden" name="filtro" value="<?= h($filtro) ?>">
@@ -182,27 +204,15 @@ include dirname(__DIR__) . '/includes/header.php';
           <td><?= h($b['nome']) ?></td>
           <td>@<?= h($b['username']) ?></td>
           <td><?= h($b['email']) ?></td>
-          <td>
-            <?php
-              // Converter o valor do motivo para texto legível
-              $motivos = [
-                'spam'                   => 'Spam',
-                'comportamento_abusivo'  => 'Comportamento abusivo',
-                'conteudo_inapropriado'  => 'Conteúdo inapropriado',
-                'fraude'                 => 'Fraude',
-                'outro'                  => 'Outro',
-              ];
-              echo h($motivos[$b['motivo']] ?? $b['motivo']);
-            ?>
-          </td>
+          <td><?= h($motivos_ban[$b['motivo']] ?? $b['motivo']) ?></td>
           <td><?= date('d/m/Y H:i', strtotime($b['banido_em'])) ?></td>
           <td>
-            <!-- Desbanir — remove o registo da tabela banidos -->
+            <!-- Desbanir: remove da tabela banidos para permitir novo registo -->
             <a href="?desbanir=<?= $b['id'] ?>"
                class="btn btn-sm btn-primary"
                onclick="return confirm('Tens a certeza que queres desbanir <?= h($b['nome']) ?>?')"
                title="Desbanir">
-              <i class="fas fa-user-check"></i>
+              <i class="fas fa-user-check"></i> Desbanir
             </a>
           </td>
         </tr>
@@ -244,81 +254,87 @@ include dirname(__DIR__) . '/includes/header.php';
               <?= $u['ativo'] ? 'Ativo' : 'Suspenso' ?>
             </span>
           </td>
-          <td style="display:flex;gap:.35rem;flex-wrap:wrap;">
-            <!-- Ver perfil público do utilizador -->
-            <a href="<?= SITE_URL ?>/pages/perfil.php?id=<?= $u['id'] ?>" class="btn btn-sm btn-verde" title="Ver perfil">
-              <i class="fas fa-eye"></i>
-            </a>
-            <?php if ($u['role'] !== 'admin'): ?>
-              <!-- Suspender ou Reativar conta -->
-              <a href="?toggle=<?= $u['id'] ?>&filtro=<?= h($filtro) ?><?= $pesquisa ? '&q=' . urlencode($pesquisa) : '' ?>"
-                 class="btn btn-sm <?= $u['ativo'] ? 'btn-danger' : 'btn-primary' ?>"
-                 title="<?= $u['ativo'] ? 'Suspender conta' : 'Reativar conta' ?>">
-                <i class="fas fa-<?= $u['ativo'] ? 'ban' : 'check' ?>"></i>
+          <td>
+            <!-- Ações disponíveis: ver perfil, suspender/reativar, banir -->
+            <div style="display:flex;gap:.35rem;flex-wrap:wrap;align-items:center;">
+              <!-- Ver perfil público do utilizador -->
+              <a href="<?= SITE_URL ?>/pages/perfil.php?id=<?= $u['id'] ?>"
+                 class="btn btn-sm btn-verde" title="Ver perfil">
+                <i class="fas fa-eye"></i>
               </a>
-              <!-- Banir utilizador — abre modal para escolher motivo -->
-              <button onclick="abrirModalBan(<?= $u['id'] ?>, '<?= h($u['nome']) ?>')"
-                      class="btn btn-sm btn-danger"
-                      title="Banir utilizador"
-                      style="background:#7d0000;">
-                <i class="fas fa-user-alt-slash"></i>
-              </button>
-            <?php endif; ?>
+              <?php if ($u['role'] !== 'admin'): ?>
+                <!-- Suspender (se ativo) ou Reativar (se suspenso) conta -->
+                <a href="?toggle=<?= $u['id'] ?>&filtro=<?= h($filtro) ?><?= $pesquisa ? '&q=' . urlencode($pesquisa) : '' ?>"
+                   class="btn btn-sm <?= $u['ativo'] ? 'btn-danger' : 'btn-primary' ?>"
+                   title="<?= $u['ativo'] ? 'Suspender conta' : 'Reativar conta' ?>">
+                  <i class="fas fa-<?= $u['ativo'] ? 'ban' : 'check' ?>"></i>
+                </a>
+                <!-- Banir utilizador permanentemente — abre modal para escolher motivo -->
+                <button onclick="abrirModalBan(<?= $u['id'] ?>, '<?= h($u['nome']) ?>')"
+                        class="btn btn-sm"
+                        title="Banir utilizador"
+                        style="background:#7d0000;color:#fff;display:inline-flex;align-items:center;justify-content:center;">
+                  <i class="fas fa-user-alt-slash"></i>
+                </button>
+              <?php endif; ?>
+            </div>
           </td>
         </tr>
         <?php endforeach; ?>
         <?php if (!$users): ?>
-          <tr><td colspan="8" style="text-align:center;color:var(--texto-muted);padding:2rem;">Sem utilizadores.</td></tr>
+          <tr><td colspan="7" style="text-align:center;color:var(--texto-muted);padding:2rem;">Sem utilizadores.</td></tr>
         <?php endif; ?>
       </tbody>
     </table>
     <?php endif; ?>
+
   </main>
 </div>
 </div>
 
-<!-- Modal para banir utilizador com escolha de motivo -->
+<!-- ── MODAL DE BAN ── -->
+<!-- Aparece ao clicar no botão de banir, permite escolher o motivo -->
 <div id="modal-ban" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:5000;align-items:center;justify-content:center;padding:1rem;">
-  <div style="background:#fff;border-radius:var(--radius-lg);padding:2rem;max-width:440px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,.2);">
-    <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:1.25rem;">
+  <div style="background:#fff;border-radius:var(--radius-lg);padding:1.25rem 1.5rem;max-width:390px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,.2);">
+
+    <!-- Cabeçalho do modal -->
+    <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:1rem;">
       <i class="fas fa-user-alt-slash" style="color:#7d0000;font-size:1.2rem;"></i>
       <h3 style="margin:0;font-size:1.1rem;">Banir Utilizador</h3>
     </div>
-    <p id="modal-ban-nome" style="margin-bottom:1.25rem;color:var(--texto-muted);font-size:.9rem;"></p>
+
+    <!-- Mensagem de confirmação com o nome do utilizador -->
+    <p id="modal-ban-nome" style="margin-bottom:1.25rem;color:var(--texto-muted);font-size:.9rem;word-break:break-word;overflow-wrap:break-word;"></p>
 
     <form method="POST">
       <input type="hidden" name="banir_id" id="modal-ban-id">
 
-      <!-- Lista pré-definida de motivos de ban -->
-      <div class="form-group">
+      <!-- Seleção de motivo do ban (obrigatório) -->
+      <div style="margin-bottom:1.25rem;">
         <label style="font-weight:600;margin-bottom:.5rem;display:block;">Motivo do ban</label>
         <div style="display:flex;flex-direction:column;gap:.5rem;">
-          <?php
-            $motivos_ban = [
-              'spam'                  => 'Spam',
-              'comportamento_abusivo' => 'Comportamento abusivo',
-              'conteudo_inapropriado' => 'Conteúdo inapropriado',
-              'fraude'                => 'Fraude',
-              'outro'                 => 'Outro',
-            ];
-          ?>
           <?php foreach ($motivos_ban as $valor => $rotulo): ?>
-            <label style="display:flex;align-items:center;gap:.75rem;padding:.65rem 1rem;border:1.5px solid var(--creme-escuro);border-radius:var(--radius);cursor:pointer;"
+            <label style="display:flex;align-items:center;gap:.75rem;padding:.65rem .75rem;
+                          border:1.5px solid var(--creme-escuro);border-radius:var(--radius);cursor:pointer;font-weight:normal;font-size:.9rem;width:100%;box-sizing:border-box;"
                    onmouseover="this.style.borderColor='var(--verde)';this.style.background='var(--creme)'"
                    onmouseout="this.style.borderColor='var(--creme-escuro)';this.style.background='#fff'">
-              <input type="radio" name="motivo" value="<?= $valor ?>" required style="accent-color:#7d0000;">
-              <span style="font-size:.9rem;"><?= $rotulo ?></span>
+              <input type="radio" name="motivo" value="<?= $valor ?>" required style="accent-color:#7d0000;flex-shrink:0;width:auto;">
+              <span><?= $rotulo ?></span>
             </label>
           <?php endforeach; ?>
         </div>
       </div>
 
-      <div style="display:flex;gap:.75rem;margin-top:1.25rem;">
-        <button type="submit" class="btn btn-danger" style="flex:1;justify-content:center;background:#7d0000;">
+      <!-- Botões de ação: confirmar ban ou cancelar -->
+      <div style="display:flex;gap:.75rem;margin-top:1.25rem;align-items:center;">
+        <button type="submit" class="btn btn-danger"
+                style="flex:1;justify-content:center;background:#7d0000;border:none;">
           <i class="fas fa-user-alt-slash"></i> Confirmar Ban
         </button>
-        <button type="button" onclick="document.getElementById('modal-ban').style.display='none'"
-                class="btn btn-sm" style="border:1px solid var(--creme-escuro);color:var(--texto-muted);">
+        <button type="button"
+                onclick="document.getElementById('modal-ban').style.display='none'"
+                class="btn btn-sm"
+                style="border:1.5px solid var(--creme-escuro);color:var(--texto-muted);white-space:nowrap;">
           Cancelar
         </button>
       </div>
@@ -327,11 +343,12 @@ include dirname(__DIR__) . '/includes/header.php';
 </div>
 
 <script>
-// Abrir o modal de ban com os dados do utilizador selecionado
+// Preenche e abre o modal de ban com os dados do utilizador selecionado
 function abrirModalBan(id, nome) {
-  document.getElementById('modal-ban-id').value  = id;
-  document.getElementById('modal-ban-nome').textContent = 'Tens a certeza que queres banir "' + nome + '"? Esta ação é irreversível.';
-  // Limpar seleção anterior de motivo
+  document.getElementById('modal-ban-id').value = id;
+  document.getElementById('modal-ban-nome').textContent =
+    'Tens a certeza que queres banir "' + nome + '"? Esta ação é irreversível.';
+  // Limpar seleção anterior de motivo para evitar ban acidental com motivo errado
   document.querySelectorAll('#modal-ban input[name="motivo"]').forEach(r => r.checked = false);
   document.getElementById('modal-ban').style.display = 'flex';
 }
