@@ -60,8 +60,8 @@ if ($user) {
     </button>
 
     <ul class="nav-links" id="nav-links">
-      <li><a href="<?= SITE_URL ?>/index.php"><i class="fas fa-home"></i> Início</a></li>
       <li><a href="<?= SITE_URL ?>/pages/explorar.php"><i class="fa-solid fa-earth-americas"></i> Explorar</a></li>
+      <li><a href="<?= SITE_URL ?>/pages/local_novo.php"><i class="fas fa-plus-circle"></i> Partilhar Local</a></li>
       <li><a href="<?= SITE_URL ?>/pages/mapa.php"><i class="fas fa-map"></i> Mapa</a></li>
       <li><a href="<?= SITE_URL ?>/pages/ranking.php"><i class="fas fa-trophy"></i> Ranking</a></li>
       <li><a href="<?= $user ? SITE_URL . '/pages/feed.php' : SITE_URL . '/pages/login.php' ?>"><i class="fas fa-users"></i> Amigos</a></li>
@@ -83,27 +83,23 @@ if ($user) {
       </li>
 
       <?php if ($user): ?>
-        <li class="nav-dropdown" id="nav-user-dropdown">
-          <button class="nav-avatar-btn" id="dropdown-toggle" type="button" aria-expanded="false">
+        <?php if (is_admin()): ?>
+        <li><a href="<?= SITE_URL ?>/admin/index.php"><i class="fas fa-shield-alt"></i> Administração</a></li>
+        <?php endif; ?>
+        <li>
+          <a href="<?= SITE_URL ?>/pages/perfil.php" class="nav-profile-link">
             <?php if ($user['avatar']): ?>
               <img src="<?= SITE_URL ?>/uploads/locais/<?= h($user['avatar']) ?>" alt="" class="nav-avatar">
             <?php else: ?>
               <span class="nav-avatar-placeholder"><?= mb_strtoupper(mb_substr($user['username'],0,1)) ?></span>
             <?php endif; ?>
-            <?= h($user['username']) ?> <i class="fas fa-chevron-down" id="dropdown-chevron"></i>
-          </button>
-          <ul class="dropdown-menu" id="user-dropdown-menu">
-            <li><a href="<?= SITE_URL ?>/pages/perfil.php"><i class="fas fa-user"></i> O meu Perfil</a></li>
-            <li><a href="<?= SITE_URL ?>/pages/local_novo.php"><i class="fas fa-plus-circle"></i> Partilhar Local</a></li>
-            <?php if (is_admin()): ?>
-            <li style="border-top:1px solid rgba(201,168,76,.2);margin-top:.25rem;padding-top:.25rem;">
-              <a href="<?= SITE_URL ?>/admin/index.php"><i class="fas fa-shield-alt"></i> Administração</a>
-            </li>
-            <?php endif; ?>
-            <li style="border-top:1px solid rgba(201,168,76,.2);margin-top:.25rem;padding-top:.25rem;">
-              <a href="<?= SITE_URL ?>/pages/logout.php"><i class="fas fa-sign-out-alt"></i> Sair</a>
-            </li>
-          </ul>
+            <?= h($user['username']) ?>
+          </a>
+        </li>
+        <li>
+          <a href="<?= SITE_URL ?>/pages/logout.php" class="btn-nav-sair">
+            <i class="fas fa-sign-out-alt"></i> Sair
+          </a>
         </li>
       <?php else: ?>
         <li><a href="<?= SITE_URL ?>/pages/login.php" class="btn-nav-login">Entrar</a></li>

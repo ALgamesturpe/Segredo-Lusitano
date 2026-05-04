@@ -7,6 +7,7 @@ require_once dirname(__DIR__) . '/includes/functions.php';
 $user_auth = auth_user();
 $id = (int)($_GET['id'] ?? ($user_auth['id'] ?? 0));
 
+if (!$user_auth) { header('Location: ' . SITE_URL . '/pages/login.php'); exit; }
 if (!$id) { header('Location: ' . SITE_URL . '/pages/login.php'); exit; }
 
 $st = db()->prepare('SELECT * FROM utilizadores WHERE id = ? AND ativo = 1');
@@ -92,8 +93,9 @@ include dirname(__DIR__) . '/includes/header.php';
 
 <div class="page-content">
 
-<!-- oerte superior dos detalhes do perfil -->
+<!-- parte superior dos detalhes do perfil -->
 <div class="perfil-hero">
+<div class="container">
   <!-- Avatar do utilizador -->
   <div class="perfil-avatar">
     <?php if ($perfil['avatar']): ?>
@@ -156,7 +158,8 @@ include dirname(__DIR__) . '/includes/header.php';
       <span class="stat-label">A seguir</span>
     </div>
   </div>
-</div>
+</div><!-- /container -->
+</div><!-- /perfil-hero -->
 
 <!-- MODAL SEGUIDORES / SEGUIDOS -->
 <div id="modal-seg" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:4000;align-items:center;justify-content:center;padding:1rem;">

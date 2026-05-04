@@ -22,7 +22,7 @@
 
 <!-- Modal de aviso para utilizadores não autenticados -->
 <div id="modal-login-aviso" style="display:none;position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.5);align-items:center;justify-content:center;padding:1rem;">
-  <div style="background:#fff;border-radius:var(--radius-lg);padding:2rem;max-width:380px;width:100%;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.2);">
+  <div style="background:#fff;border-radius:4px;padding:2rem;max-width:380px;width:100%;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.2);">
     <i class="fas fa-lock" style="font-size:2.5rem;color:var(--verde);margin-bottom:1rem;display:block;"></i>
     <h3 style="margin-bottom:.5rem;">Precisas de uma conta</h3>
     <p style="color:var(--texto-muted);font-size:.95rem;margin-bottom:1.5rem;" id="modal-login-aviso-msg">

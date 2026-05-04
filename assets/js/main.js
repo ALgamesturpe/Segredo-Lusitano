@@ -28,39 +28,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // --- Dropdown do utilizador ---
-  const dropdownToggle  = document.getElementById('dropdown-toggle');
-  const dropdownMenu    = document.getElementById('user-dropdown-menu');
-  const dropdownChevron = document.getElementById('dropdown-chevron');
-
-  if (dropdownToggle && dropdownMenu) {
-    dropdownToggle.addEventListener('click', function(e) {
-      e.preventDefault();
-      e.stopPropagation();
-      const isOpen = dropdownMenu.classList.contains('open');
-      if (isOpen) {
-        dropdownMenu.classList.remove('open');
-        if (dropdownChevron) dropdownChevron.classList.remove('rotated');
-      } else {
-        dropdownMenu.classList.add('open');
-        if (dropdownChevron) dropdownChevron.classList.add('rotated');
-      }
-    });
-
-    document.addEventListener('click', function(e) {
-      if (!dropdownToggle.contains(e.target) && !dropdownMenu.contains(e.target)) {
-        dropdownMenu.classList.remove('open');
-        if (dropdownChevron) dropdownChevron.classList.remove('rotated');
-      }
-    });
-
-    dropdownMenu.querySelectorAll('a').forEach(function(a) {
-      a.addEventListener('click', function() {
-        dropdownMenu.classList.remove('open');
-      });
-    });
-  }
-
   // --- Flash auto-dismiss ---
   document.querySelectorAll('.flash').forEach(el => {
     setTimeout(() => {
@@ -295,8 +262,8 @@ function initMiniMap() {
 // Mapa principal (mapa.php)
 // ============================================================
 function initMainMap(locais) {
-  const params = new URLSearchParams(window.location.search);
-  const abrirId = params.get('abrir') ? parseInt(params.get('abrir')) : null;
+  const urlParams = new URLSearchParams(window.location.search);
+  const abrirId = urlParams.get('abrir') ? parseInt(urlParams.get('abrir')) : null;
 
   let localAbrir = null;
   if (abrirId) {
@@ -308,10 +275,17 @@ function initMainMap(locais) {
     : [39.5, -8.0];
   const zoomInicial = localAbrir ? 14 : 7;
 
-  const map = L.map('map').setView(viewInicial, zoomInicial);
+  // maxBounds impede o scroll infinito horizontal e vertical
+  const bounds = L.latLngBounds(L.latLng(-85, -180), L.latLng(85, 180));
+  const map = L.map('map', {
+    maxBounds: bounds,
+    maxBoundsViscosity: 1.0,
+  }).setView(viewInicial, zoomInicial);
+
   L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
     attribution: '© <a href="https://openstreetmap.org">OpenStreetMap</a> © <a href="https://carto.com">CARTO</a>',
-    maxZoom: 18
+    maxZoom: 18,
+    noWrap: true,
   }).addTo(map);
 
   const makeIcon = (cat) => L.divIcon({
@@ -320,10 +294,13 @@ function initMainMap(locais) {
     iconSize: [32,32], iconAnchor: [16,32], popupAnchor: [0,-34]
   });
 
+  // Guardar referência a todos os markers para filtragem client-side
+  const allMarkers = [];
+
   locais.forEach(l => {
     const m = L.marker([parseFloat(l.latitude), parseFloat(l.longitude)], { icon: makeIcon(l.icone) });
     m.addTo(map);
-    let img = l.foto_capa ? `<img src="${SITE_URL}/uploads/locais/${l.foto_capa}" alt="" style="width:100%;height:90px;object-fit:cover;border-radius:8px;margin-bottom:.5rem;">` : '';
+    let img = l.foto_capa ? `<img src="${SITE_URL}/uploads/locais/${l.foto_capa}" alt="" style="width:100%;height:90px;object-fit:cover;border-radius:4px;margin-bottom:.5rem;">` : '';
     m.bindPopup(`
       <div style="min-width:200px;font-family:'Outfit',sans-serif;">
         ${img}
@@ -334,9 +311,39 @@ function initMainMap(locais) {
         </a>
       </div>
     `);
+    allMarkers.push({ marker: m, local: l });
 
     if (abrirId && l.id === abrirId) {
       m.openPopup();
     }
   });
+
+  // Filtragem client-side — chamada pelo form de filtros em mapa.php
+  window._mapFilterLocais = function(filtros) {
+    let visiveis = 0;
+    allMarkers.forEach(({ marker, local }) => {
+      const ok =
+        (!filtros.categoria   || String(local.categoria_id) === String(filtros.categoria)) &&
+        (!filtros.regiao      || String(local.regiao_id)    === String(filtros.regiao)) &&
+        (!filtros.dificuldade || local.dificuldade          === filtros.dificuldade);
+      if (ok) {
+        if (!map.hasLayer(marker)) map.addLayer(marker);
+        visiveis++;
+      } else {
+        if (map.hasLayer(marker)) map.removeLayer(marker);
+      }
+    });
+    const countEl = document.getElementById('mapa-count');
+    if (countEl) countEl.textContent = visiveis + ' locais';
+  };
+
+  // Aplicar filtros iniciais da URL (quando a página é carregada com ?regiao=... etc.)
+  const filtrosIniciais = {
+    categoria:   urlParams.get('categoria')   || '',
+    regiao:      urlParams.get('regiao')      || '',
+    dificuldade: urlParams.get('dificuldade') || '',
+  };
+  if (filtrosIniciais.categoria || filtrosIniciais.regiao || filtrosIniciais.dificuldade) {
+    window._mapFilterLocais(filtrosIniciais);
+  }
 }

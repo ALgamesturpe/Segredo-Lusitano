@@ -130,7 +130,7 @@ include dirname(__DIR__) . '/includes/header.php';
     <?php endif; ?>
 
     <!-- Formulário de login por email e password -->
-    <form method="POST" novalidate>
+    <form method="POST" novalidate id="form-login">
       <div class="form-group">
         <label for="email"><i class="fas fa-envelope"></i> Email</label>
         <input type="email" id="email" name="email" value="<?= h($_POST['email'] ?? '') ?>"
@@ -140,7 +140,15 @@ include dirname(__DIR__) . '/includes/header.php';
         <label for="password"><i class="fas fa-lock"></i> Password</label>
         <input type="password" id="password" name="password" placeholder="••••••••" required autocomplete="current-password">
       </div>
-      <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center; margin-top:.5rem;">
+      <!-- Termos e Condições -->
+      <div class="form-group" style="margin-bottom:.75rem;">
+        <input type="checkbox" id="aceitar-termos" name="aceitar_termos" style="display:none;">
+        <p style="font-size:.85rem;line-height:1.6;color:var(--texto-muted);">
+          <a href="#" onclick="document.getElementById('modal-termos').style.display='flex';return false;" class="form-link" style="font-weight:600;">Termos e Condições</a>
+          &nbsp;&mdash; Li e aceito os termos. Compreendo que a visita a locais pode envolver riscos e que a entrada em propriedade privada é da responsabilidade exclusiva do utilizador. O Segredo Lusitano não se responsabiliza por qualquer dano, acidente ou invasão de propriedade.
+        </p>
+      </div>
+      <button type="submit" id="btn-entrar" class="btn btn-primary" style="width:100%; justify-content:center; margin-top:.5rem;" disabled>
         <i class="fas fa-sign-in-alt"></i> Entrar
       </button>
     </form>
@@ -173,7 +181,7 @@ include dirname(__DIR__) . '/includes/header.php';
 
       <!-- Botão de login com GitHub -->
       <div style="display:flex;justify-content:center;">
-        <a href="<?= SITE_URL ?>/pages/github_redirect.php"
+        <a href="#" onclick="verificarTermosParaSocial('<?= SITE_URL ?>/pages/github_redirect.php'); return false;"
            style="display:flex;align-items:center;justify-content:space-between;
                   width:300px;padding:.65rem 1rem;border:1.5px solid #d0d5dd;
                   border-radius:4px;background:#fff;color:#1e1e1e;
@@ -201,11 +209,20 @@ include dirname(__DIR__) . '/includes/header.php';
 <?php if (GOOGLE_CLIENT_ID && GOOGLE_CLIENT_ID !== ''): ?>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script>
-// Callback chamado pelo Google após o utilizador selecionar a conta
-function handleGoogleSignIn(response) {
-  const msg = document.getElementById('google-msg');
+let _pendingGoogleResponse = null;
 
-  // Enviar token JWT para o servidor para validação
+function handleGoogleSignIn(response) {
+  const termos = document.getElementById('aceitar-termos');
+  if (!termos || !termos.checked) {
+    _pendingGoogleResponse = response;
+    document.getElementById('modal-termos').style.display = 'flex';
+    return;
+  }
+  _executarGoogleLogin(response);
+}
+
+function _executarGoogleLogin(response) {
+  const msg = document.getElementById('google-msg');
   fetch('<?= SITE_URL ?>/pages/google_auth.php', {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -214,10 +231,8 @@ function handleGoogleSignIn(response) {
   .then(r => r.json())
   .then(data => {
     if (data.ok) {
-      // Login bem sucedido — redirecionar
       window.location.href = data.redirect;
     } else {
-      // Mostrar mensagem de erro
       msg.innerHTML = data.msg || 'Erro ao iniciar sessão com Google.';
       msg.style.display = 'block';
     }
@@ -227,7 +242,109 @@ function handleGoogleSignIn(response) {
     msg.style.display = 'block';
   });
 }
+
+function verificarTermosParaSocial(url) {
+  const termos = document.getElementById('aceitar-termos');
+  if (termos && termos.checked) {
+    window.location.href = url;
+  } else {
+    window._pendingGithubUrl = url;
+    document.getElementById('modal-termos').style.display = 'flex';
+  }
+}
 </script>
 <?php endif; ?>
 
+<!-- Modal Termos e Condições -->
+<div id="modal-termos" style="display:none;position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.55);align-items:center;justify-content:center;padding:1rem;">
+  <div style="background:#fff;border-radius:4px;max-width:560px;width:100%;max-height:82vh;display:flex;flex-direction:column;box-shadow:0 8px 32px rgba(0,0,0,.2);">
+
+    <!-- Cabeçalho fixo -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:1.25rem 1.75rem;border-bottom:1px solid #e5e7eb;flex-shrink:0;">
+      <h3 style="font-size:1rem;font-weight:700;color:var(--verde-escuro);margin:0;letter-spacing:.01em;">Termos e Condições de Utilização</h3>
+      <button onclick="document.getElementById('modal-termos').style.display='none'" style="background:none;border:none;font-size:1.1rem;cursor:pointer;color:#9ca3af;line-height:1;padding:.2rem .4rem;">&#x2715;</button>
+    </div>
+
+    <!-- Conteúdo com scroll — botão de aceite no fundo -->
+    <div style="overflow-y:auto;padding:1.5rem 1.75rem;flex:1;font-size:.875rem;line-height:1.8;color:#374151;">
+
+      <p style="margin-bottom:1.5rem;color:#6b7280;">Lê atentamente os seguintes termos antes de utilizares o Segredo Lusitano. Ao iniciares sessão, declaras ter lido e aceite todas as condições abaixo.</p>
+
+      <p style="font-weight:700;color:var(--verde-escuro);margin-bottom:.4rem;">1. Responsabilidade do Utilizador</p>
+      <p style="margin-bottom:1.5rem;">O utilizador assume total responsabilidade pelas suas ações durante a visita aos locais partilhados na plataforma. O Segredo Lusitano não se responsabiliza por quaisquer danos, perdas ou consequências legais resultantes dessas atividades.</p>
+
+      <p style="font-weight:700;color:var(--verde-escuro);margin-bottom:.4rem;">2. Propriedade Privada</p>
+      <p style="margin-bottom:1.5rem;">Muitos locais partilhados podem estar em propriedade privada ou de acesso restrito. O Segredo Lusitano não incentiva, apoia nem se responsabiliza pela entrada em propriedade privada, reservas naturais protegidas ou quaisquer locais de acesso proibido. A responsabilidade é exclusivamente do utilizador.</p>
+
+      <p style="font-weight:700;color:var(--verde-escuro);margin-bottom:.4rem;">3. Riscos e Segurança</p>
+      <p style="margin-bottom:1.5rem;">A visita a locais secretos pode envolver riscos físicos significativos. O utilizador deve sempre avaliar as condições do local, levar equipamento adequado e informar alguém da sua localização. O Segredo Lusitano não se responsabiliza por acidentes, danos físicos ou lesões de qualquer natureza.</p>
+
+      <p style="font-weight:700;color:var(--verde-escuro);margin-bottom:.4rem;">4. Conteúdo Partilhado</p>
+      <p style="margin-bottom:1.5rem;">O utilizador é o único responsável pelo conteúdo que partilha na plataforma. Não é permitida a partilha de locais que incentivem atividades ilegais, perigosas ou que violem direitos de terceiros.</p>
+
+      <p style="font-weight:700;color:var(--verde-escuro);margin-bottom:.4rem;">5. Aceitação</p>
+      <p style="margin-bottom:2rem;">Ao utilizar esta plataforma, o utilizador declara ter lido, compreendido e aceite estes termos na íntegra. O Segredo Lusitano reserva-se o direito de atualizar estes termos sem aviso prévio.</p>
+
+      <!-- Botão de aceite — apenas visível após scroll -->
+      <div style="border-top:1px solid #e5e7eb;padding-top:1.25rem;display:flex;justify-content:flex-end;gap:.75rem;">
+        <button onclick="document.getElementById('modal-termos').style.display='none'"
+                style="background:none;border:1px solid #d1d5db;border-radius:4px;padding:.55rem 1.1rem;cursor:pointer;font-size:.875rem;color:#6b7280;">
+          Fechar
+        </button>
+        <button onclick="aceitarTermos()" class="btn btn-primary btn-sm">
+          <i class="fas fa-check"></i> Li e Aceito os Termos
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
+<script>
+// Chave de localStorage por email — evita que uma conta aceite por outra
+function _termosKey(email) {
+  return email ? 'termos_aceites_' + email.toLowerCase().trim() : null;
+}
+function _termosAceitesParaEmail(email) {
+  const key = _termosKey(email);
+  return key ? localStorage.getItem(key) === '1' : false;
+}
+function _verificarTermosPorEmail() {
+  const email = (document.getElementById('email')?.value || '').trim();
+  if (_termosAceitesParaEmail(email)) {
+    document.getElementById('aceitar-termos').checked = true;
+    document.getElementById('btn-entrar').disabled = false;
+  } else {
+    document.getElementById('aceitar-termos').checked = false;
+    document.getElementById('btn-entrar').disabled = true;
+  }
+}
+
+function aceitarTermos() {
+  document.getElementById('modal-termos').style.display = 'none';
+  document.getElementById('aceitar-termos').checked = true;
+  document.getElementById('btn-entrar').disabled = false;
+
+  // Guardar por email se preenchido; caso contrário guarda chave social
+  const email = (document.getElementById('email')?.value || '').trim();
+  const key = _termosKey(email) || 'termos_aceites_social';
+  localStorage.setItem(key, '1');
+
+  if (typeof _executarGoogleLogin === 'function' && window._pendingGoogleResponse) {
+    _executarGoogleLogin(window._pendingGoogleResponse);
+    window._pendingGoogleResponse = null;
+  } else if (window._pendingGithubUrl) {
+    window.location.href = window._pendingGithubUrl;
+    window._pendingGithubUrl = null;
+  } else {
+    const pass = (document.getElementById('password')?.value || '').trim();
+    if (email && pass) document.getElementById('form-login').submit();
+  }
+}
+
+// Ao mudar o email, rever se os termos já foram aceites para essa conta
+document.getElementById('email')?.addEventListener('input', _verificarTermosPorEmail);
+
+// Verificar no carregamento inicial (email pode estar pré-preenchido pelo browser)
+_verificarTermosPorEmail();
+</script>
 <?php include dirname(__DIR__) . '/includes/footer.php'; ?>

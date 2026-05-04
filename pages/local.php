@@ -170,9 +170,11 @@ include dirname(__DIR__) . '/includes/header.php';
               <i class="fas fa-trash"></i>
             </a>
           <?php endif; ?>
-          <?php if ($user && $user['id'] != $local['utilizador_id'] && !is_admin()): ?>
-            <button onclick="abrirModalDenuncia('local', <?= $id ?>, 'Local')"
-                    class="btn btn-sm" style="color:var(--texto-muted);border:1px solid var(--creme-escuro);border-radius:50px;">
+          <?php if (!$user || ($user['id'] != $local['utilizador_id'] && !is_admin())): ?>
+            <button onclick="<?= $user
+                ? "abrirModalDenuncia('local', {$id}, 'Local')"
+                : "mostrarAvisoLogin('Precisas de iniciar sessão para denunciar este local.', '" . SITE_URL . "/pages/login.php')" ?>"
+                    class="btn btn-sm" style="color:var(--texto-muted);border:1px solid var(--creme-escuro);border-radius:4px;">
               <i class="fas fa-flag"></i> Denunciar
             </button>
           <?php endif; ?>
@@ -193,22 +195,35 @@ include dirname(__DIR__) . '/includes/header.php';
               <!-- Só aparece se há fotos de outros utilizadores -->
               <button id="btn-denunciar-foto" onclick="toggleModoDenuncia()"
                       class="btn btn-sm"
-                      style="color:var(--texto-muted);border:1px solid var(--creme-escuro);border-radius:50px;font-size:.8rem;transition:all .2s;">
+                      style="color:var(--texto-muted);border:1px solid var(--creme-escuro);border-radius:4px;font-size:.8rem;transition:all .2s;">
                 <i class="fas fa-flag"></i> Denunciar foto
               </button>
             <?php endif; ?>
           </div>
 
           <div class="galeria" id="galeria-fotos">
-            <?php foreach ($fotos as $foto): ?>
-              <?php $foto_propria = ($user && (int)$foto['utilizador_id'] === (int)$user['id']); ?>
+            <?php $foto_idx = 0; foreach ($fotos as $foto): ?>
+              <?php
+                $foto_propria = ($user && (int)$foto['utilizador_id'] === (int)$user['id']);
+                $bloqueada    = !$user && $foto_idx >= 4;
+              ?>
               <div class="galeria-item" style="position:relative;" data-foto-id="<?= $foto['id'] ?>">
                 <img src="<?= SITE_URL ?>/uploads/locais/<?= h($foto['ficheiro']) ?>"
                      alt="Foto do local" loading="lazy"
-                     onclick="clicarFotoGaleria(this)"
-                     style="cursor:pointer;width:100%;height:100%;object-fit:cover;">
+                     onclick="<?= $bloqueada
+                       ? 'mostrarAvisoLogin(\'Inicia sessão para ver todas as fotos.\', \'' . SITE_URL . '/pages/login.php\')'
+                       : 'clicarFotoGaleria(this)' ?>"
+                     style="cursor:pointer;width:100%;height:100%;object-fit:cover;<?= $bloqueada ? 'filter:blur(10px);' : '' ?>">
 
-                <?php if (!$foto_propria && $user && !is_admin()): ?>
+                <?php if ($bloqueada): ?>
+                  <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+                               cursor:pointer;background:rgba(0,0,0,.22);"
+                       onclick="mostrarAvisoLogin('Inicia sessão para ver todas as fotos.', '<?= SITE_URL ?>/pages/login.php')">
+                    <i class="fas fa-lock" style="color:#fff;font-size:1.8rem;filter:drop-shadow(0 2px 6px rgba(0,0,0,.7));"></i>
+                  </div>
+                <?php endif; ?>
+
+                <?php if (!$bloqueada && !$foto_propria && $user && !is_admin()): ?>
                   <!-- Overlay de denúncia — só em fotos alheias -->
                   <div class="foto-denuncia-overlay"
                        style="display:none;position:absolute;inset:0;background:rgba(192,57,43,.45);
@@ -220,8 +235,7 @@ include dirname(__DIR__) . '/includes/header.php';
                   </div>
                 <?php endif; ?>
 
-                <?php if ($foto_propria && $user && !is_admin()): ?>
-                  <!-- Indicador "Minha" nas fotos próprias -->
+                <?php if (!$bloqueada && $foto_propria && $user && !is_admin()): ?>
                   <span style="position:absolute;top:.35rem;left:.35rem;background:var(--verde);color:#fff;
                                border-radius:6px;padding:.15rem .45rem;font-size:.7rem;font-weight:700;z-index:5;">
                     Minha
@@ -237,7 +251,7 @@ include dirname(__DIR__) . '/includes/header.php';
                   </a>
                 <?php endif; ?>
               </div>
-            <?php endforeach; ?>
+            <?php $foto_idx++; endforeach; ?>
           </div>
 
           <!-- Aviso do modo denúncia -->
@@ -295,8 +309,8 @@ include dirname(__DIR__) . '/includes/header.php';
               <button type="submit" class="btn btn-verde btn-sm"><i class="fas fa-paper-plane"></i> Publicar Comentário</button>
             </form>
           <?php else: ?>
-            <p style="margin-bottom:1.5rem;color:var(--texto-muted);font-size:.9rem;">
-              <a href="#" onclick="mostrarAvisoLogin('Precisas de iniciar sessão para comentar.', '<?= SITE_URL ?>/pages/login.php'); return false;" class="form-link">Inicia sessão</a> para deixar um comentário.
+            <p style="margin-bottom:1.5rem;">
+              <a href="<?= SITE_URL ?>/pages/login.php" class="form-link">Inicia sessão</a>
             </p>
           <?php endif; ?>
 
@@ -352,7 +366,7 @@ include dirname(__DIR__) . '/includes/header.php';
         </p>
         <div class="info-card" style="padding:0;overflow:hidden;position:relative;">
           <div id="mini-map-detalhe" style="height:220px;border-radius:var(--radius-lg);"></div>
-          <button onclick="<?= $user ? 'abrirMapaFullscreen()' : 'window.location.href=\'' . SITE_URL . '/pages/login.php\'' ?>"
+          <button onclick="<?= $user ? 'abrirMapaFullscreen()' : 'mostrarAvisoLogin(\'Precisas de iniciar sessão para expandir o mapa.\', \'' . SITE_URL . '/pages/login.php\')' ?>"
                   style="position:absolute;top:.6rem;right:.6rem;z-index:999;background:var(--verde-escuro);color:#fff;border:none;
                          border-radius:4px;padding:.4rem .65rem;cursor:pointer;font-size:.8rem;display:flex;align-items:center;gap:.35rem;box-shadow:0 2px 8px rgba(0,0,0,.3);">
             <i class="fas fa-expand"></i> Expandir

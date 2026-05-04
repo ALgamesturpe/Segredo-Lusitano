@@ -112,6 +112,19 @@ function ensure_moderacao_schema(): void {
         if (!$idx) {
             db()->exec('ALTER TABLE denuncias ADD INDEX idx_denuncias_abertas (resolvida, tipo, referencia_id)');
         }
+
+        // Migrar regiões para as 5 pretendidas: Norte, Centro, Sul, Açores, Madeira
+        $sul = db()->query("SELECT id FROM regioes WHERE nome = 'Sul'")->fetch();
+        if (!$sul) {
+            db()->exec("INSERT INTO regioes (nome) VALUES ('Sul')");
+            $sul_id = (int)db()->lastInsertId();
+            $old = db()->query("SELECT id FROM regioes WHERE nome IN ('Lisboa e Vale do Tejo','Alentejo','Algarve')")->fetchAll(PDO::FETCH_COLUMN);
+            if ($old) {
+                $ids = implode(',', array_map('intval', $old));
+                db()->exec("UPDATE locais SET regiao_id = $sul_id WHERE regiao_id IN ($ids)");
+                db()->exec("DELETE FROM regioes WHERE id IN ($ids)");
+            }
+        }
     } catch (Throwable $e) {
         // Falha de permissao/migracao nao deve derrubar a aplicacao inteira.
     }

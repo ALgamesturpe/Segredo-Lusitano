@@ -81,20 +81,10 @@ include dirname(__DIR__) . '/includes/header.php';
           <?php if (isset($erros['nome'])): ?><div class="form-error"><?= h($erros['nome']) ?></div><?php endif; ?>
         </div>
 
-        <!-- Descrição -->
-        <div class="form-group">
-          <label for="descricao">Descrição
-            <span style="font-weight:400;color:var(--texto-muted);font-size:.82rem;" data-counter-for="descricao">0/2000</span>
-          </label>
-          <textarea id="descricao" name="descricao" rows="5" data-maxlength="2000"
-                    placeholder="Descreve o local, como chegar lá, o que ver, a melhor época para visitar..."><?= h($_POST['descricao'] ?? '') ?></textarea>
-          <?php if (isset($erros['descricao'])): ?><div class="form-error"><?= h($erros['descricao']) ?></div><?php endif; ?>
-        </div>
-
         <!-- Categoria + Região + Dificuldade -->
         <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:1rem;">
           <div class="form-group">
-            <label for="categoria_id">Categoria </label>
+            <label for="categoria_id">Categoria</label>
             <select id="categoria_id" name="categoria_id" required>
               <option value="">-- Seleciona --</option>
               <?php foreach ($categorias as $c): ?>
@@ -106,7 +96,7 @@ include dirname(__DIR__) . '/includes/header.php';
             <?php if (isset($erros['categoria_id'])): ?><div class="form-error"><?= h($erros['categoria_id']) ?></div><?php endif; ?>
           </div>
           <div class="form-group">
-            <label for="regiao_id">Região </label>
+            <label for="regiao_id">Região</label>
             <select id="regiao_id" name="regiao_id" required>
               <option value="">-- Seleciona --</option>
               <?php foreach ($regioes as $r): ?>
@@ -127,43 +117,43 @@ include dirname(__DIR__) . '/includes/header.php';
           </div>
         </div>
 
-        <!-- Foto Capa -->
-        <div class="form-group">
-          <label>Foto de Capa</label>
-          <div class="upload-area" data-input-id="foto_capa">
-            <i class="fas fa-image upload-icon" style="font-size:2.5rem;color:var(--verde-claro);margin-bottom:.75rem;display:block;"></i>
-            <p class="upload-label" style="font-weight:500;margin-bottom:.25rem;">Clica ou arrasta a foto aqui</p>
-            <small style="color:var(--texto-muted);">JPG, PNG ou WebP &middot; Máx. 5MB</small>
+        <!-- Foto (esquerda) + Mapa (direita) -->
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; margin-bottom:1.25rem;">
+          <!-- Foto Capa -->
+          <div class="form-group" style="margin:0;">
+            <label>Foto de Capa</label>
+            <div class="upload-area" data-input-id="foto_capa" style="height:320px;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+              <i class="fas fa-image upload-icon" style="font-size:2.5rem;color:var(--verde-claro);margin-bottom:.75rem;display:block;"></i>
+              <p class="upload-label" style="font-weight:500;margin-bottom:.25rem;">Clica ou arrasta a foto aqui</p>
+              <small style="color:var(--texto-muted);">JPG, PNG ou WebP &middot; Máx. 5MB</small>
+            </div>
+            <input type="file" id="foto_capa" name="foto_capa" accept="image/*" style="display:none;">
+            <?php if (isset($erros['foto'])): ?><div class="form-error"><?= h($erros['foto']) ?></div><?php endif; ?>
           </div>
-          <input type="file" id="foto_capa" name="foto_capa" accept="image/*" style="display:none;">
-          <?php if (isset($erros['foto'])): ?><div class="form-error"><?= h($erros['foto']) ?></div><?php endif; ?>
+
+          <!-- Mapa -->
+          <div class="form-group" style="margin:0;">
+            <label><i class="fas fa-map-pin"></i> Localização no Mapa <span style="font-weight:400;color:var(--texto-muted);font-size:.82rem;">Clica no mapa para marcar</span></label>
+            <?php if (isset($erros['coords'])): ?><div class="form-error" style="margin-bottom:.5rem;"><?= h($erros['coords']) ?></div><?php endif; ?>
+            <div style="margin-bottom:.5rem;">
+              <button type="button" id="btn-geolocalizacao" class="btn btn-sm btn-verde">
+                <i class="fas fa-crosshairs"></i> Localização Atual
+              </button>
+            </div>
+            <div id="mini-map" style="height:280px; border-radius:var(--radius); border:1.5px solid var(--creme-escuro);"></div>
+            <input type="hidden" id="latitude" name="latitude" value="<?= h($_POST['latitude'] ?? '') ?>">
+            <input type="hidden" id="longitude" name="longitude" value="<?= h($_POST['longitude'] ?? '') ?>">
+          </div>
         </div>
 
-        <!-- Mapa -->
+        <!-- Descrição (último campo) -->
         <div class="form-group">
-          <label><i class="fas fa-map-pin"></i> Localização no Mapa * <span style="font-weight:400;color:var(--texto-muted);font-size:.82rem;">Clica no mapa para marcar</span></label>
-          <?php if (isset($erros['coords'])): ?><div class="form-error" style="margin-bottom:.5rem;"><?= h($erros['coords']) ?></div><?php endif; ?>
-          <div style="margin-bottom:.75rem;">
-            <button type="button" id="btn-geolocalizacao" class="btn btn-sm btn-verde">
-              <i class="fas fa-crosshairs"></i> Usar Localização Atual
-            </button>
-            <small style="color:var(--texto-muted);margin-left:.75rem;">ou clica no mapa manualmente</small>
-          </div>
-          <div id="mini-map" style="height:350px; border-radius:var(--radius); border:1.5px solid var(--creme-escuro);"></div>
-          <div style="display:flex; gap:1rem; margin-top:.75rem;">
-            <div class="form-group" style="margin:0; flex:1;">
-              <label for="latitude" style="font-size:.8rem;">Latitude</label>
-              <input type="number" step="any" id="latitude" name="latitude"
-                     value="<?= h($_POST['latitude'] ?? '') ?>" placeholder="39.5..." readonly
-                     style="background:var(--creme-escuro);">
-            </div>
-            <div class="form-group" style="margin:0; flex:1;">
-              <label for="longitude" style="font-size:.8rem;">Longitude</label>
-              <input type="number" step="any" id="longitude" name="longitude"
-                     value="<?= h($_POST['longitude'] ?? '') ?>" placeholder="-8.0..." readonly
-                     style="background:var(--creme-escuro);">
-            </div>
-          </div>
+          <label for="descricao">Descrição
+            <span style="font-weight:400;color:var(--texto-muted);font-size:.82rem;" data-counter-for="descricao">0/2000</span>
+          </label>
+          <textarea id="descricao" name="descricao" rows="5" data-maxlength="2000"
+                    placeholder="Descreve o local, como chegar lá, o que ver, a melhor época para visitar..."><?= h($_POST['descricao'] ?? '') ?></textarea>
+          <?php if (isset($erros['descricao'])): ?><div class="form-error"><?= h($erros['descricao']) ?></div><?php endif; ?>
         </div>
 
         <div style="display:flex; gap:1rem; margin-top:1rem;">
@@ -175,7 +165,6 @@ include dirname(__DIR__) . '/includes/header.php';
           </a>
         </div>
 
-        <?php /* Publicação automática - sem necessidade de aprovação */ ?>
       </form>
     </div>
   </div>
