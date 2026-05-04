@@ -103,6 +103,11 @@ function ensure_moderacao_schema(): void {
             db()->exec('ALTER TABLE locais ADD COLUMN bloqueado TINYINT(1) DEFAULT 0 AFTER estado');
         }
 
+        $col2 = db()->query("SHOW COLUMNS FROM locais LIKE 'apagado_em'")->fetch();
+        if (!$col2) {
+            db()->exec('ALTER TABLE locais ADD COLUMN apagado_em DATETIME DEFAULT NULL');
+        }
+
         $idx = db()->query("SHOW INDEX FROM denuncias WHERE Key_name = 'idx_denuncias_abertas'")->fetch();
         if (!$idx) {
             db()->exec('ALTER TABLE denuncias ADD INDEX idx_denuncias_abertas (resolvida, tipo, referencia_id)');
