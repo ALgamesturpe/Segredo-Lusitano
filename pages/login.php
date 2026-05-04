@@ -176,7 +176,7 @@ include dirname(__DIR__) . '/includes/header.php';
         <a href="<?= SITE_URL ?>/pages/github_redirect.php"
            style="display:flex;align-items:center;justify-content:space-between;
                   width:300px;padding:.65rem 1rem;border:1.5px solid #d0d5dd;
-                  border-radius:8px;background:#fff;color:#1e1e1e;
+                  border-radius:4px;background:#fff;color:#1e1e1e;
                   font-size:.9rem;font-weight:500;text-decoration:none;
                   transition:background .2s;">
           <div style="display:flex;align-items:center;gap:.65rem;">

@@ -70,7 +70,7 @@ include dirname(__DIR__) . '/includes/header.php';
         </div>
         <?php if ($pesquisa): ?>
           <a href="<?= SITE_URL ?>/pages/feed.php"
-             style="padding:.5rem .85rem;border:1.5px solid var(--creme-escuro);border-radius:8px;
+             style="padding:.5rem .85rem;border:1.5px solid var(--creme-escuro);border-radius:4px;
                     color:var(--texto-muted);font-size:.85rem;text-decoration:none;white-space:nowrap;">
             <i class="fas fa-times"></i> Limpar
           </a>
