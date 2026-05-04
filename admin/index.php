@@ -303,13 +303,18 @@ function render_top_user(?array $u, string $valor_label): string {
                     data-id="<?= (int)$den['id'] ?>"
                     data-tipo="<?= h($den['tipo']) ?>"
                     data-ref="#<?= (int)$den['referencia_id'] ?>"
-                    data-conteudo="<?= h((string)($den['alvo_conteudo_completo'] ?? '[indisponível]')) ?>"
+                    data-conteudo="<?= h((string)($den['alvo_conteudo'] ?? '[indisponível]')) ?>"
                     data-ficheiro="<?= $den['tipo'] === 'foto' ? h((string)($den['alvo_conteudo'] ?? '')) : '' ?>"
                     data-descricao="<?= h((string)($den['alvo_conteudo_completo'] ?? '')) ?>"
                     data-motivo="<?= h(motivo_denuncia_label((string)$den['motivo'])) ?>"
                     data-denunciante="<?= h($den['denunciante_username']) ?>"
                     data-bloqueado="<?= $bloqueado ? '1' : '0' ?>"
-                    data-link="<?= !empty($den['alvo_local_id']) ? h(SITE_URL . '/pages/local.php?id=' . (int)$den['alvo_local_id']) : '' ?>">
+                    data-link="<?= !empty($den['alvo_local_id']) ? h(SITE_URL . '/pages/local.php?id=' . (int)$den['alvo_local_id']) : '' ?>"
+                    data-capa="<?= h((string)($den['alvo_foto_capa'] ?? '')) ?>"
+                    data-dificuldade="<?= h((string)($den['alvo_dificuldade'] ?? '')) ?>"
+                    data-vistas="<?= (int)($den['alvo_vistas'] ?? 0) ?>"
+                    data-local-nome="<?= h((string)($den['alvo_local_nome'] ?? '')) ?>"
+                    data-categoria="<?= h((string)($den['alvo_categoria'] ?? '')) ?>">
               <i class="fas fa-eye"></i> Ver
             </button>
           </td>
@@ -398,14 +403,20 @@ function render_top_user(?array $u, string $valor_label): string {
 
 <script>
 function abrirModalDenuncia(btn) {
-  const id          = btn.getAttribute('data-id');
-  const tipo        = btn.getAttribute('data-tipo') || '';
-  const ref         = btn.getAttribute('data-ref') || '';
-  const conteudo    = btn.getAttribute('data-conteudo') || '[indisponível]';
-  const motivo      = btn.getAttribute('data-motivo') || '';
-  const bloqueado   = btn.getAttribute('data-bloqueado') === '1';
-  const link        = btn.getAttribute('data-link') || '';
-  const ficheiro    = btn.getAttribute('data-ficheiro') || '';
+  const id         = btn.getAttribute('data-id');
+  const tipo       = btn.getAttribute('data-tipo') || '';
+  const ref        = btn.getAttribute('data-ref') || '';
+  const conteudo   = btn.getAttribute('data-conteudo') || '[indisponível]';
+  const descricao  = btn.getAttribute('data-descricao') || '';
+  const motivo     = btn.getAttribute('data-motivo') || '';
+  const bloqueado  = btn.getAttribute('data-bloqueado') === '1';
+  const link       = btn.getAttribute('data-link') || '';
+  const ficheiro   = btn.getAttribute('data-ficheiro') || '';
+  const capa       = btn.getAttribute('data-capa') || '';
+  const dificuldade = btn.getAttribute('data-dificuldade') || '';
+  const vistas     = btn.getAttribute('data-vistas') || '0';
+  const localNome  = btn.getAttribute('data-local-nome') || '';
+  const categoria  = btn.getAttribute('data-categoria') || '';
 
   document.getElementById('modal-den-ref').textContent    = ref;
   document.getElementById('modal-den-motivo').textContent = motivo;
@@ -414,39 +425,82 @@ function abrirModalDenuncia(btn) {
   document.getElementById('modal-den-tipo-label').textContent = tipoLabels[tipo] || tipo;
 
   const conteudoEl = document.getElementById('modal-den-conteudo');
-  if (tipo === 'foto' && ficheiro) {
+  conteudoEl.style.padding    = '0';
+  conteudoEl.style.overflow   = 'hidden';
+  conteudoEl.style.whiteSpace = 'normal';
+
+  const difColors = { facil: '#2ecc71', medio: '#f39c12', dificil: '#e74c3c' };
+  const difLabels = { facil: 'Fácil', medio: 'Médio', dificil: 'Difícil' };
+
+  if (tipo === 'local') {
+    const capaHtml = capa
+      ? `<div style="width:100%;height:160px;background:url('${SITE_URL}/uploads/locais/${capa}') center/cover no-repeat;border-radius:10px 10px 0 0;"></div>`
+      : `<div style="width:100%;height:80px;background:linear-gradient(135deg,var(--verde) 0%,var(--verde-escuro) 100%);border-radius:10px 10px 0 0;display:flex;align-items:center;justify-content:center;">
+           <i class="fas fa-map-marker-alt" style="font-size:2rem;color:rgba(255,255,255,.5);"></i>
+         </div>`;
+    const badgesDif = dificuldade
+      ? `<span style="background:${difColors[dificuldade]||'#aaa'};color:#fff;font-size:.72rem;font-weight:700;padding:.2rem .55rem;border-radius:20px;">${difLabels[dificuldade]||dificuldade}</span>`
+      : '';
+    const badgeCat = categoria
+      ? `<span style="background:var(--creme-escuro);color:var(--texto-muted);font-size:.72rem;font-weight:600;padding:.2rem .55rem;border-radius:20px;">${categoria}</span>`
+      : '';
+    const metaVistas = `<span style="font-size:.8rem;color:var(--texto-muted);"><i class="fas fa-eye" style="margin-right:.25rem;"></i>${parseInt(vistas).toLocaleString('pt-PT')} visitas</span>`;
+
+    conteudoEl.innerHTML = `
+      ${capaHtml}
+      <div style="padding:.9rem 1rem 1rem;">
+        <div style="display:flex;align-items:flex-start;gap:.5rem;flex-wrap:wrap;margin-bottom:.5rem;">
+          ${badgesDif}${badgeCat}
+        </div>
+        <div style="font-weight:700;font-size:1.05rem;color:var(--verde-escuro);margin-bottom:.4rem;line-height:1.3;">${conteudo}</div>
+        <div style="font-size:.86rem;color:var(--texto-muted);line-height:1.6;white-space:pre-wrap;margin-bottom:.65rem;">${descricao || '(sem descrição)'}</div>
+        <div>${metaVistas}</div>
+      </div>`;
+
+  } else if (tipo === 'comentario') {
+    const contextoHtml = localNome
+      ? `<div style="font-size:.78rem;color:var(--texto-muted);margin-bottom:.75rem;display:flex;align-items:center;gap:.35rem;">
+           <i class="fas fa-map-marker-alt" style="color:var(--verde);"></i>
+           Comentário em: <strong>${localNome}</strong>
+         </div>`
+      : '';
+    conteudoEl.innerHTML = `
+      <div style="padding:1rem;">
+        ${contextoHtml}
+        <div style="position:relative;background:#fff;border-left:3px solid var(--verde);border-radius:0 8px 8px 0;padding:.75rem 1rem .75rem 1.1rem;">
+          <i class="fas fa-quote-left" style="position:absolute;top:.5rem;right:.75rem;font-size:1.4rem;color:var(--creme-escuro);"></i>
+          <div style="font-size:.93rem;line-height:1.7;color:var(--texto);white-space:pre-wrap;">${conteudo}</div>
+        </div>
+      </div>`;
+
+  } else if (tipo === 'foto' && ficheiro) {
+    conteudoEl.style.padding    = '1rem';
+    conteudoEl.style.whiteSpace = 'normal';
     conteudoEl.innerHTML = `<img src="${SITE_URL}/uploads/locais/${ficheiro}"
       style="max-width:100%;max-height:300px;object-fit:contain;border-radius:8px;display:block;margin:0 auto;">`;
-  } else if (tipo === 'local') {
-    const nome = ref;
-    conteudoEl.innerHTML = `
-      <div style="font-weight:700;font-size:1rem;margin-bottom:.5rem;color:var(--verde-escuro);">
-        <i class="fas fa-map-marker-alt"></i> ${conteudo}
-      </div>
-      <div style="font-size:.88rem;color:var(--texto-muted);white-space:pre-wrap;line-height:1.6;">
-        ${btn.getAttribute('data-descricao') || '(sem descrição)'}
-      </div>`;
   } else {
-      conteudoEl.textContent = conteudo;
+    conteudoEl.style.padding    = '1rem';
+    conteudoEl.style.whiteSpace = 'pre-wrap';
+    conteudoEl.textContent = conteudo;
   }
 
   const linkEl = document.getElementById('modal-den-link');
   if (link) { linkEl.href = link; linkEl.style.display = 'inline-flex'; }
   else       { linkEl.style.display = 'none'; }
 
-  document.getElementById('modal-input-den-id').value  = id;
-  document.getElementById('modal-input-tipo').value    = tipo;
-  document.getElementById('modal-input-ref-id').value  = ref.replace('#', '');
+  document.getElementById('modal-input-den-id').value = id;
+  document.getElementById('modal-input-tipo').value   = tipo;
+  document.getElementById('modal-input-ref-id').value = ref.replace('#', '');
 
   const btnModerar = document.getElementById('modal-btn-moderar');
   if (bloqueado) {
     document.getElementById('modal-input-acao').value = 'permitir';
-    btnModerar.innerHTML   = '<i class="fas fa-check"></i> Permitir Conteúdo';
-    btnModerar.className   = 'btn btn-sm btn-verde';
+    btnModerar.innerHTML = '<i class="fas fa-check"></i> Permitir Conteúdo';
+    btnModerar.className = 'btn btn-sm btn-verde';
   } else {
     document.getElementById('modal-input-acao').value = 'bloquear';
-    btnModerar.innerHTML   = '<i class="fas fa-ban"></i> Bloquear Conteúdo';
-    btnModerar.className   = 'btn btn-sm btn-danger';
+    btnModerar.innerHTML = '<i class="fas fa-ban"></i> Bloquear Conteúdo';
+    btnModerar.className = 'btn btn-sm btn-danger';
   }
   btnModerar.style.width          = '100%';
   btnModerar.style.justifyContent = 'center';

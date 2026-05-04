@@ -28,7 +28,7 @@ $st2 = db()->prepare(
      JOIN categorias c ON c.id = l.categoria_id
      JOIN regioes r    ON r.id = l.regiao_id
      JOIN utilizadores u ON u.id = l.utilizador_id
-     WHERE l.utilizador_id = ?' . (($user_auth && ($user_auth['id'] == $id || is_admin())) ? '' : ' AND l.estado = "aprovado"') . '
+     WHERE l.utilizador_id = ? AND l.apagado_em IS NULL' . (($user_auth && ($user_auth['id'] == $id || is_admin())) ? ' AND l.bloqueado = 0' : ' AND l.estado = "aprovado" AND l.bloqueado = 0') . '
      ORDER BY l.criado_em DESC'
 );
 $st2->execute([$id]);

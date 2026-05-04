@@ -19,11 +19,11 @@ function motivo_denuncia_label(string $motivo): string {
 }
 
 function local_nome_publico(array $local): string {
-    return ((int)($local['bloqueado'] ?? 0) === 1) ? '[removed]' : (string)$local['nome'];
+    return (string)$local['nome'];
 }
 
 function local_descricao_publica(array $local): string {
-    return ((int)($local['bloqueado'] ?? 0) === 1) ? '[removed]' : (string)$local['descricao'];
+    return (string)$local['descricao'];
 }
 
 function comentario_autor_publico(array $comentario): string {
@@ -116,13 +116,12 @@ ensure_moderacao_schema();
 
 // ---------- LOCAIS ----------
 function get_locais(array $filtros = [], int $limite = 12, int $offset = 0): array {
-    $where = ['l.estado = "aprovado"'];
+    $where = ['l.estado = "aprovado"', 'l.bloqueado = 0', 'l.apagado_em IS NULL'];
     $params = [];
     if (!empty($filtros['regiao'])) { $where[] = 'l.regiao_id = ?'; $params[] = $filtros['regiao']; }
     if (!empty($filtros['categoria'])) { $where[] = 'l.categoria_id = ?'; $params[] = $filtros['categoria']; }
     if (!empty($filtros['dificuldade'])) { $where[] = 'l.dificuldade = ?'; $params[] = $filtros['dificuldade']; }
     if (!empty($filtros['pesquisa'])) { $where[] = 'l.nome LIKE ?'; $params[] = '%' . $filtros['pesquisa'] . '%'; }
-    if (!empty($filtros['excluir_bloqueados'])) { $where[] = 'l.bloqueado = 0'; }
 
     // Whitelist allowed ordering options to prevent SQL injection
     $ordem_input = $filtros['ordem'] ?? 'recente';
@@ -163,7 +162,7 @@ function get_local(int $id): ?array {
          JOIN categorias c ON c.id = l.categoria_id
          JOIN regioes r    ON r.id = l.regiao_id
          JOIN utilizadores u ON u.id = l.utilizador_id
-         WHERE l.id = ?'
+         WHERE l.id = ? AND l.apagado_em IS NULL'
     );
     $st->execute([$id]);
     return $st->fetch() ?: null;
@@ -198,8 +197,7 @@ function save_local(array $data, ?int $id = null): int|false {
 }
 
 function delete_local(int $id): void {
-    limpar_imagens_local($id);
-    db()->prepare('DELETE FROM locais WHERE id = ?')->execute([$id]);
+    db()->prepare('UPDATE locais SET apagado_em = NOW() WHERE id = ?')->execute([$id]);
 }
 
 function incrementar_vistas(int $local_id): void {
@@ -337,12 +335,42 @@ function get_denuncias(): array {
                     WHEN d.tipo = "comentario" THEN c.local_id
                     WHEN d.tipo = "foto"       THEN f.local_id
                     ELSE NULL
-                END AS alvo_local_id
+                END AS alvo_local_id,
+                CASE
+                    WHEN d.tipo = "local"      THEN l.foto_capa
+                    WHEN d.tipo = "foto"       THEN f.ficheiro
+                    ELSE NULL
+                END AS alvo_foto_capa,
+                CASE
+                    WHEN d.tipo = "local"      THEN l.dificuldade
+                    ELSE NULL
+                END AS alvo_dificuldade,
+                CASE
+                    WHEN d.tipo = "local"      THEN l.vistas
+                    ELSE NULL
+                END AS alvo_vistas,
+                CASE
+                    WHEN d.tipo = "local"      THEN cat.nome
+                    WHEN d.tipo = "comentario" THEN lc.nome
+                    WHEN d.tipo = "foto"       THEN lf.nome
+                    ELSE NULL
+                END AS alvo_local_nome,
+                CASE
+                    WHEN d.tipo = "local"      THEN cat.nome
+                    WHEN d.tipo = "comentario" THEN catc.nome
+                    WHEN d.tipo = "foto"       THEN catf.nome
+                    ELSE NULL
+                END AS alvo_categoria
          FROM denuncias d
          JOIN utilizadores u ON u.id = d.utilizador_id
-         LEFT JOIN locais      l ON d.tipo = "local"      AND l.id = d.referencia_id
-         LEFT JOIN comentarios c ON d.tipo = "comentario" AND c.id = d.referencia_id
-         LEFT JOIN fotos       f ON d.tipo = "foto"       AND f.id = d.referencia_id
+         LEFT JOIN locais      l    ON d.tipo = "local"      AND l.id = d.referencia_id
+         LEFT JOIN categorias  cat  ON d.tipo = "local"      AND cat.id = l.categoria_id
+         LEFT JOIN comentarios c    ON d.tipo = "comentario" AND c.id = d.referencia_id
+         LEFT JOIN locais      lc   ON d.tipo = "comentario" AND lc.id = c.local_id
+         LEFT JOIN categorias  catc ON d.tipo = "comentario" AND catc.id = lc.categoria_id
+         LEFT JOIN fotos       f    ON d.tipo = "foto"       AND f.id = d.referencia_id
+         LEFT JOIN locais      lf   ON d.tipo = "foto"       AND lf.id = f.local_id
+         LEFT JOIN categorias  catf ON d.tipo = "foto"       AND catf.id = lf.categoria_id
          WHERE d.resolvida = 0
          ORDER BY d.criado_em DESC'
     );
@@ -391,10 +419,7 @@ function moderar_denuncias_item(string $tipo, int $ref_id, bool $bloquear): bool
 
         db()->prepare('UPDATE locais SET bloqueado=? WHERE id=?')->execute([$bloquear ? 1 : 0, $ref_id]);
 
-        if ($bloquear) {
-            // Apenas bloqueia — não elimina o local automaticamente
-            limpar_imagens_local($ref_id);
-        }
+        // Bloquear apenas marca o flag — não elimina conteúdo
 
         db()->prepare('UPDATE denuncias SET resolvida=1 WHERE tipo=? AND referencia_id=? AND resolvida=0')->execute([$tipo, $ref_id]);
         return true;

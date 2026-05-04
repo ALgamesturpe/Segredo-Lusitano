@@ -37,7 +37,7 @@ $st = db()->prepare(
      JOIN regioes r ON r.id = l.regiao_id
      JOIN utilizadores u ON u.id = l.utilizador_id
      JOIN seguidores s ON s.seguido_id = l.utilizador_id
-     WHERE s.seguidor_id = ? AND l.estado = "aprovado" AND l.bloqueado = 0
+     WHERE s.seguidor_id = ? AND l.estado = "aprovado" AND l.bloqueado = 0 AND l.apagado_em IS NULL
      ORDER BY l.criado_em DESC LIMIT 48'
 );
 $st->execute([$user['id']]);

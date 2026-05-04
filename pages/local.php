@@ -5,7 +5,7 @@ require_once dirname(__DIR__) . '/includes/functions.php';
 $id = (int)($_GET['id'] ?? 0);
 $local = $id ? get_local($id) : null;
 
-if (!$local || ($local['estado'] !== 'aprovado' && !is_admin())) {
+if (!$local || ($local['estado'] !== 'aprovado' && !is_admin()) || ($local['bloqueado'] && !is_admin())) {
     header('Location: ' . SITE_URL . '/pages/explorar.php');
     exit;
 }
@@ -304,6 +304,7 @@ include dirname(__DIR__) . '/includes/header.php';
             <div>
               <?php foreach ($comentarios as $com): ?>
                 <?php $comentario_bloqueado = ((int)$com['denunciado'] === 1); ?>
+                <?php if ($comentario_bloqueado && !is_admin()) continue; ?>
                 <div class="comentario">
                   <div class="comentario-avatar">
                     <?php if (!$comentario_bloqueado && !empty($com['avatar'])): ?>

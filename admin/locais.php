@@ -7,10 +7,45 @@ require_admin();
 
 $page_title = 'Admin · Locais';
 
-// ── Apagar local permanentemente ─────────────────────────
+// ── Auto-purga: eliminar definitivamente após 30 dias ─────
+$expirados = db()->query(
+    "SELECT id FROM locais WHERE apagado_em IS NOT NULL AND apagado_em < DATE_SUB(NOW(), INTERVAL 30 DAY)"
+)->fetchAll();
+foreach ($expirados as $exp) {
+    limpar_imagens_local($exp['id']);
+    db()->prepare('DELETE FROM locais WHERE id = ?')->execute([$exp['id']]);
+}
+
+// ── Apagar local (soft delete — 30 dias standby) ──────────
 if (isset($_GET['apagar'])) {
     delete_local((int)$_GET['apagar']);
-    flash('success', 'Local apagado.');
+    flash('success', 'Local movido para a lixeira. Será eliminado em 30 dias.');
+    header('Location: ' . SITE_URL . '/admin/locais.php');
+    exit;
+}
+
+// ── Restaurar local da lixeira ────────────────────────────
+if (isset($_GET['restaurar_apagado'])) {
+    db()->prepare('UPDATE locais SET apagado_em = NULL WHERE id = ?')->execute([(int)$_GET['restaurar_apagado']]);
+    flash('success', 'Local restaurado da lixeira.');
+    header('Location: ' . SITE_URL . '/admin/locais.php?apagado=1');
+    exit;
+}
+
+// ── Purgar local definitivamente ──────────────────────────
+if (isset($_GET['purgar'])) {
+    $pid = (int)$_GET['purgar'];
+    limpar_imagens_local($pid);
+    db()->prepare('DELETE FROM locais WHERE id = ?')->execute([$pid]);
+    flash('success', 'Local eliminado definitivamente.');
+    header('Location: ' . SITE_URL . '/admin/locais.php?apagado=1');
+    exit;
+}
+
+// ── Bloquear local manualmente ────────────────────────────
+if (isset($_GET['bloquear'])) {
+    db()->prepare('UPDATE locais SET bloqueado = 1 WHERE id = ?')->execute([(int)$_GET['bloquear']]);
+    flash('success', 'Local bloqueado.');
     header('Location: ' . SITE_URL . '/admin/locais.php');
     exit;
 }
@@ -66,17 +101,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['foto_admin']) && iss
 // ── Filtros ───────────────────────────────────────────────
 $filtro    = $_GET['filtro']    ?? '';
 $bloqueado = isset($_GET['bloqueado']) && $_GET['bloqueado'] === '1';
+$apagado   = isset($_GET['apagado'])   && $_GET['apagado']   === '1';
 $gerir_id  = isset($_GET['gerir']) ? (int)$_GET['gerir'] : 0;
 
 // Pesquisa
 $pesquisa = trim($_GET['q'] ?? '');
 
-if ($bloqueado) {
-    $where = 'WHERE l.bloqueado = 1';
+if ($apagado) {
+    $where = 'WHERE l.apagado_em IS NOT NULL';
+} elseif ($bloqueado) {
+    $where = 'WHERE l.bloqueado = 1 AND l.apagado_em IS NULL';
 } elseif ($filtro === 'aprovado') {
-    $where = 'WHERE l.estado = "aprovado" AND l.bloqueado = 0';
+    $where = 'WHERE l.estado = "aprovado" AND l.bloqueado = 0 AND l.apagado_em IS NULL';
 } else {
-    $where = 'WHERE l.bloqueado = 0';
+    $where = 'WHERE l.bloqueado = 0 AND l.apagado_em IS NULL';
 }
 
 $params = [];
@@ -86,7 +124,8 @@ if ($pesquisa) {
 }
 
 $st = db()->prepare(
-    "SELECT l.*, c.nome AS categoria_nome, r.nome AS regiao_nome, u.username
+    "SELECT l.*, c.nome AS categoria_nome, r.nome AS regiao_nome, u.username,
+            DATEDIFF(DATE_ADD(l.apagado_em, INTERVAL 30 DAY), NOW()) AS dias_restantes
      FROM locais l
      JOIN categorias c ON c.id = l.categoria_id
      JOIN regioes r ON r.id = l.regiao_id
@@ -160,7 +199,6 @@ include dirname(__DIR__) . '/includes/header.php';
                    style="width:100%;height:100%;object-fit:cover;">
               <!-- Botão eliminar foto -->
               <a href="?apagar_foto=<?= $foto['id'] ?>&local_id=<?= $gerir_id ?>"
-                 onclick="return confirm('Eliminar esta foto permanentemente?')"
                  style="position:absolute;top:.4rem;right:.4rem;background:#c0392b;color:#fff;
                         border-radius:6px;padding:.2rem .45rem;font-size:.8rem;text-decoration:none;">
                 <i class="fas fa-trash"></i>
@@ -215,18 +253,20 @@ include dirname(__DIR__) . '/includes/header.php';
       <h1 class="admin-title" style="margin:0;"><i class="fa-solid fa-location-dot"></i> Locais</h1>
       <!-- Separadores de filtro -->
       <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
-        <a href="?" class="btn btn-sm <?= (!$filtro && !$bloqueado) ? 'btn-verde' : '' ?>"
-           style="<?= ($filtro || $bloqueado) ? 'border:1px solid var(--creme-escuro);color:var(--texto-muted);' : '' ?>">Todos</a>
         <a href="?filtro=aprovado" class="btn btn-sm <?= $filtro==='aprovado' ? 'btn-verde' : '' ?>"
            style="<?= $filtro!=='aprovado' ? 'border:1px solid var(--creme-escuro);color:var(--texto-muted);' : '' ?>">Ativos</a>
         <a href="?bloqueado=1" class="btn btn-sm"
            style="<?= $bloqueado ? 'background:#c0392b;color:#fff;border:none;' : 'border:1px solid var(--creme-escuro);color:var(--texto-muted);' ?>">Bloqueados</a>
+        <a href="?apagado=1" class="btn btn-sm"
+           style="<?= $apagado ? 'background:#7f8c8d;color:#fff;border:none;' : 'border:1px solid var(--creme-escuro);color:var(--texto-muted);' ?>">Apagados</a>
       </div>
     </div>
 
     <!-- Barra de pesquisa -->
     <form method="GET" style="margin-bottom:1.25rem;">
-      <?php if ($bloqueado): ?>
+      <?php if ($apagado): ?>
+        <input type="hidden" name="apagado" value="1">
+      <?php elseif ($bloqueado): ?>
         <input type="hidden" name="bloqueado" value="1">
       <?php elseif ($filtro): ?>
         <input type="hidden" name="filtro" value="<?= h($filtro) ?>">
@@ -251,7 +291,6 @@ include dirname(__DIR__) . '/includes/header.php';
           <th>Utilizador</th>
           <th>Categoria</th>
           <th>Estado</th>
-          <th>Bloqueado</th>
           <th>Vistas</th>
           <th>Data</th>
           <th>Ações</th>
@@ -267,18 +306,33 @@ include dirname(__DIR__) . '/includes/header.php';
           </td>
           <td>@<?= h($l['username']) ?></td>
           <td><?= h($l['categoria_nome']) ?></td>
-          <td><span class="badge badge-<?= $l['estado'] ?>"><?= ucfirst($l['estado']) ?></span></td>
           <td>
             <?php if ((int)$l['bloqueado'] === 1): ?>
               <span class="badge badge-rejeitado">Bloqueado</span>
+            <?php elseif ($l['estado'] === 'aprovado'): ?>
+              <span class="badge badge-aprovado">Ativo</span>
             <?php else: ?>
-              <span style="color:var(--texto-muted);font-size:.85rem;">—</span>
+              <span class="badge badge-<?= $l['estado'] ?>"><?= ucfirst($l['estado']) ?></span>
             <?php endif; ?>
           </td>
           <td><?= number_format($l['vistas']) ?></td>
           <td><?= date('d/m/Y', strtotime($l['criado_em'])) ?></td>
           <td style="display:flex;gap:.5rem;flex-wrap:wrap;">
-            <?php if ($bloqueado): ?>
+            <?php if ($apagado): ?>
+              <!-- Restaurar da lixeira -->
+              <a href="?restaurar_apagado=<?= $l['id'] ?>" class="btn btn-sm btn-verde" title="Restaurar local">
+                <i class="fas fa-undo"></i> Restaurar
+              </a>
+              <!-- Purgar definitivamente -->
+              <a href="?purgar=<?= $l['id'] ?>" class="btn btn-sm btn-danger"
+                 onclick="return confirm('Eliminar este local definitivamente? Esta ação é irreversível.')" title="Eliminar já">
+                <i class="fas fa-trash"></i>
+              </a>
+              <!-- Dias restantes -->
+              <span style="font-size:.8rem;color:var(--texto-muted);align-self:center;">
+                <?= max(0, (int)$l['dias_restantes']) ?> dias restantes
+              </span>
+            <?php elseif ($bloqueado): ?>
               <!-- Restaurar local bloqueado -->
               <a href="?restaurar=<?= $l['id'] ?>"
                  onclick="return confirm('Restaurar este local?')"
@@ -298,9 +352,12 @@ include dirname(__DIR__) . '/includes/header.php';
               <a href="<?= SITE_URL ?>/pages/local_editar.php?id=<?= $l['id'] ?>" class="btn btn-sm" style="border:1px solid var(--creme-escuro);color:var(--texto-muted);" title="Editar">
                 <i class="fas fa-edit"></i>
               </a>
-              <!-- Apagar local -->
-              <a href="?apagar=<?= $l['id'] ?>" class="btn btn-sm btn-danger"
-                 data-confirm="Apagar este local permanentemente?" title="Apagar">
+              <!-- Bloquear local -->
+              <a href="?bloquear=<?= $l['id'] ?>" class="btn btn-sm btn-danger" title="Bloquear local">
+                <i class="fas fa-ban"></i>
+              </a>
+              <!-- Apagar local (soft delete) -->
+              <a href="?apagar=<?= $l['id'] ?>" class="btn btn-sm btn-danger" title="Apagar local">
                 <i class="fas fa-trash"></i>
               </a>
             <?php endif; ?>
@@ -308,7 +365,7 @@ include dirname(__DIR__) . '/includes/header.php';
         </tr>
         <?php endforeach; ?>
         <?php if (!$locais): ?>
-          <tr><td colspan="8" style="text-align:center;color:var(--texto-muted);padding:2rem;">Sem locais.</td></tr>
+          <tr><td colspan="7" style="text-align:center;color:var(--texto-muted);padding:2rem;">Sem locais.</td></tr>
         <?php endif; ?>
       </tbody>
     </table>
