@@ -110,9 +110,9 @@ include dirname(__DIR__) . '/includes/header.php';
         <div class="form-group">
           <label>Nova Foto de Capa (opcional)</label>
           <?php if ($local['foto_capa']): ?>
-            <img src="<?= SITE_URL ?>/uploads/locais/<?= h($local['foto_capa']) ?>" style="height:120px;object-fit:cover;border-radius:8px;margin-bottom:.75rem;">
+            <img src="<?= SITE_URL ?>/uploads/locais/<?= h($local['foto_capa']) ?>" style="height:120px;object-fit:cover;border-radius:3px;margin-bottom:.75rem;">
           <?php endif; ?>
-          <input type="file" name="foto_capa" accept="image/*" style="padding:.5rem;border:1.5px solid var(--creme-escuro);border-radius:8px;width:100%;">
+          <input type="file" name="foto_capa" accept="image/*" style="padding:.5rem;border:1.5px solid var(--creme-escuro);border-radius:3px;width:100%;">
         </div>
         <div class="form-group">
           <label>Localização</label>
@@ -124,8 +124,8 @@ include dirname(__DIR__) . '/includes/header.php';
           </div>
           <div id="mini-map" style="height:300px;border-radius:var(--radius);border:1.5px solid var(--creme-escuro);"></div>
           <div style="display:flex;gap:1rem;margin-top:.75rem;">
-            <input type="number" step="any" id="latitude" name="latitude" value="<?= h($d['latitude'] ?? '') ?>" readonly style="flex:1;padding:.6rem;border:1.5px solid var(--creme-escuro);border-radius:8px;background:var(--creme-escuro);">
-            <input type="number" step="any" id="longitude" name="longitude" value="<?= h($d['longitude'] ?? '') ?>" readonly style="flex:1;padding:.6rem;border:1.5px solid var(--creme-escuro);border-radius:8px;background:var(--creme-escuro);">
+            <input type="number" step="any" id="latitude" name="latitude" value="<?= h($d['latitude'] ?? '') ?>" readonly style="flex:1;padding:.6rem;border:1.5px solid var(--creme-escuro);border-radius:3px;background:var(--creme-escuro);">
+            <input type="number" step="any" id="longitude" name="longitude" value="<?= h($d['longitude'] ?? '') ?>" readonly style="flex:1;padding:.6rem;border:1.5px solid var(--creme-escuro);border-radius:3px;background:var(--creme-escuro);">
           </div>
         </div>
         <div style="display:flex;gap:1rem;margin-top:1rem;">

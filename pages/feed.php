@@ -58,7 +58,7 @@ include dirname(__DIR__) . '/includes/header.php';
     <div style="background:var(--branco);border-radius:var(--radius-lg);padding:1.25rem 1.5rem;box-shadow:var(--sombra-sm);margin-bottom:2rem;">
       <form method="GET" style="display:flex;align-items:center;gap:.75rem;">
         <div style="display:flex;align-items:center;gap:.5rem;flex:1;background:var(--creme);
-                    border:1.5px solid var(--creme-escuro);border-radius:8px;padding:.45rem .85rem;
+                    border:1.5px solid var(--creme-escuro);border-radius:3px;padding:.45rem .85rem;
                     transition:border-color .2s;"
              onfocusin="this.style.borderColor='var(--verde-claro)'"
              onfocusout="this.style.borderColor='var(--creme-escuro)'">
@@ -70,7 +70,7 @@ include dirname(__DIR__) . '/includes/header.php';
         </div>
         <?php if ($pesquisa): ?>
           <a href="<?= SITE_URL ?>/pages/feed.php"
-             style="padding:.5rem .85rem;border:1.5px solid var(--creme-escuro);border-radius:0;
+             style="padding:.5rem .85rem;border:1.5px solid var(--creme-escuro);border-radius:3px;
                     color:var(--texto-muted);font-size:.85rem;text-decoration:none;white-space:nowrap;">
             <i class="fas fa-times"></i> Limpar
           </a>

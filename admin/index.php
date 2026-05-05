@@ -179,14 +179,14 @@ function render_top_user(?array $u, string $valor_label): string {
           </div>
           <form method="GET" style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;">
             <select name="mes" onchange="this.form.submit()"
-                    style="padding:.3rem .75rem;border:1.5px solid var(--creme-escuro);border-radius:8px;background:var(--creme);font-size:.9rem;color:var(--texto);cursor:pointer;">
+                    style="padding:.3rem .75rem;border:1.5px solid var(--creme-escuro);border-radius:3px;background:var(--creme);font-size:.9rem;color:var(--texto);cursor:pointer;">
               <option value="0" <?= $mes_selecionado === 0 ? 'selected' : '' ?>>Ano todo</option>
               <?php foreach ($nomes_meses_g as $i => $nome): ?>
                 <option value="<?= $i+1 ?>" <?= ($i+1) === $mes_selecionado ? 'selected' : '' ?>><?= $nome ?></option>
               <?php endforeach; ?>
             </select>
             <select name="ano" onchange="this.form.submit()"
-                    style="padding:.3rem .75rem;border:1.5px solid var(--creme-escuro);border-radius:8px;background:var(--creme);font-size:.9rem;color:var(--texto);cursor:pointer;">
+                    style="padding:.3rem .75rem;border:1.5px solid var(--creme-escuro);border-radius:3px;background:var(--creme);font-size:.9rem;color:var(--texto);cursor:pointer;">
               <?php for ($y = $ano_atual; $y >= 2024; $y--): ?>
                 <option value="<?= $y ?>" <?= $y === $ano_selecionado ? 'selected' : '' ?>><?= $y ?></option>
               <?php endfor; ?>
@@ -377,7 +377,7 @@ function render_top_user(?array $u, string $valor_label): string {
         <span id="modal-den-motivo" style="font-size:.9rem;font-weight:600;color:#e74c3c;"></span>
       </div>
       <div style="font-size:.8rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-muted);margin-bottom:.5rem;">Conteúdo denunciado</div>
-      <div id="modal-den-conteudo" style="background:var(--creme);border:1.5px solid var(--creme-escuro);border-radius:10px;padding:1rem;font-size:.95rem;white-space:pre-wrap;line-height:1.6;margin-bottom:1.25rem;"></div>
+      <div id="modal-den-conteudo" style="background:var(--creme);border:1.5px solid var(--creme-escuro);border-radius:3px;padding:1rem;font-size:.95rem;white-space:pre-wrap;line-height:1.6;margin-bottom:1.25rem;"></div>
       <a id="modal-den-link" href="#" target="_blank" rel="noopener" class="btn btn-sm btn-verde" style="display:none;">
         <i class="fas fa-external-link-alt"></i> Abrir local
       </a>
@@ -467,7 +467,7 @@ function abrirModalDenuncia(btn) {
     conteudoEl.innerHTML = `
       <div style="padding:1rem;">
         ${contextoHtml}
-        <div style="position:relative;background:#fff;border-left:3px solid var(--verde);border-radius:0 8px 8px 0;padding:.75rem 1rem .75rem 1.1rem;">
+        <div style="position:relative;background:#fff;border-left:3px solid var(--verde);border-radius:0 3px 3px 0;padding:.75rem 1rem .75rem 1.1rem;">
           <i class="fas fa-quote-left" style="position:absolute;top:.5rem;right:.75rem;font-size:1.4rem;color:var(--creme-escuro);"></i>
           <div style="font-size:.93rem;line-height:1.7;color:var(--texto);white-space:pre-wrap;">${conteudo}</div>
         </div>
@@ -477,7 +477,7 @@ function abrirModalDenuncia(btn) {
     conteudoEl.style.padding    = '1rem';
     conteudoEl.style.whiteSpace = 'normal';
     conteudoEl.innerHTML = `<img src="${SITE_URL}/uploads/locais/${ficheiro}"
-      style="max-width:100%;max-height:300px;object-fit:contain;border-radius:8px;display:block;margin:0 auto;">`;
+      style="max-width:100%;max-height:300px;object-fit:contain;border-radius:3px;display:block;margin:0 auto;">`;
   } else {
     conteudoEl.style.padding    = '1rem';
     conteudoEl.style.whiteSpace = 'pre-wrap';

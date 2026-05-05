@@ -211,7 +211,7 @@ include dirname(__DIR__) . '/includes/header.php';
           <input type="file" id="msg-ficheiro" accept="image/*,.pdf,.doc,.docx,.txt"
                  style="display:none;" onchange="selecionarFicheiro(this)">
           <textarea id="msg-input" placeholder="Escreve uma mensagem..." rows="1"
-                    style="flex:1;border:1.5px solid var(--creme-escuro);border-radius:24px;padding:.65rem 1.1rem;
+                    style="flex:1;border:1.5px solid var(--creme-escuro);border-radius:3px;padding:.65rem 1.1rem;
                            resize:none;font-size:.95rem;font-family:inherit;background:var(--creme);outline:none;
                            max-height:120px;overflow-y:auto;"
                     onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();enviarMensagem();}"></textarea>
@@ -298,7 +298,7 @@ function toggleMenu(btnEl, msgId) {
   const menu = document.createElement('div');
   menu.className = 'msg-menu';
   menu.style.cssText = `position:absolute;bottom:calc(100% + 4px);left:50%;transform:translateX(-50%);
-      background:var(--branco);border:1px solid var(--creme-escuro);border-radius:10px;
+      background:var(--branco);border:1px solid var(--creme-escuro);border-radius:3px;
       box-shadow:var(--sombra-md);z-index:500;min-width:140px;overflow:hidden;white-space:nowrap;`;
 
   const btnEliminar = document.createElement('button');

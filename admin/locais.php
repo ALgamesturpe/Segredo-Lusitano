@@ -184,7 +184,7 @@ include dirname(__DIR__) . '/includes/header.php';
       <form method="POST" enctype="multipart/form-data" style="margin-bottom:1.25rem;display:flex;gap:.75rem;align-items:center;flex-wrap:wrap;">
         <input type="hidden" name="local_id_upload" value="<?= $gerir_id ?>">
         <input type="file" name="foto_admin" accept="image/*" required
-               style="border:1.5px solid var(--creme-escuro);border-radius:8px;padding:.4rem .75rem;background:var(--creme);font-size:.9rem;">
+               style="border:1.5px solid var(--creme-escuro);border-radius:3px;padding:.4rem .75rem;background:var(--creme);font-size:.9rem;">
         <button type="submit" class="btn btn-sm btn-verde">
           <i class="fas fa-upload"></i> Adicionar Foto
         </button>
@@ -200,7 +200,7 @@ include dirname(__DIR__) . '/includes/header.php';
               <!-- Botão eliminar foto -->
               <a href="?apagar_foto=<?= $foto['id'] ?>&local_id=<?= $gerir_id ?>"
                  style="position:absolute;top:.4rem;right:.4rem;background:#c0392b;color:#fff;
-                        border-radius:0;padding:.2rem .45rem;font-size:.8rem;text-decoration:none;">
+                        border-radius:3px;padding:.2rem .45rem;font-size:.8rem;text-decoration:none;">
                 <i class="fas fa-trash"></i>
               </a>
             </div>
@@ -271,7 +271,7 @@ include dirname(__DIR__) . '/includes/header.php';
       <?php elseif ($filtro): ?>
         <input type="hidden" name="filtro" value="<?= h($filtro) ?>">
       <?php endif; ?>
-      <div style="display:flex;align-items:center;gap:.5rem;background:var(--creme);border:2px solid var(--verde-claro);border-radius:8px;padding:.4rem .75rem;max-width:400px;">
+      <div style="display:flex;align-items:center;gap:.5rem;background:var(--creme);border:2px solid var(--verde-claro);border-radius:3px;padding:.4rem .75rem;max-width:400px;">
         <i class="fas fa-search" style="color:var(--texto-muted);font-size:.85rem;"></i>
         <input type="text" name="q" value="<?= h($pesquisa) ?>" placeholder="Pesquisar por nome ou utilizador..."
                style="border:none;background:transparent;outline:none;font-size:.9rem;width:100%;">

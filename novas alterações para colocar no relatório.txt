@@ -1,0 +1,33 @@
+Mapa
+
+Filtros por categoria, região e dificuldade passaram a ser feitos no lado do cliente (JavaScript), eliminando o reload/piscar da página ao filtrar
+URL atualizada sem reload via history.pushState para manter os filtros partilháveis
+Corrigido bug de scroll infinito horizontal e vertical com maxBounds, maxBoundsViscosity e noWrap no Leaflet
+Contador de locais visíveis atualizado em tempo real ao filtrar
+Navegação
+
+Separador "Partilhar Local" movido para imediatamente à direita de "Explorar"
+Página de Local
+
+Botão "Denunciar" passou a aparecer também para utilizadores sem sessão iniciada, abrindo um aviso de login em vez do modal
+Na secção de comentários, o texto "Inicia sessão" para utilizadores sem conta passou a ser um link direto para o login (sem modal intermédio)
+Página de Login
+
+Removido o disclaimer completo (checkbox de termos, modal, toda a lógica JS associada)
+Botão "Entrar" sempre activo, sem dependência de aceitação de termos
+Login com Google e GitHub sem qualquer intercepção de termos
+Página de Registo — Termos e Condições
+
+Adicionada checkbox visual readonly "Termos e condições aceites" que é marcada automaticamente quando o utilizador carrega em "Li e aceito os Termos" no modal
+A data e hora de aceitação dos termos é capturada em JS e guardada num input hidden
+Ao carregar em "Criar Conta" sem ter aceite os termos, aparece erro inline sem abrir o modal
+Corrigido bug: a label da checkbox estava a alterar o seu estado ao ser clicada (removido atributo for)
+Corrigido bug: ao aceitar os termos no modal, o formulário não deve submeter automaticamente para o registo por email (o utilizador ainda pode ter campos inválidos)
+Registo com Google e GitHub obriga também à aceitação dos termos antes de prosseguir — sem bypass via localStorage
+A data/hora de aceitação dos termos é agora gravada na base de dados em todos os métodos de registo (email, Google, GitHub)
+Base de Dados
+
+Adicionada coluna termos_aceites_em DATETIME à tabela utilizadores via migração automática em ensure_moderacao_schema()
+Função register() em auth.php actualizada para incluir esse campo no INSERT
+INSERTs de Google (google_auth.php) e GitHub (Github_auth.php) actualizados para incluir o campo
+Github_redirect.php guarda o datetime na sessão para ser consumido pelo callback depois do OAuth

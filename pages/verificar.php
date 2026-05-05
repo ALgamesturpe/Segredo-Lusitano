@@ -96,13 +96,13 @@ $flash_success = flash('success');
     </p>
 
     <?php if ($flash_success): ?>
-      <div class="flash flash-success" style="position:static;margin-bottom:1.25rem;border-radius:8px;">
+      <div class="flash flash-success" style="position:static;margin-bottom:1.25rem;border-radius:3px;">
         <i class="fas fa-check-circle"></i> <?= h($flash_success) ?>
       </div>
     <?php endif; ?>
 
     <?php if ($erro): ?>
-      <div class="flash flash-error" style="position:static;margin-bottom:1.25rem;border-radius:8px;">
+      <div class="flash flash-error" style="position:static;margin-bottom:1.25rem;border-radius:3px;">
         <i class="fas fa-exclamation-circle"></i> <?= h($erro) ?>
       </div>
     <?php endif; ?>
@@ -133,7 +133,7 @@ $flash_success = flash('success');
     <div style="text-align:center;margin-top:1.5rem;">
       <p style="color:var(--texto-muted);font-size:.9rem;margin-bottom:.75rem;">Não recebeste o email?</p>
       <form method="POST" style="display:inline;">
-        <button type="submit" name="reenviar" value="1" class="btn btn-sm" style="background:rgba(201,168,76,.15);color:var(--dourado);border:1px solid var(--dourado);padding:.4rem 1.2rem;border-radius:0;">
+        <button type="submit" name="reenviar" value="1" class="btn btn-sm" style="background:rgba(201,168,76,.15);color:var(--dourado);border:1px solid var(--dourado);padding:.4rem 1.2rem;border-radius:3px;">
           <i class="fas fa-paper-plane"></i> Reenviar Código
         </button>
       </form>

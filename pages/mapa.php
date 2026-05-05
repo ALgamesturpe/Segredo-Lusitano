@@ -127,7 +127,7 @@ include dirname(__DIR__) . '/includes/header.php';
   </div>
 
   <!-- MAPA -->
-  <div id="map" style="flex:1;border-radius:0;"></div>
+  <div id="map" style="flex:1;"></div>
 </div>
 
 <!-- Scripts sem footer visual -->

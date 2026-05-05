@@ -18,7 +18,7 @@
   --sombra-sm:     0 2px 8px rgba(0,0,0,.08);
   --sombra-md:     0 8px 24px rgba(0,0,0,.12);
   --sombra-lg:     0 20px 60px rgba(0,0,0,.18);
-  --radius:        4px;
+  --radius:        3px;
   --radius-lg:     4px;
   --nav-h:         80px;
   --transition:    .25s ease;
@@ -105,13 +105,13 @@ main { flex: 1; }
 .nav-links a.active { background: rgba(201,168,76,.15); color: var(--dourado); }
 
 .btn-nav-login { border: 1px solid rgba(201,168,76,.5) !important; color: var(--dourado-claro) !important; }
-.btn-nav-register { background: var(--dourado) !important; color: var(--verde-escuro) !important; font-weight: 600 !important; border-radius: 0 !important; }
+.btn-nav-register { background: var(--dourado) !important; color: var(--verde-escuro) !important; font-weight: 600 !important; border-radius: var(--radius) !important; }
 .btn-nav-register:hover { background: var(--dourado-claro) !important; }
 
 .nav-profile-link {
   display: flex; align-items: center; gap: .5rem;
   color: var(--creme); padding: .45rem .85rem;
-  border-radius: 2px; font-size: .9rem; font-weight: 400;
+  border-radius: var(--radius); font-size: .9rem; font-weight: 400;
   transition: background var(--transition), color var(--transition);
   text-decoration: none;
 }
@@ -120,7 +120,7 @@ main { flex: 1; }
 .btn-nav-sair {
   display: flex; align-items: center; gap: .4rem;
   color: var(--creme); padding: .45rem .85rem;
-  border-radius: 2px; font-size: .9rem; font-weight: 400;
+  border-radius: var(--radius); font-size: .9rem; font-weight: 400;
   border: 1px solid rgba(201,168,76,.3);
   transition: background var(--transition), color var(--transition), border-color var(--transition);
 }
@@ -224,7 +224,7 @@ main { flex: 1; }
 /* ============================================================
    BOTÕES
    ============================================================ */
-.btn { display: inline-flex; align-items: center; gap: .5rem; padding: .75rem 1.75rem; border-radius: 0; font-size: .95rem; font-weight: 600; transition: all var(--transition); cursor: pointer; letter-spacing: .02em; }
+.btn { display: inline-flex; align-items: center; gap: .5rem; padding: .75rem 1.75rem; border-radius: var(--radius); font-size: .95rem; font-weight: 600; transition: all var(--transition); cursor: pointer; letter-spacing: .02em; }
 .btn-primary { background: var(--dourado); color: var(--verde-escuro); }
 .btn-primary:hover { background: var(--dourado-claro); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(201,168,76,.35); }
 .btn-outline { border: 2px solid rgba(245,239,230,.5); color: var(--creme); }
@@ -284,7 +284,7 @@ main { flex: 1; }
 .filtros-form { display: flex; flex-wrap: wrap; gap: .75rem; align-items: flex-end; }
 .filtro-group { display: flex; flex-direction: column; gap: .35rem; flex: 1; min-width: 160px; }
 .filtro-group label { font-size: .8rem; font-weight: 600; color: var(--texto-muted); text-transform: uppercase; letter-spacing: .05em; }
-.filtro-group select, .filtro-group input { padding: .6rem .9rem; border: 1.5px solid var(--creme-escuro); border-radius: 6px; background: var(--creme); color: var(--texto); font-size: .9rem; }
+.filtro-group select, .filtro-group input { padding: .6rem .9rem; border: 1.5px solid var(--creme-escuro); border-radius: var(--radius); background: var(--creme); color: var(--texto); font-size: .9rem; }
 .filtro-group select:focus, .filtro-group input:focus { border-color: var(--verde-claro); box-shadow: 0 0 0 3px rgba(64,145,108,.15); }
 .filtros-form .btn { align-self: flex-end; }
 
@@ -292,7 +292,7 @@ main { flex: 1; }
    PAGINAÇÃO
    ============================================================ */
 .pagination { display: flex; gap: .5rem; justify-content: center; margin-top: 2.5rem; flex-wrap: wrap; }
-.pagination a, .pagination span { display: flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 0; font-size: .9rem; font-weight: 600; border: 1.5px solid var(--creme-escuro); color: var(--texto-muted); transition: all var(--transition); }
+.pagination a, .pagination span { display: flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: var(--radius); font-size: .9rem; font-weight: 600; border: 1.5px solid var(--creme-escuro); color: var(--texto-muted); transition: all var(--transition); }
 .pagination a:hover { border-color: var(--verde); color: var(--verde); }
 .pagination .current { background: var(--verde); color: #fff; border-color: var(--verde); }
 
@@ -329,7 +329,7 @@ main { flex: 1; }
 .galeria-item { border-radius: var(--radius); overflow: hidden; aspect-ratio: 4/3; }
 .galeria-item img { width: 100%; height: 100%; object-fit: cover; transition: none; transform: none; }
 .galeria-item:hover img { transform: none; }
-.like-btn { display: inline-flex; align-items: center; gap: .5rem; padding: .6rem 1.25rem; border-radius: 0; border: 2px solid #e74c3c; color: #e74c3c; font-weight: 700; font-size: .95rem; transition: all var(--transition); }
+.like-btn { display: inline-flex; align-items: center; gap: .5rem; padding: .6rem 1.25rem; border-radius: var(--radius); border: 2px solid #e74c3c; color: #e74c3c; font-weight: 700; font-size: .95rem; transition: all var(--transition); }
 .like-btn.liked, .like-btn:hover { background: #e74c3c; color: #fff; }
 .comentario { display: flex; gap: 1rem; padding: 1rem 0; border-bottom: 1px solid var(--creme-escuro); }
 .comentario:last-child { border-bottom: none; }
@@ -346,7 +346,7 @@ main { flex: 1; }
 .form-container { max-width: 560px; margin: 0 auto; background: var(--branco); border-radius: var(--radius-lg); padding: 2.5rem; box-shadow: var(--sombra-md); }
 .form-group { margin-bottom: 1.25rem; }
 .form-group label { display: block; margin-bottom: .4rem; font-weight: 600; font-size: .9rem; }
-.form-group input, .form-group textarea, .form-group select { width: 100%; padding: .75rem 1rem; border: 1.5px solid var(--creme-escuro); border-radius: 6px; background: var(--creme); color: var(--texto); font-size: .95rem; }
+.form-group input, .form-group textarea, .form-group select { width: 100%; padding: .75rem 1rem; border: 1.5px solid var(--creme-escuro); border-radius: var(--radius); background: var(--creme); color: var(--texto); font-size: .95rem; }
 .form-group input:focus, .form-group textarea:focus, .form-group select:focus { border-color: var(--verde-claro); box-shadow: 0 0 0 3px rgba(64,145,108,.15); }
 .form-group textarea { min-height: 130px; resize: vertical; }
 .form-error { font-size: .82rem; color: #c0392b; margin-top: .3rem; }
@@ -393,7 +393,7 @@ main { flex: 1; }
    ============================================================ */
 .admin-wrapper { display: flex; min-height: 100vh; }
 .admin-sidebar { width: 240px; flex-shrink: 0; background: var(--verde-escuro); padding: 1.5rem 1rem; position: fixed; top: var(--nav-h); left: 0; height: calc(100vh - var(--nav-h)); overflow-y: auto; }
-.admin-nav a { display: flex; align-items: center; gap: .65rem; color: rgba(245,239,230,.75); padding: .6rem .85rem; border-radius: 8px; font-size: .9rem; margin-bottom: .2rem; transition: all var(--transition); }
+.admin-nav a { display: flex; align-items: center; gap: .65rem; color: rgba(245,239,230,.75); padding: .6rem .85rem; border-radius: var(--radius); font-size: .9rem; margin-bottom: .2rem; transition: all var(--transition); }
 .admin-nav a:hover, .admin-nav a.active { background: rgba(201,168,76,.15); color: var(--dourado); }
 .admin-nav .nav-section { font-size: .7rem; text-transform: uppercase; letter-spacing: .1em; color: rgba(245,239,230,.35); padding: 1rem .85rem .4rem; }
 .admin-content { flex: 1; padding: 2rem; min-width: 0; max-width: 100%; overflow-x: hidden; margin-left: 240px; }
@@ -439,7 +439,7 @@ main { flex: 1; }
 .steps-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 2rem; }
 .step-card { background: var(--branco); border-radius: var(--radius-lg); padding: 2rem 1.5rem; text-align: center; box-shadow: var(--sombra-sm); transition: transform var(--transition); }
 .step-card:hover { transform: translateY(-4px); }
-.step-icon { width: 60px; height: 60px; border-radius: 10px; background: linear-gradient(135deg, var(--verde), var(--verde-claro)); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 1.5rem; color: #fff; }
+.step-icon { width: 60px; height: 60px; border-radius: var(--radius); background: linear-gradient(135deg, var(--verde), var(--verde-claro)); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 1.5rem; color: #fff; }
 .step-card h3 { font-size: 1.1rem; margin-bottom: .5rem; }
 .step-card p { font-size: .9rem; color: var(--texto-muted); }
 

@@ -76,7 +76,7 @@ include dirname(__DIR__) . '/includes/header.php';
     <!-- Cabeçalho alinhado à esquerda -->
     <div style="margin-bottom:2rem;">
       <span class="label">Partilhar · Novo Segredo</span>
-      <h2 style="font-size:clamp(1.8rem,4vw,2.6rem);margin-bottom:.5rem;color:var(--verde-escuro);text-align:left;">Adiciona um local ao arquivo.</h2>
+      <h2 style="font-size:clamp(1.8rem,4vw,2.6rem);margin-bottom:.5rem;color:var(--verde-escuro);text-align:left;">Adiciona um novo local!</h2>
       <p style="color:var(--texto-muted);margin:0;">Cada submissão dá +<?= PONTOS_LOCAL ?> pontos. Cada gosto e comentário recebido também conta.</p>
     </div>
 
@@ -161,18 +161,9 @@ include dirname(__DIR__) . '/includes/header.php';
 
           <?php if (isset($erros['coords'])): ?><div class="form-error" style="margin-bottom:1rem;"><?= h($erros['coords']) ?></div><?php endif; ?>
 
-          <!-- Botões -->
-          <div style="display:flex;gap:1rem;margin-top:.5rem;">
-            <button type="submit" class="btn btn-primary" style="flex:1;justify-content:center;">
-              <i class="fas fa-paper-plane"></i> Submeter Local
-            </button>
-            <a href="<?= SITE_URL ?>/pages/explorar.php" class="btn" style="border:1px solid var(--creme-escuro);color:var(--texto-muted);">
-              Cancelar
-            </a>
-          </div>
         </div>
 
-        <!-- ── COLUNA DIREITA: mapa ── -->
+        <!-- ── COLUNA DIREITA: mapa (sticky) ── -->
         <div class="novo-local-map-col">
           <div style="background:var(--branco);padding:1.25rem;box-shadow:var(--sombra-md);margin-bottom:1rem;">
             <p style="font-size:.85rem;font-weight:600;margin:0 0 .75rem;color:var(--texto);">
@@ -182,7 +173,16 @@ include dirname(__DIR__) . '/includes/header.php';
               <i class="fas fa-crosshairs"></i> Usar Localização Atual
             </button>
           </div>
-          <div id="mini-map" style="height:460px;border:1.5px solid var(--creme-escuro);overflow:hidden;"></div>
+          <div id="mini-map" style="height:360px;border:1.5px solid var(--creme-escuro);overflow:hidden;"></div>
+          <!-- Botões ficam aqui na coluna sticky — sempre visíveis sem scroll -->
+          <div style="display:flex;gap:1rem;margin-top:1rem;">
+            <button type="submit" class="btn btn-primary" style="flex:1;justify-content:center;">
+              <i class="fas fa-paper-plane"></i> Submeter Local
+            </button>
+            <a href="<?= SITE_URL ?>/pages/explorar.php" class="btn" style="border:1px solid var(--creme-escuro);color:var(--texto-muted);">
+              Cancelar
+            </a>
+          </div>
         </div>
 
       </div>
