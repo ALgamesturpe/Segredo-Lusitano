@@ -295,6 +295,7 @@ function initMainMap(locais) {
   });
 
   // Guardar referência a todos os markers para filtragem client-side
+  // onMap rastreia o estado real para evitar chamadas redundantes ao Leaflet
   const allMarkers = [];
 
   locais.forEach(l => {
@@ -311,7 +312,7 @@ function initMainMap(locais) {
         </a>
       </div>
     `);
-    allMarkers.push({ marker: m, local: l });
+    allMarkers.push({ marker: m, local: l, onMap: true });
 
     if (abrirId && l.id === abrirId) {
       m.openPopup();
@@ -321,16 +322,16 @@ function initMainMap(locais) {
   // Filtragem client-side — chamada pelo form de filtros em mapa.php
   window._mapFilterLocais = function(filtros) {
     let visiveis = 0;
-    allMarkers.forEach(({ marker, local }) => {
+    allMarkers.forEach(function(entry) {
       const ok =
-        (!filtros.categoria   || String(local.categoria_id) === String(filtros.categoria)) &&
-        (!filtros.regiao      || String(local.regiao_id)    === String(filtros.regiao)) &&
-        (!filtros.dificuldade || local.dificuldade          === filtros.dificuldade);
+        (!filtros.categoria   || String(entry.local.categoria_id) === String(filtros.categoria)) &&
+        (!filtros.regiao      || String(entry.local.regiao_id)    === String(filtros.regiao)) &&
+        (!filtros.dificuldade || entry.local.dificuldade          === filtros.dificuldade);
       if (ok) {
-        if (!map.hasLayer(marker)) map.addLayer(marker);
+        if (!entry.onMap) { entry.marker.addTo(map); entry.onMap = true; }
         visiveis++;
       } else {
-        if (map.hasLayer(marker)) map.removeLayer(marker);
+        if (entry.onMap) { entry.marker.remove(); entry.onMap = false; }
       }
     });
     const countEl = document.getElementById('mapa-count');

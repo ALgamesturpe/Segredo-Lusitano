@@ -24,7 +24,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($_POST['aceitar_termos'])) $erros['termos'] = 'Deves aceitar os Termos e Condições para continuar.';
 
     if (!$erros) {
-        $res = register($nome, $username, $email, $password);
+        // Capturar datetime de aceitação dos termos (vem do JS, validar formato)
+        $termos_em = trim($_POST['termos_aceites_em'] ?? '');
+        if (!preg_match('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/', $termos_em)) {
+            $termos_em = date('Y-m-d H:i:s');
+        }
+
+        $res = register($nome, $username, $email, $password, $termos_em);
         if (!$res['ok']) {
             $erros['email'] = $res['msg'];
         } else {
@@ -111,10 +117,21 @@ include dirname(__DIR__) . '/includes/header.php';
       <!-- Termos e Condições -->
       <div class="form-group" style="margin-bottom:.75rem;">
         <input type="checkbox" id="aceitar-termos" name="aceitar_termos" style="display:none;" <?= isset($_POST['aceitar_termos']) ? 'checked' : '' ?>>
+        <input type="hidden" id="termos-aceites-em" name="termos_aceites_em" value="<?= h($_POST['termos_aceites_em'] ?? '') ?>">
         <p style="font-size:.85rem;line-height:1.6;color:var(--texto-muted);margin:0;">
           <a href="#" onclick="document.getElementById('modal-termos').style.display='flex';return false;" class="form-link" style="font-weight:600;">Termos e Condições</a>
           &nbsp;&mdash; Li e aceito os termos. Compreendo que a visita a locais pode envolver riscos e que a entrada em propriedade privada é da responsabilidade exclusiva do utilizador. O Segredo Lusitano não se responsabiliza por qualquer dano, acidente ou invasão de propriedade.
         </p>
+        <!-- Checkbox visual de confirmação — marcada automaticamente ao aceitar no modal -->
+        <div style="display:flex;align-items:center;gap:.5rem;margin-top:.5rem;">
+          <input type="checkbox" id="termos-status-visual" tabindex="-1"
+                 style="accent-color:var(--verde);width:15px;height:15px;cursor:default;pointer-events:none;"
+                 <?= isset($_POST['aceitar_termos']) ? 'checked' : '' ?>>
+          <label style="font-size:.82rem;color:var(--texto-muted);cursor:default;user-select:none;margin:0;">
+            Termos e condições aceites
+          </label>
+        </div>
+        <div id="erro-termos-js" style="display:none;" class="form-error">Deves aceitar os Termos e Condições para continuar.</div>
         <?php if (isset($erros['termos'])): ?><div class="form-error"><?= h($erros['termos']) ?></div><?php endif; ?>
       </div>
       <button type="button" id="btn-criar" class="btn btn-primary" style="width:100%; justify-content:center; margin-top:.5rem;" onclick="submeterComTermos()">
@@ -171,39 +188,25 @@ include dirname(__DIR__) . '/includes/header.php';
 <?php if (GOOGLE_CLIENT_ID && GOOGLE_CLIENT_ID !== ''): ?>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script>
-function _decodeJwtEmail(credential) {
-  try {
-    const payload = JSON.parse(atob(credential.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')));
-    return (payload.email || '').toLowerCase().trim();
-  } catch(e) { return ''; }
-}
-
-function _termosKeyReg(email) {
-  return email ? 'termos_aceites_' + email : null;
-}
-
 window._pendingGoogleResponse = null;
 
 function handleGoogleSignIn(response) {
-  const email = _decodeJwtEmail(response.credential);
-  const key   = _termosKeyReg(email);
-  if (key && localStorage.getItem(key) === '1') {
-    _executarGoogleLogin(response);
+  const termos = document.getElementById('aceitar-termos');
+  if (!termos || !termos.checked) {
+    window._pendingGoogleResponse = response;
+    document.getElementById('modal-termos').style.display = 'flex';
     return;
   }
-  window._pendingGoogleResponse = response;
-  const msg = document.getElementById('google-msg');
-  msg.innerHTML = 'Para continuar, <a href="#" onclick="document.getElementById(\'modal-termos\').style.display=\'flex\';return false;" style="color:inherit;font-weight:700;text-decoration:underline;">lê e aceita os Termos e Condições</a>.';
-  msg.style.color = '#c0392b';
-  msg.style.display = 'block';
+  _executarGoogleLogin(response);
 }
 
 function _executarGoogleLogin(response) {
   const msg = document.getElementById('google-msg');
+  const termosEm = document.getElementById('termos-aceites-em')?.value || '';
   fetch('<?= SITE_URL ?>/pages/google_auth.php', {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: 'id_token=' + encodeURIComponent(response.credential)
+    body: 'id_token=' + encodeURIComponent(response.credential) + '&termos_aceites_em=' + encodeURIComponent(termosEm)
   })
   .then(r => r.json())
   .then(data => {
@@ -223,7 +226,8 @@ function _executarGoogleLogin(response) {
 function verificarTermosParaSocial(url) {
   const termos = document.getElementById('aceitar-termos');
   if (termos && termos.checked) {
-    window.location.href = url;
+    const termosEm = document.getElementById('termos-aceites-em')?.value || '';
+    window.location.href = url + (url.includes('?') ? '&' : '?') + 'termos_aceites_em=' + encodeURIComponent(termosEm);
   } else {
     window._pendingGithubUrl = url;
     document.getElementById('modal-termos').style.display = 'flex';
@@ -296,38 +300,43 @@ function verificarTermosParaSocial(url) {
   </div>
 </div>
 <script>
-// Interceta o clique em "Criar Conta": abre o modal se ainda não aceitou nesta sessão
 function submeterComTermos() {
   const termos = document.getElementById('aceitar-termos');
+  const erroEl = document.getElementById('erro-termos-js');
   if (!termos.checked) {
-    document.getElementById('modal-termos').style.display = 'flex';
+    erroEl.style.display = 'block';
+    erroEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
     return;
   }
+  erroEl.style.display = 'none';
   document.querySelector('form[method="POST"]').submit();
 }
 
 function aceitarTermos() {
   document.getElementById('modal-termos').style.display = 'none';
-  document.getElementById('aceitar-termos').checked = true;
 
-  // Guardar por email (Google JWT ou campo de email do form)
-  let email = '';
-  if (window._pendingGoogleResponse) {
-    email = _decodeJwtEmail(window._pendingGoogleResponse.credential);
-  }
-  if (!email) email = (document.getElementById('email')?.value || '').trim();
-  const key = _termosKeyReg(email);
-  if (key) localStorage.setItem(key, '1');
+  // Marcar checkbox oculto (para POST) e checkbox visual
+  document.getElementById('aceitar-termos').checked = true;
+  document.getElementById('termos-status-visual').checked = true;
+  document.getElementById('erro-termos-js').style.display = 'none';
+
+  // Guardar data/hora de aceitação na variável (hidden input)
+  const now = new Date();
+  const pad = n => String(n).padStart(2, '0');
+  const dt = now.getFullYear() + '-' + pad(now.getMonth()+1) + '-' + pad(now.getDate())
+           + ' ' + pad(now.getHours()) + ':' + pad(now.getMinutes()) + ':' + pad(now.getSeconds());
+  document.getElementById('termos-aceites-em').value = dt;
 
   if (typeof _executarGoogleLogin === 'function' && window._pendingGoogleResponse) {
     _executarGoogleLogin(window._pendingGoogleResponse);
     window._pendingGoogleResponse = null;
   } else if (window._pendingGithubUrl) {
-    window.location.href = window._pendingGithubUrl;
+    const url = window._pendingGithubUrl;
     window._pendingGithubUrl = null;
-  } else {
-    document.querySelector('form[method="POST"]').submit();
+    window.location.href = url + (url.includes('?') ? '&' : '?') + 'termos_aceites_em=' + encodeURIComponent(dt);
   }
+  // Para registo por email: NÃO submeter automaticamente.
+  // O utilizador deve clicar "Criar Conta" com todos os campos válidos.
 }
 </script>
 <?php include dirname(__DIR__) . '/includes/footer.php'; ?>

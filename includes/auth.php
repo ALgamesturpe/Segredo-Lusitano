@@ -67,16 +67,15 @@ function logout(): void {
     exit;
 }
 
-function register(string $nome, string $username, string $email, string $password): array {
+function register(string $nome, string $username, string $email, string $password, ?string $termos_aceites_em = null): array {
     $st = db()->prepare('SELECT id FROM utilizadores WHERE email = ? OR username = ?');
     $st->execute([$email, $username]);
     if ($st->fetch()) {
         return ['ok' => false, 'msg' => 'Email ou username já registado.'];
     }
-    // Hash da password com bcrypt (seguro)
     $password_hash = password_hash($password, PASSWORD_BCRYPT, ['cost' => 12]);
-    $st = db()->prepare('INSERT INTO utilizadores (nome, username, email, password, verificado, pontos) VALUES (?,?,?,?,0,0)');
-    $st->execute([$nome, $username, $email, $password_hash]);
+    $st = db()->prepare('INSERT INTO utilizadores (nome, username, email, password, verificado, pontos, termos_aceites_em) VALUES (?,?,?,?,0,0,?)');
+    $st->execute([$nome, $username, $email, $password_hash, $termos_aceites_em]);
     return ['ok' => true, 'id' => (int) db()->lastInsertId()];
 }
 

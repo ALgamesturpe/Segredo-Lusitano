@@ -113,6 +113,11 @@ function ensure_moderacao_schema(): void {
             db()->exec('ALTER TABLE denuncias ADD INDEX idx_denuncias_abertas (resolvida, tipo, referencia_id)');
         }
 
+        $colT = db()->query("SHOW COLUMNS FROM utilizadores LIKE 'termos_aceites_em'")->fetch();
+        if (!$colT) {
+            db()->exec('ALTER TABLE utilizadores ADD COLUMN termos_aceites_em DATETIME DEFAULT NULL');
+        }
+
         // Migrar regiões para as 5 pretendidas: Norte, Centro, Sul, Açores, Madeira
         $sul = db()->query("SELECT id FROM regioes WHERE nome = 'Sul'")->fetch();
         if (!$sul) {
