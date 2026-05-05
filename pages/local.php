@@ -174,7 +174,7 @@ include dirname(__DIR__) . '/includes/header.php';
             <button onclick="<?= $user
                 ? "abrirModalDenuncia('local', {$id}, 'Local')"
                 : "mostrarAvisoLogin('Precisas de iniciar sessão para denunciar este local.', '" . SITE_URL . "/pages/login.php')" ?>"
-                    class="btn btn-sm" style="color:var(--texto-muted);border:1px solid var(--creme-escuro);border-radius:4px;">
+                    class="btn btn-sm" style="color:var(--texto-muted);border:1px solid var(--creme-escuro);border-radius:0;">
               <i class="fas fa-flag"></i> Denunciar
             </button>
           <?php endif; ?>
@@ -195,7 +195,7 @@ include dirname(__DIR__) . '/includes/header.php';
               <!-- Só aparece se há fotos de outros utilizadores -->
               <button id="btn-denunciar-foto" onclick="toggleModoDenuncia()"
                       class="btn btn-sm"
-                      style="color:var(--texto-muted);border:1px solid var(--creme-escuro);border-radius:4px;font-size:.8rem;transition:all .2s;">
+                      style="color:var(--texto-muted);border:1px solid var(--creme-escuro);border-radius:0;font-size:.8rem;transition:all .2s;">
                 <i class="fas fa-flag"></i> Denunciar foto
               </button>
             <?php endif; ?>
@@ -246,7 +246,7 @@ include dirname(__DIR__) . '/includes/header.php';
                   <a href="<?= SITE_URL ?>/pages/local.php?id=<?= $id ?>&apagar_foto=<?= $foto['id'] ?>"
                      onclick="return confirm('Eliminar esta foto?')"
                      style="position:absolute;top:.35rem;right:.35rem;background:#c0392b;color:#fff;
-                             border-radius:4px;padding:.2rem .45rem;font-size:.75rem;text-decoration:none;z-index:10;">
+                             border-radius:0;padding:.2rem .45rem;font-size:.75rem;text-decoration:none;z-index:10;">
                     <i class="fas fa-trash"></i>
                   </a>
                 <?php endif; ?>
@@ -342,7 +342,7 @@ include dirname(__DIR__) . '/includes/header.php';
                         <button type="button"
                                 onclick="abrirModalDenuncia('comentario', <?= (int)$com['id'] ?>, 'Comentario')"
                                 class="btn btn-sm"
-                                style="margin-left:.35rem;padding:.2rem .55rem;border:1px solid var(--creme-escuro);color:var(--texto-muted);border-radius:4px;">
+                                style="margin-left:.35rem;padding:.2rem .55rem;border:1px solid var(--creme-escuro);color:var(--texto-muted);border-radius:0;">
                           <i class="fas fa-flag"></i> Denunciar
                         </button>
                       <?php endif; ?>
@@ -368,7 +368,7 @@ include dirname(__DIR__) . '/includes/header.php';
           <div id="mini-map-detalhe" style="height:220px;border-radius:var(--radius-lg);"></div>
           <button onclick="<?= $user ? 'abrirMapaFullscreen()' : 'mostrarAvisoLogin(\'Precisas de iniciar sessão para expandir o mapa.\', \'' . SITE_URL . '/pages/login.php\')' ?>"
                   style="position:absolute;top:.6rem;right:.6rem;z-index:999;background:var(--verde-escuro);color:#fff;border:none;
-                         border-radius:4px;padding:.4rem .65rem;cursor:pointer;font-size:.8rem;display:flex;align-items:center;gap:.35rem;box-shadow:0 2px 8px rgba(0,0,0,.3);">
+                         border-radius:0;padding:.4rem .65rem;cursor:pointer;font-size:.8rem;display:flex;align-items:center;gap:.35rem;box-shadow:0 2px 8px rgba(0,0,0,.3);">
             <i class="fas fa-expand"></i> Expandir
           </button>
           <div id="mapa-estado" style="position:absolute;bottom:.6rem;left:.6rem;z-index:999;
@@ -433,20 +433,20 @@ include dirname(__DIR__) . '/includes/header.php';
     </span>
     <div style="display:flex;gap:.4rem;">
       <button class="btn-modo" data-modo="driving" onclick="mudarModo('driving')"
-              style="background:var(--dourado);color:var(--verde-escuro);border:none;border-radius:4px;padding:.35rem .75rem;cursor:pointer;font-size:.82rem;font-weight:700;display:flex;align-items:center;gap:.3rem;">
+              style="background:var(--dourado);color:var(--verde-escuro);border:none;border-radius:0;padding:.35rem .75rem;cursor:pointer;font-size:.82rem;font-weight:700;display:flex;align-items:center;gap:.3rem;">
         <i class="fas fa-car"></i> Carro
       </button>
       <button class="btn-modo" data-modo="foot" onclick="mudarModo('foot')"
-              style="background:rgba(255,255,255,.15);color:#fff;border:none;border-radius:4px;padding:.35rem .75rem;cursor:pointer;font-size:.82rem;display:flex;align-items:center;gap:.3rem;">
+              style="background:rgba(255,255,255,.15);color:#fff;border:none;border-radius:0;padding:.35rem .75rem;cursor:pointer;font-size:.82rem;display:flex;align-items:center;gap:.3rem;">
         <i class="fas fa-walking"></i> A Pé
       </button>
       <button class="btn-modo" data-modo="bike" onclick="mudarModo('bike')"
-              style="background:rgba(255,255,255,.15);color:#fff;border:none;border-radius:4px;padding:.35rem .75rem;cursor:pointer;font-size:.82rem;display:flex;align-items:center;gap:.3rem;">
+              style="background:rgba(255,255,255,.15);color:#fff;border:none;border-radius:0;padding:.35rem .75rem;cursor:pointer;font-size:.82rem;display:flex;align-items:center;gap:.3rem;">
         <i class="fas fa-bicycle"></i> Bicicleta
       </button>
     </div>
     <button onclick="fecharMapaFullscreen()"
-            style="background:rgba(255,255,255,.15);border:none;color:#fff;border-radius:4px;padding:.4rem .85rem;cursor:pointer;font-size:.9rem;">
+            style="background:rgba(255,255,255,.15);border:none;color:#fff;border-radius:0;padding:.4rem .85rem;cursor:pointer;font-size:.9rem;">
       <i class="fas fa-times"></i> Fechar
     </button>
   </div>

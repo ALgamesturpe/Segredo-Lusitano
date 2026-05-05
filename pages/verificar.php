@@ -133,7 +133,7 @@ $flash_success = flash('success');
     <div style="text-align:center;margin-top:1.5rem;">
       <p style="color:var(--texto-muted);font-size:.9rem;margin-bottom:.75rem;">Não recebeste o email?</p>
       <form method="POST" style="display:inline;">
-        <button type="submit" name="reenviar" value="1" class="btn btn-sm" style="background:rgba(201,168,76,.15);color:var(--dourado);border:1px solid var(--dourado);padding:.4rem 1.2rem;border-radius:4px;">
+        <button type="submit" name="reenviar" value="1" class="btn btn-sm" style="background:rgba(201,168,76,.15);color:var(--dourado);border:1px solid var(--dourado);padding:.4rem 1.2rem;border-radius:0;">
           <i class="fas fa-paper-plane"></i> Reenviar Código
         </button>
       </form>

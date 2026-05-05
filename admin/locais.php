@@ -200,7 +200,7 @@ include dirname(__DIR__) . '/includes/header.php';
               <!-- Botão eliminar foto -->
               <a href="?apagar_foto=<?= $foto['id'] ?>&local_id=<?= $gerir_id ?>"
                  style="position:absolute;top:.4rem;right:.4rem;background:#c0392b;color:#fff;
-                        border-radius:4px;padding:.2rem .45rem;font-size:.8rem;text-decoration:none;">
+                        border-radius:0;padding:.2rem .45rem;font-size:.8rem;text-decoration:none;">
                 <i class="fas fa-trash"></i>
               </a>
             </div>

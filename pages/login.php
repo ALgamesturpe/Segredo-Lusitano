@@ -143,7 +143,7 @@ include dirname(__DIR__) . '/includes/header.php';
       <!-- Termos e Condições -->
       <div class="form-group" style="margin-bottom:.75rem;">
         <input type="checkbox" id="aceitar-termos" name="aceitar_termos" style="display:none;">
-        <p style="font-size:.85rem;line-height:1.6;color:var(--texto-muted);">
+        <p style="font-size:.85rem;line-height:1.6;color:var(--texto-muted);margin:0;">
           <a href="#" onclick="document.getElementById('modal-termos').style.display='flex';return false;" class="form-link" style="font-weight:600;">Termos e Condições</a>
           &nbsp;&mdash; Li e aceito os termos. Compreendo que a visita a locais pode envolver riscos e que a entrada em propriedade privada é da responsabilidade exclusiva do utilizador. O Segredo Lusitano não se responsabiliza por qualquer dano, acidente ou invasão de propriedade.
         </p>
@@ -184,7 +184,7 @@ include dirname(__DIR__) . '/includes/header.php';
         <a href="#" onclick="verificarTermosParaSocial('<?= SITE_URL ?>/pages/github_redirect.php'); return false;"
            style="display:flex;align-items:center;justify-content:space-between;
                   width:300px;padding:.65rem 1rem;border:1.5px solid #d0d5dd;
-                  border-radius:4px;background:#fff;color:#1e1e1e;
+                  border-radius:0;background:#fff;color:#1e1e1e;
                   font-size:.9rem;font-weight:500;text-decoration:none;
                   transition:background .2s;">
           <div style="display:flex;align-items:center;gap:.65rem;">
@@ -209,16 +209,28 @@ include dirname(__DIR__) . '/includes/header.php';
 <?php if (GOOGLE_CLIENT_ID && GOOGLE_CLIENT_ID !== ''): ?>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script>
-let _pendingGoogleResponse = null;
+// Extrai o email do JWT do Google sem precisar de biblioteca externa
+function _decodeJwtEmail(credential) {
+  try {
+    const payload = JSON.parse(atob(credential.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')));
+    return (payload.email || '').toLowerCase().trim();
+  } catch(e) { return ''; }
+}
+
+window._pendingGoogleResponse = null;
 
 function handleGoogleSignIn(response) {
-  const termos = document.getElementById('aceitar-termos');
-  if (!termos || !termos.checked) {
-    _pendingGoogleResponse = response;
-    document.getElementById('modal-termos').style.display = 'flex';
+  const email = _decodeJwtEmail(response.credential);
+  // Se os termos já foram aceites para esta conta Google específica, faz login direto
+  if (email && _termosAceitesParaEmail(email)) {
+    _executarGoogleLogin(response);
     return;
   }
-  _executarGoogleLogin(response);
+  window._pendingGoogleResponse = response;
+  const msg = document.getElementById('google-msg');
+  msg.innerHTML = 'Para continuar, <a href="#" onclick="document.getElementById(\'modal-termos\').style.display=\'flex\';return false;" style="color:inherit;font-weight:700;text-decoration:underline;">lê e aceita os Termos e Condições</a>.';
+  msg.style.color = '#c0392b';
+  msg.style.display = 'block';
 }
 
 function _executarGoogleLogin(response) {
@@ -257,44 +269,63 @@ function verificarTermosParaSocial(url) {
 
 <!-- Modal Termos e Condições -->
 <div id="modal-termos" style="display:none;position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.55);align-items:center;justify-content:center;padding:1rem;">
-  <div style="background:#fff;border-radius:4px;max-width:560px;width:100%;max-height:82vh;display:flex;flex-direction:column;box-shadow:0 8px 32px rgba(0,0,0,.2);">
+  <div style="background:#fff;width:100%;max-width:600px;max-height:88vh;display:flex;flex-direction:column;box-shadow:0 8px 32px rgba(0,0,0,.2);">
 
-    <!-- Cabeçalho fixo -->
     <div style="display:flex;align-items:center;justify-content:space-between;padding:1.25rem 1.75rem;border-bottom:1px solid #e5e7eb;flex-shrink:0;">
-      <h3 style="font-size:1rem;font-weight:700;color:var(--verde-escuro);margin:0;letter-spacing:.01em;">Termos e Condições de Utilização</h3>
-      <button onclick="document.getElementById('modal-termos').style.display='none'" style="background:none;border:none;font-size:1.1rem;cursor:pointer;color:#9ca3af;line-height:1;padding:.2rem .4rem;">&#x2715;</button>
+      <h3 style="font-size:1rem;font-weight:700;color:var(--verde-escuro);margin:0;">Termos e Condições de Utilização</h3>
+      <button onclick="document.getElementById('modal-termos').style.display='none'" style="background:none;border:none;font-size:1.1rem;cursor:pointer;color:#9ca3af;padding:.2rem .4rem;">&#x2715;</button>
     </div>
 
-    <!-- Conteúdo com scroll — botão de aceite no fundo -->
-    <div style="overflow-y:auto;padding:1.5rem 1.75rem;flex:1;font-size:.875rem;line-height:1.8;color:#374151;">
+    <div style="overflow-y:auto;flex:1;padding:1.5rem 1.75rem;font-size:.85rem;line-height:1.75;color:#374151;">
 
-      <p style="margin-bottom:1.5rem;color:#6b7280;">Lê atentamente os seguintes termos antes de utilizares o Segredo Lusitano. Ao iniciares sessão, declaras ter lido e aceite todas as condições abaixo.</p>
+      <p style="margin:0 0 1.25rem;color:#6b7280;">Última atualização: <?= date('d/m/Y') ?>. Lê atentamente antes de utilizares a plataforma. O acesso implica a aceitação integral destes termos.</p>
 
-      <p style="font-weight:700;color:var(--verde-escuro);margin-bottom:.4rem;">1. Responsabilidade do Utilizador</p>
-      <p style="margin-bottom:1.5rem;">O utilizador assume total responsabilidade pelas suas ações durante a visita aos locais partilhados na plataforma. O Segredo Lusitano não se responsabiliza por quaisquer danos, perdas ou consequências legais resultantes dessas atividades.</p>
+      <p style="font-weight:700;margin:0 0 .3rem;">1. Aceitação dos Termos</p>
+      <p style="margin:0 0 1rem;">Ao criares conta ou iniciares sessão no Segredo Lusitano, declaras ter lido, compreendido e aceite os presentes Termos e Condições ("Termos"), bem como a nossa Política de Privacidade. Caso não concordes, deves abster-te de utilizar a plataforma. A aceitação é obrigatória e constitui um contrato vinculativo.</p>
 
-      <p style="font-weight:700;color:var(--verde-escuro);margin-bottom:.4rem;">2. Propriedade Privada</p>
-      <p style="margin-bottom:1.5rem;">Muitos locais partilhados podem estar em propriedade privada ou de acesso restrito. O Segredo Lusitano não incentiva, apoia nem se responsabiliza pela entrada em propriedade privada, reservas naturais protegidas ou quaisquer locais de acesso proibido. A responsabilidade é exclusivamente do utilizador.</p>
+      <p style="font-weight:700;margin:0 0 .3rem;">2. Elegibilidade e Registo</p>
+      <p style="margin:0 0 1rem;">O registo está disponível a maiores de 16 anos. Menores entre os 13 e os 15 anos necessitam do consentimento expresso do titular da responsabilidade parental, nos termos do art.º 8.º do RGPD (Reg. UE 2016/679) e da Lei n.º 58/2019. O utilizador compromete-se a fornecer informações verdadeiras, atualizadas e completas, e a manter a confidencialidade das suas credenciais de acesso. Cada pessoa singular pode deter apenas uma conta.</p>
 
-      <p style="font-weight:700;color:var(--verde-escuro);margin-bottom:.4rem;">3. Riscos e Segurança</p>
-      <p style="margin-bottom:1.5rem;">A visita a locais secretos pode envolver riscos físicos significativos. O utilizador deve sempre avaliar as condições do local, levar equipamento adequado e informar alguém da sua localização. O Segredo Lusitano não se responsabiliza por acidentes, danos físicos ou lesões de qualquer natureza.</p>
+      <p style="font-weight:700;margin:0 0 .3rem;">3. Conteúdo Gerado pelo Utilizador</p>
+      <p style="margin:0 0 1rem;">O utilizador é o único responsável pelo conteúdo que publica (locais, fotografias, comentários e descrições). Ao partilhares conteúdo, concedes ao Segredo Lusitano uma licença não exclusiva, gratuita e mundial para o exibir, reproduzir e distribuir na plataforma. Garantes que és titular dos direitos sobre esse conteúdo ou tens autorização para o partilhar. É expressamente proibido publicar conteúdo falso, enganoso, difamatório, que viole direitos de terceiros ou que incentive atividades ilegais.</p>
 
-      <p style="font-weight:700;color:var(--verde-escuro);margin-bottom:.4rem;">4. Conteúdo Partilhado</p>
-      <p style="margin-bottom:1.5rem;">O utilizador é o único responsável pelo conteúdo que partilha na plataforma. Não é permitida a partilha de locais que incentivem atividades ilegais, perigosas ou que violem direitos de terceiros.</p>
+      <p style="font-weight:700;margin:0 0 .3rem;">4. Propriedade Privada e Legalidade</p>
+      <p style="margin:0 0 1rem;">O Segredo Lusitano não verifica a legalidade do acesso aos locais publicados. Muitos locais podem situar-se em propriedade privada ou de acesso condicionado. O utilizador é exclusivamente responsável por verificar e cumprir as disposições legais aplicáveis, nomeadamente o regime da violação de domicílio e perturbação da vida privada (art.os 190.º e 192.º do Código Penal) e as normas de acesso a reservas naturais e zonas protegidas. O Segredo Lusitano não incentiva, apoia, nem se responsabiliza por qualquer violação de propriedade privada ou de normas de acesso.</p>
 
-      <p style="font-weight:700;color:var(--verde-escuro);margin-bottom:.4rem;">5. Aceitação</p>
-      <p style="margin-bottom:2rem;">Ao utilizar esta plataforma, o utilizador declara ter lido, compreendido e aceite estes termos na íntegra. O Segredo Lusitano reserva-se o direito de atualizar estes termos sem aviso prévio.</p>
+      <p style="font-weight:700;margin:0 0 .3rem;">5. Riscos e Isenção de Responsabilidade por Segurança</p>
+      <p style="margin:0 0 1rem;">A prática de atividades ao ar livre e a visita a locais remotos ou de difícil acesso envolve riscos físicos inerentes, incluindo quedas, condições climatéricas adversas, afogamento e outros perigos. O utilizador assume esses riscos na totalidade. O Segredo Lusitano não se responsabiliza por acidentes, lesões, morte, danos materiais ou qualquer outra consequência resultante da visita a locais partilhados na plataforma. Recomendamos que informes alguém da tua localização, levas equipamento adequado e avalias as condições antes de qualquer visita.</p>
 
-      <!-- Botão de aceite — apenas visível após scroll -->
-      <div style="border-top:1px solid #e5e7eb;padding-top:1.25rem;display:flex;justify-content:flex-end;gap:.75rem;">
-        <button onclick="document.getElementById('modal-termos').style.display='none'"
-                style="background:none;border:1px solid #d1d5db;border-radius:4px;padding:.55rem 1.1rem;cursor:pointer;font-size:.875rem;color:#6b7280;">
-          Fechar
-        </button>
-        <button onclick="aceitarTermos()" class="btn btn-primary btn-sm">
-          <i class="fas fa-check"></i> Li e Aceito os Termos
-        </button>
-      </div>
+      <p style="font-weight:700;margin:0 0 .3rem;">6. Proteção de Dados Pessoais (RGPD)</p>
+      <p style="margin:0 0 1rem;">Os teus dados pessoais são tratados em conformidade com o Regulamento Geral sobre a Proteção de Dados (RGPD) e a Lei n.º 58/2019. Os dados recolhidos (nome, email, localização de publicações) destinam-se exclusivamente ao funcionamento da plataforma. Tens direito de acesso, retificação, apagamento, portabilidade e oposição ao tratamento. Para exerceres esses direitos, podes apagar a tua conta em Perfil → Zona de Perigo, ou contactar-nos através dos meios disponíveis na plataforma.</p>
+
+      <p style="font-weight:700;margin:0 0 .3rem;">7. Conduta Proibida</p>
+      <p style="margin:0 0 1rem;">É estritamente proibido: (a) publicar conteúdo que incite à prática de crimes ou violência; (b) fazer-se passar por outra pessoa ou entidade; (c) tentar obter acesso não autorizado à plataforma; (d) usar meios automatizados (bots, scrapers) sem autorização; (e) assediar, ameaçar ou discriminar outros utilizadores. O incumprimento pode resultar na suspensão imediata da conta e, se aplicável, participação às autoridades competentes.</p>
+
+      <p style="font-weight:700;margin:0 0 .3rem;">8. Limitação de Responsabilidade</p>
+      <p style="margin:0 0 1rem;">A plataforma é disponibilizada "tal como está". O Segredo Lusitano não garante a exatidão, integridade ou atualidade da informação publicada pelos utilizadores, e não se responsabiliza por danos diretos, indiretos, incidentais ou consequentes resultantes do uso da plataforma ou da visita a locais nela partilhados, na máxima extensão permitida pela lei portuguesa.</p>
+
+      <p style="font-weight:700;margin:0 0 .3rem;">9. Propriedade Intelectual</p>
+      <p style="margin:0 0 1rem;">O código, design, logótipo e demais elementos da plataforma são propriedade dos seus criadores e estão protegidos pela legislação de direitos de autor e propriedade intelectual. É proibida a reprodução total ou parcial sem autorização expressa.</p>
+
+      <p style="font-weight:700;margin:0 0 .3rem;">10. Suspensão e Rescisão</p>
+      <p style="margin:0 0 1rem;">O Segredo Lusitano reserva-se o direito de suspender ou encerrar contas que violem estes Termos, sem aviso prévio e sem qualquer responsabilidade. O utilizador pode apagar a sua conta a qualquer momento através do respetivo perfil.</p>
+
+      <p style="font-weight:700;margin:0 0 .3rem;">11. Alterações aos Termos</p>
+      <p style="margin:0 0 1rem;">O Segredo Lusitano pode atualizar estes Termos a qualquer momento. A data de "última atualização" será revista em conformidade. A continuação da utilização da plataforma após a publicação de alterações constitui aceitação das mesmas.</p>
+
+      <p style="font-weight:700;margin:0 0 .3rem;">12. Lei Aplicável e Foro</p>
+      <p style="margin:0 0 0;">Estes Termos são regidos pela lei portuguesa. Para a resolução de quaisquer litígios emergentes da interpretação ou execução dos presentes Termos, é competente o foro da comarca de Lisboa, com expressa renúncia a qualquer outro.</p>
+
+    </div>
+
+    <div style="padding:1rem 1.75rem;border-top:1px solid #e5e7eb;display:flex;justify-content:flex-end;gap:.75rem;flex-shrink:0;">
+      <button onclick="document.getElementById('modal-termos').style.display='none'"
+              style="background:none;border:1px solid #d1d5db;padding:.55rem 1.1rem;cursor:pointer;font-size:.85rem;color:#6b7280;">
+        Fechar
+      </button>
+      <button onclick="aceitarTermos()" class="btn btn-primary btn-sm">
+        <i class="fas fa-check"></i> Li e Aceito os Termos
+      </button>
     </div>
 
   </div>
@@ -324,8 +355,16 @@ function aceitarTermos() {
   document.getElementById('aceitar-termos').checked = true;
   document.getElementById('btn-entrar').disabled = false;
 
-  // Guardar por email se preenchido; caso contrário guarda chave social
-  const email = (document.getElementById('email')?.value || '').trim();
+  // Para Google: extrai o email do JWT para guardar a aceitação por conta
+  // Para os outros: usa o campo de email do formulário
+  let email = '';
+  if (window._pendingGoogleResponse) {
+    email = _decodeJwtEmail(window._pendingGoogleResponse.credential);
+  }
+  if (!email) {
+    email = (document.getElementById('email')?.value || '').trim();
+  }
+
   const key = _termosKey(email) || 'termos_aceites_social';
   localStorage.setItem(key, '1');
 

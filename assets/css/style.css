@@ -105,7 +105,7 @@ main { flex: 1; }
 .nav-links a.active { background: rgba(201,168,76,.15); color: var(--dourado); }
 
 .btn-nav-login { border: 1px solid rgba(201,168,76,.5) !important; color: var(--dourado-claro) !important; }
-.btn-nav-register { background: var(--dourado) !important; color: var(--verde-escuro) !important; font-weight: 600 !important; border-radius: 2px !important; }
+.btn-nav-register { background: var(--dourado) !important; color: var(--verde-escuro) !important; font-weight: 600 !important; border-radius: 0 !important; }
 .btn-nav-register:hover { background: var(--dourado-claro) !important; }
 
 .nav-profile-link {
@@ -224,7 +224,7 @@ main { flex: 1; }
 /* ============================================================
    BOTÕES
    ============================================================ */
-.btn { display: inline-flex; align-items: center; gap: .5rem; padding: .75rem 1.75rem; border-radius: 2px; font-size: .95rem; font-weight: 600; transition: all var(--transition); cursor: pointer; letter-spacing: .02em; }
+.btn { display: inline-flex; align-items: center; gap: .5rem; padding: .75rem 1.75rem; border-radius: 0; font-size: .95rem; font-weight: 600; transition: all var(--transition); cursor: pointer; letter-spacing: .02em; }
 .btn-primary { background: var(--dourado); color: var(--verde-escuro); }
 .btn-primary:hover { background: var(--dourado-claro); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(201,168,76,.35); }
 .btn-outline { border: 2px solid rgba(245,239,230,.5); color: var(--creme); }
@@ -292,7 +292,7 @@ main { flex: 1; }
    PAGINAÇÃO
    ============================================================ */
 .pagination { display: flex; gap: .5rem; justify-content: center; margin-top: 2.5rem; flex-wrap: wrap; }
-.pagination a, .pagination span { display: flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 4px; font-size: .9rem; font-weight: 600; border: 1.5px solid var(--creme-escuro); color: var(--texto-muted); transition: all var(--transition); }
+.pagination a, .pagination span { display: flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 0; font-size: .9rem; font-weight: 600; border: 1.5px solid var(--creme-escuro); color: var(--texto-muted); transition: all var(--transition); }
 .pagination a:hover { border-color: var(--verde); color: var(--verde); }
 .pagination .current { background: var(--verde); color: #fff; border-color: var(--verde); }
 
@@ -329,7 +329,7 @@ main { flex: 1; }
 .galeria-item { border-radius: var(--radius); overflow: hidden; aspect-ratio: 4/3; }
 .galeria-item img { width: 100%; height: 100%; object-fit: cover; transition: none; transform: none; }
 .galeria-item:hover img { transform: none; }
-.like-btn { display: inline-flex; align-items: center; gap: .5rem; padding: .6rem 1.25rem; border-radius: 4px; border: 2px solid #e74c3c; color: #e74c3c; font-weight: 700; font-size: .95rem; transition: all var(--transition); }
+.like-btn { display: inline-flex; align-items: center; gap: .5rem; padding: .6rem 1.25rem; border-radius: 0; border: 2px solid #e74c3c; color: #e74c3c; font-weight: 700; font-size: .95rem; transition: all var(--transition); }
 .like-btn.liked, .like-btn:hover { background: #e74c3c; color: #fff; }
 .comentario { display: flex; gap: 1rem; padding: 1rem 0; border-bottom: 1px solid var(--creme-escuro); }
 .comentario:last-child { border-bottom: none; }
@@ -521,7 +521,7 @@ main { flex: 1; }
     align-items: center !important;
     gap: .6rem !important;
     padding: .75rem .9rem !important;
-    border-radius: 4px !important;
+    border-radius: 0 !important;
     font-size: .95rem !important;
     color: var(--creme) !important;
     width: 100% !important;
@@ -544,7 +544,7 @@ main { flex: 1; }
     width: 100% !important;
     color: var(--creme) !important;
     justify-content: flex-start !important;
-    border-radius: 4px !important;
+    border-radius: 0 !important;
   }
 
   .dropdown-menu {
@@ -572,7 +572,7 @@ main { flex: 1; }
     display: flex !important;
     width: 100% !important;
     padding: .75rem .9rem !important;
-    border-radius: 4px !important;
+    border-radius: 0 !important;
     font-size: .95rem !important;
     justify-content: flex-start !important;
   }

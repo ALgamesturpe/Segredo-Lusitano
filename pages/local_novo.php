@@ -56,57 +56,78 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-$page_title = 'Partilhar Local';
+$page_title    = 'Partilhar Local';
+$extra_head    = '<style>
+  .novo-local-grid { display:grid; grid-template-columns:1fr 1fr; gap:2rem; align-items:start; }
+  .novo-local-map-col { position:sticky; top:calc(var(--nav-h) + 1rem); }
+  @media (max-width:900px) {
+    .novo-local-grid { grid-template-columns:1fr; }
+    .novo-local-map-col { position:static; }
+  }
+</style>';
 $extra_scripts = '<script>const SITE_URL="' . SITE_URL . '"; document.addEventListener("DOMContentLoaded", initMiniMap);</script>';
 include dirname(__DIR__) . '/includes/header.php';
 ?>
 
 <div class="page-content">
 <section class="section">
-  <div class="container" style="max-width:820px;">
-    <div class="section-header">
-      <span class="label">Contribuir</span>
-      <h2>Partilhar um Segredo</h2>
-      <p>Ajuda a comunidade a descobrir locais únicos de Portugal.</p>
+  <div class="container" style="max-width:1060px;">
+
+    <!-- Cabeçalho alinhado à esquerda -->
+    <div style="margin-bottom:2rem;">
+      <span class="label">Partilhar · Novo Segredo</span>
+      <h2 style="font-size:clamp(1.8rem,4vw,2.6rem);margin-bottom:.5rem;color:var(--verde-escuro);text-align:left;">Adiciona um local ao arquivo.</h2>
+      <p style="color:var(--texto-muted);margin:0;">Cada submissão dá +<?= PONTOS_LOCAL ?> pontos. Cada gosto e comentário recebido também conta.</p>
     </div>
 
-    <div style="background:var(--branco); border-radius:var(--radius-lg); padding:2.5rem; box-shadow:var(--sombra-md);">
-      <form method="POST" enctype="multipart/form-data" novalidate>
+    <form method="POST" enctype="multipart/form-data" novalidate>
 
-        <!-- Nome -->
-        <div class="form-group">
-          <label for="nome">Nome do Local</label>
-          <input type="text" id="nome" name="nome" value="<?= h($_POST['nome'] ?? '') ?>"
-                 placeholder="Ex: Cascata da Pedra Furada" required maxlength="150">
-          <?php if (isset($erros['nome'])): ?><div class="form-error"><?= h($erros['nome']) ?></div><?php endif; ?>
-        </div>
+      <!-- Coordenadas hidden — preenchidas pelo JS do mapa -->
+      <input type="hidden" id="latitude"  name="latitude"  value="<?= h($_POST['latitude']  ?? '') ?>">
+      <input type="hidden" id="longitude" name="longitude" value="<?= h($_POST['longitude'] ?? '') ?>">
 
-        <!-- Categoria + Região + Dificuldade -->
-        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:1rem;">
+      <div class="novo-local-grid">
+
+        <!-- ── COLUNA ESQUERDA: campos ── -->
+        <div style="background:var(--branco);padding:2rem;box-shadow:var(--sombra-md);">
+
+          <!-- Nome -->
           <div class="form-group">
-            <label for="categoria_id">Categoria</label>
-            <select id="categoria_id" name="categoria_id" required>
-              <option value="">-- Seleciona --</option>
-              <?php foreach ($categorias as $c): ?>
-                <option value="<?= $c['id'] ?>" <?= ($_POST['categoria_id'] ?? '') == $c['id'] ? 'selected' : '' ?>>
-                  <?= h($c['nome']) ?>
-                </option>
-              <?php endforeach; ?>
-            </select>
-            <?php if (isset($erros['categoria_id'])): ?><div class="form-error"><?= h($erros['categoria_id']) ?></div><?php endif; ?>
+            <label for="nome">Nome do Local</label>
+            <input type="text" id="nome" name="nome" value="<?= h($_POST['nome'] ?? '') ?>"
+                   placeholder="Ex: Cascata da Pedra Furada" required maxlength="150">
+            <?php if (isset($erros['nome'])): ?><div class="form-error"><?= h($erros['nome']) ?></div><?php endif; ?>
           </div>
-          <div class="form-group">
-            <label for="regiao_id">Região</label>
-            <select id="regiao_id" name="regiao_id" required>
-              <option value="">-- Seleciona --</option>
-              <?php foreach ($regioes as $r): ?>
-                <option value="<?= $r['id'] ?>" <?= ($_POST['regiao_id'] ?? '') == $r['id'] ? 'selected' : '' ?>>
-                  <?= h($r['nome']) ?>
-                </option>
-              <?php endforeach; ?>
-            </select>
-            <?php if (isset($erros['regiao_id'])): ?><div class="form-error"><?= h($erros['regiao_id']) ?></div><?php endif; ?>
+
+          <!-- Região + Categoria -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+            <div class="form-group">
+              <label for="regiao_id">Região</label>
+              <select id="regiao_id" name="regiao_id" required>
+                <option value="">-- Seleciona --</option>
+                <?php foreach ($regioes as $r): ?>
+                  <option value="<?= $r['id'] ?>" <?= ($_POST['regiao_id'] ?? '') == $r['id'] ? 'selected' : '' ?>>
+                    <?= h($r['nome']) ?>
+                  </option>
+                <?php endforeach; ?>
+              </select>
+              <?php if (isset($erros['regiao_id'])): ?><div class="form-error"><?= h($erros['regiao_id']) ?></div><?php endif; ?>
+            </div>
+            <div class="form-group">
+              <label for="categoria_id">Categoria</label>
+              <select id="categoria_id" name="categoria_id" required>
+                <option value="">-- Seleciona --</option>
+                <?php foreach ($categorias as $c): ?>
+                  <option value="<?= $c['id'] ?>" <?= ($_POST['categoria_id'] ?? '') == $c['id'] ? 'selected' : '' ?>>
+                    <?= h($c['nome']) ?>
+                  </option>
+                <?php endforeach; ?>
+              </select>
+              <?php if (isset($erros['categoria_id'])): ?><div class="form-error"><?= h($erros['categoria_id']) ?></div><?php endif; ?>
+            </div>
           </div>
+
+          <!-- Dificuldade -->
           <div class="form-group">
             <label for="dificuldade">Dificuldade</label>
             <select id="dificuldade" name="dificuldade">
@@ -115,58 +136,57 @@ include dirname(__DIR__) . '/includes/header.php';
               <option value="dificil" <?= ($_POST['dificuldade'] ?? '') === 'dificil' ? 'selected' : '' ?>>Difícil</option>
             </select>
           </div>
-        </div>
 
-        <!-- Foto (esquerda) + Mapa (direita) -->
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; margin-bottom:1.25rem;">
-          <!-- Foto Capa -->
-          <div class="form-group" style="margin:0;">
+          <!-- Foto de Capa -->
+          <div class="form-group">
             <label>Foto de Capa</label>
-            <div class="upload-area" data-input-id="foto_capa" style="height:320px;display:flex;flex-direction:column;align-items:center;justify-content:center;">
-              <i class="fas fa-image upload-icon" style="font-size:2.5rem;color:var(--verde-claro);margin-bottom:.75rem;display:block;"></i>
-              <p class="upload-label" style="font-weight:500;margin-bottom:.25rem;">Clica ou arrasta a foto aqui</p>
+            <div class="upload-area" data-input-id="foto_capa" style="padding:1.25rem;">
+              <i class="fas fa-image upload-icon" style="font-size:2rem;color:var(--verde-claro);margin-bottom:.5rem;display:block;"></i>
+              <p class="upload-label" style="font-weight:500;margin:0 0 .2rem;">Clica ou arrasta a foto aqui</p>
               <small style="color:var(--texto-muted);">JPG, PNG ou WebP &middot; Máx. 5MB</small>
             </div>
             <input type="file" id="foto_capa" name="foto_capa" accept="image/*" style="display:none;">
             <?php if (isset($erros['foto'])): ?><div class="form-error"><?= h($erros['foto']) ?></div><?php endif; ?>
           </div>
 
-          <!-- Mapa -->
-          <div class="form-group" style="margin:0;">
-            <label><i class="fas fa-map-pin"></i> Localização no Mapa <span style="font-weight:400;color:var(--texto-muted);font-size:.82rem;">Clica no mapa para marcar</span></label>
-            <?php if (isset($erros['coords'])): ?><div class="form-error" style="margin-bottom:.5rem;"><?= h($erros['coords']) ?></div><?php endif; ?>
-            <div style="margin-bottom:.5rem;">
-              <button type="button" id="btn-geolocalizacao" class="btn btn-sm btn-verde">
-                <i class="fas fa-crosshairs"></i> Localização Atual
-              </button>
-            </div>
-            <div id="mini-map" style="height:280px; border-radius:var(--radius); border:1.5px solid var(--creme-escuro);"></div>
-            <input type="hidden" id="latitude" name="latitude" value="<?= h($_POST['latitude'] ?? '') ?>">
-            <input type="hidden" id="longitude" name="longitude" value="<?= h($_POST['longitude'] ?? '') ?>">
+          <!-- Descrição -->
+          <div class="form-group">
+            <label for="descricao">Descrição
+              <span style="font-weight:400;color:var(--texto-muted);font-size:.82rem;" data-counter-for="descricao">0/2000</span>
+            </label>
+            <textarea id="descricao" name="descricao" rows="5" data-maxlength="2000"
+                      placeholder="Descreve o local, como chegar lá, o que ver, a melhor época para visitar..."><?= h($_POST['descricao'] ?? '') ?></textarea>
+            <?php if (isset($erros['descricao'])): ?><div class="form-error"><?= h($erros['descricao']) ?></div><?php endif; ?>
+          </div>
+
+          <?php if (isset($erros['coords'])): ?><div class="form-error" style="margin-bottom:1rem;"><?= h($erros['coords']) ?></div><?php endif; ?>
+
+          <!-- Botões -->
+          <div style="display:flex;gap:1rem;margin-top:.5rem;">
+            <button type="submit" class="btn btn-primary" style="flex:1;justify-content:center;">
+              <i class="fas fa-paper-plane"></i> Submeter Local
+            </button>
+            <a href="<?= SITE_URL ?>/pages/explorar.php" class="btn" style="border:1px solid var(--creme-escuro);color:var(--texto-muted);">
+              Cancelar
+            </a>
           </div>
         </div>
 
-        <!-- Descrição (último campo) -->
-        <div class="form-group">
-          <label for="descricao">Descrição
-            <span style="font-weight:400;color:var(--texto-muted);font-size:.82rem;" data-counter-for="descricao">0/2000</span>
-          </label>
-          <textarea id="descricao" name="descricao" rows="5" data-maxlength="2000"
-                    placeholder="Descreve o local, como chegar lá, o que ver, a melhor época para visitar..."><?= h($_POST['descricao'] ?? '') ?></textarea>
-          <?php if (isset($erros['descricao'])): ?><div class="form-error"><?= h($erros['descricao']) ?></div><?php endif; ?>
+        <!-- ── COLUNA DIREITA: mapa ── -->
+        <div class="novo-local-map-col">
+          <div style="background:var(--branco);padding:1.25rem;box-shadow:var(--sombra-md);margin-bottom:1rem;">
+            <p style="font-size:.85rem;font-weight:600;margin:0 0 .75rem;color:var(--texto);">
+              <i class="fas fa-map-pin" style="color:var(--verde);margin-right:.35rem;"></i>Localização (Clica no mapa)
+            </p>
+            <button type="button" id="btn-geolocalizacao" class="btn btn-sm btn-verde" style="width:100%;justify-content:center;">
+              <i class="fas fa-crosshairs"></i> Usar Localização Atual
+            </button>
+          </div>
+          <div id="mini-map" style="height:460px;border:1.5px solid var(--creme-escuro);overflow:hidden;"></div>
         </div>
 
-        <div style="display:flex; gap:1rem; margin-top:1rem;">
-          <button type="submit" class="btn btn-primary" style="flex:1; justify-content:center;">
-            <i class="fas fa-paper-plane"></i> Submeter Local
-          </button>
-          <a href="<?= SITE_URL ?>/pages/explorar.php" class="btn" style="border:1px solid var(--creme-escuro);color:var(--texto-muted);">
-            Cancelar
-          </a>
-        </div>
-
-      </form>
-    </div>
+      </div>
+    </form>
   </div>
 </section>
 </div>
