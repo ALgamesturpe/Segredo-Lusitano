@@ -58,11 +58,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 $page_title    = 'Partilhar Local';
 $extra_head    = '<style>
-  .novo-local-grid { display:grid; grid-template-columns:1fr 1fr; gap:2rem; align-items:start; }
-  .novo-local-map-col { position:sticky; top:calc(var(--nav-h) + 1rem); }
+  .novo-local-grid { display:grid; grid-template-columns:1fr 380px; gap:2rem; align-items:start; }
+  .novo-local-map-col {
+    position:sticky;
+    top:calc(var(--nav-h) + 1rem);
+    height:calc(100vh - var(--nav-h) - 2rem);
+    display:flex;
+    flex-direction:column;
+  }
+  #mini-map { flex:1; min-height:180px; }
   @media (max-width:900px) {
     .novo-local-grid { grid-template-columns:1fr; }
-    .novo-local-map-col { position:static; }
+    .novo-local-map-col { position:static; height:auto; }
+    #mini-map { height:320px; }
   }
 </style>';
 $extra_scripts = '<script>const SITE_URL="' . SITE_URL . '"; document.addEventListener("DOMContentLoaded", initMiniMap);</script>';
@@ -165,7 +173,7 @@ include dirname(__DIR__) . '/includes/header.php';
 
         <!-- ── COLUNA DIREITA: mapa (sticky) ── -->
         <div class="novo-local-map-col">
-          <div style="background:var(--branco);padding:1.25rem;box-shadow:var(--sombra-md);margin-bottom:1rem;">
+          <div style="background:var(--branco);padding:1.25rem;box-shadow:var(--sombra-md);margin-bottom:1rem;flex-shrink:0;">
             <p style="font-size:.85rem;font-weight:600;margin:0 0 .75rem;color:var(--texto);">
               <i class="fas fa-map-pin" style="color:var(--verde);margin-right:.35rem;"></i>Localização (Clica no mapa)
             </p>
@@ -173,9 +181,9 @@ include dirname(__DIR__) . '/includes/header.php';
               <i class="fas fa-crosshairs"></i> Usar Localização Atual
             </button>
           </div>
-          <div id="mini-map" style="height:360px;border:1.5px solid var(--creme-escuro);overflow:hidden;"></div>
-          <!-- Botões ficam aqui na coluna sticky — sempre visíveis sem scroll -->
-          <div style="display:flex;gap:1rem;margin-top:1rem;">
+          <div id="mini-map" style="border:1.5px solid var(--creme-escuro);overflow:hidden;"></div>
+          <!-- Botões sempre visíveis no fundo da coluna sticky -->
+          <div style="display:flex;gap:1rem;margin-top:1rem;flex-shrink:0;">
             <button type="submit" class="btn btn-primary" style="flex:1;justify-content:center;">
               <i class="fas fa-paper-plane"></i> Submeter Local
             </button>
