@@ -55,7 +55,7 @@ include dirname(__DIR__) . '/includes/header.php';
   <div class="container">
 
     <!-- Barra de pesquisa de utilizadores -->
-    <div style="background:var(--branco);border-radius:var(--radius-lg);padding:1.25rem 1.5rem;box-shadow:var(--sombra-sm);margin-bottom:2rem;">
+    <div style="padding:.75rem 0;margin-bottom:2rem;border-bottom:1px solid var(--creme-escuro);">
       <form method="GET" style="display:flex;align-items:center;gap:.75rem;">
         <div style="display:flex;align-items:center;gap:.5rem;flex:1;background:var(--creme);
                     border:1.5px solid var(--creme-escuro);border-radius:3px;padding:.45rem .85rem;
@@ -72,7 +72,7 @@ include dirname(__DIR__) . '/includes/header.php';
           <a href="<?= SITE_URL ?>/pages/feed.php"
              style="padding:.5rem .85rem;border:1.5px solid var(--creme-escuro);border-radius:3px;
                     color:var(--texto-muted);font-size:.85rem;text-decoration:none;white-space:nowrap;">
-            <i class="fas fa-times"></i> Limpar
+            Limpar
           </a>
         <?php endif; ?>
         <button type="submit" class="btn btn-sm btn-verde" style="white-space:nowrap;">
@@ -94,7 +94,7 @@ include dirname(__DIR__) . '/includes/header.php';
         <div style="display:flex;flex-direction:column;gap:.75rem;margin-bottom:2.5rem;">
           <?php foreach ($resultados_pesquisa as $u): ?>
             <div style="background:var(--branco);border-radius:var(--radius-lg);padding:1rem 1.25rem;
-                        box-shadow:var(--sombra-sm);display:flex;align-items:center;gap:1rem;flex-wrap:wrap;">
+                        display:flex;align-items:center;gap:1rem;flex-wrap:wrap;">
               <!-- Avatar -->
               <a href="<?= SITE_URL ?>/pages/perfil.php?id=<?= $u['id'] ?>"
                  style="width:48px;height:48px;border-radius:50%;background:var(--verde-claro);color:#fff;

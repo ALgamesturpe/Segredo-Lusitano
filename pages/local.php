@@ -368,7 +368,7 @@ include dirname(__DIR__) . '/includes/header.php';
           <div id="mini-map-detalhe" style="height:220px;border-radius:var(--radius-lg);"></div>
           <button onclick="<?= $user ? 'abrirMapaFullscreen()' : 'mostrarAvisoLogin(\'Precisas de iniciar sessão para expandir o mapa.\', \'' . SITE_URL . '/pages/login.php\')' ?>"
                   style="position:absolute;top:.6rem;right:.6rem;z-index:999;background:var(--verde-escuro);color:#fff;border:none;
-                         border-radius:3px;padding:.4rem .65rem;cursor:pointer;font-size:.8rem;display:flex;align-items:center;gap:.35rem;box-shadow:0 2px 8px rgba(0,0,0,.3);">
+                         border-radius:3px;padding:.4rem .65rem;cursor:pointer;font-size:.8rem;display:flex;align-items:center;gap:.35rem;">
             <i class="fas fa-expand"></i> Expandir
           </button>
           <div id="mapa-estado" style="position:absolute;bottom:.6rem;left:.6rem;z-index:999;

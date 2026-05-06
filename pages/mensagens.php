@@ -144,7 +144,7 @@ include dirname(__DIR__) . '/includes/header.php';
               <button class="btn-msg-opts"
                       style="display:none;background:var(--branco);color:var(--texto-muted);border:1px solid var(--creme-escuro);
                              border-radius:50%;width:26px;height:26px;cursor:pointer;font-size:.72rem;
-                             align-items:center;justify-content:center;box-shadow:var(--sombra-sm);">
+                             align-items:center;justify-content:center;">
                 <i class="fas fa-ellipsis-v"></i>
               </button>
             </div>
@@ -152,7 +152,7 @@ include dirname(__DIR__) . '/includes/header.php';
 
             <div style="max-width:70%;background:<?= $propria ? 'var(--verde)' : 'var(--branco)' ?>;color:<?= $propria ? '#fff' : 'var(--texto)' ?>;
                         padding:.65rem 1rem;border-radius:<?= $propria ? '18px 18px 4px 18px' : '18px 18px 18px 4px' ?>;
-                        box-shadow:var(--sombra-sm);font-size:.92rem;line-height:1.5;word-break:break-word;">
+                        font-size:.92rem;line-height:1.5;word-break:break-word;">
               <?php if ($isImg): ?>
                 <img src="<?= SITE_URL ?>/uploads/mensagens/<?= h($msg['ficheiro']) ?>"
                      style="max-width:220px;border-radius:8px;display:block;cursor:pointer;"
@@ -176,7 +176,7 @@ include dirname(__DIR__) . '/includes/header.php';
               <button class="btn-msg-opts"
                       style="display:none;background:var(--branco);color:var(--texto-muted);border:1px solid var(--creme-escuro);
                              border-radius:50%;width:26px;height:26px;cursor:pointer;font-size:.72rem;
-                             align-items:center;justify-content:center;box-shadow:var(--sombra-sm);">
+                             align-items:center;justify-content:center;">
                 <i class="fas fa-ellipsis-v"></i>
               </button>
             </div>
@@ -399,7 +399,7 @@ function criarWrapper(msgId, propria, innerHtml) {
   btnOpts.innerHTML = '<i class="fas fa-ellipsis-v"></i>';
   btnOpts.style.cssText = `display:none;background:var(--branco);color:var(--texto-muted);
       border:1px solid var(--creme-escuro);border-radius:50%;width:26px;height:26px;
-      cursor:pointer;font-size:.72rem;align-items:center;justify-content:center;box-shadow:var(--sombra-sm);`;
+      cursor:pointer;font-size:.72rem;align-items:center;justify-content:center;`;
   btnOpts.addEventListener('click', (e) => { e.stopPropagation(); toggleMenu(btnOpts, msgId); });
   optsWrap.appendChild(btnOpts);
 
@@ -407,7 +407,7 @@ function criarWrapper(msgId, propria, innerHtml) {
   bubble.style.cssText = `max-width:70%;background:${propria ? 'var(--verde)' : 'var(--branco)'};
       color:${propria ? '#fff' : 'var(--texto)'};padding:.65rem 1rem;
       border-radius:${propria ? '18px 18px 4px 18px' : '18px 18px 18px 4px'};
-      box-shadow:var(--sombra-sm);font-size:.92rem;line-height:1.5;word-break:break-word;`;
+      font-size:.92rem;line-height:1.5;word-break:break-word;`;
   bubble.innerHTML = innerHtml;
 
   wrapper.addEventListener('mouseenter', () => btnOpts.style.display = 'flex');
