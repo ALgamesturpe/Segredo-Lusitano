@@ -5,7 +5,8 @@
       "Bash(mysql -u root -e \"ALTER TABLE locais ADD COLUMN apagado_em DATETIME DEFAULT NULL;\" Segredo_Lusitano)",
       "PowerShell(& \"C:\\\\wamp64\\\\bin\\\\mysql\\\\mysql8.0.31\\\\bin\\\\mysql.exe\" -u root -e \"ALTER TABLE locais ADD COLUMN apagado_em DATETIME DEFAULT NULL;\" Segredo_Lusitano 2>&1)",
       "PowerShell(& \"C:\\\\wamp64\\\\bin\\\\mysql\\\\mysql9.1.0\\\\bin\\\\mysql.exe\" -u root -e \"ALTER TABLE locais ADD COLUMN apagado_em DATETIME DEFAULT NULL;\" Segredo_Lusitano 2>&1)",
-      "PowerShell(& \"C:\\\\wamp64\\\\bin\\\\mysql\\\\mysql9.1.0\\\\bin\\\\mysql.exe\" -u root -p123456 -e \"ALTER TABLE locais ADD COLUMN apagado_em DATETIME DEFAULT NULL;\" segredo_lusitano 2>&1)"
+      "PowerShell(& \"C:\\\\wamp64\\\\bin\\\\mysql\\\\mysql9.1.0\\\\bin\\\\mysql.exe\" -u root -p123456 -e \"ALTER TABLE locais ADD COLUMN apagado_em DATETIME DEFAULT NULL;\" segredo_lusitano 2>&1)",
+      "Bash(Get-ChildItem -Path \"c:\\\\wamp64\\\\www\\\\PAP\\\\Segredo-Lusitano\" -Recurse -File)"
     ]
   }
 }

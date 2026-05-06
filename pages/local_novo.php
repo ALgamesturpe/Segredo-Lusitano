@@ -58,18 +58,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 $page_title    = 'Partilhar Local';
 $extra_head    = '<style>
-  .novo-local-grid { display:grid; grid-template-columns:1fr 380px; gap:2rem; align-items:start; }
+  .novo-local-grid { display:grid; grid-template-columns:1fr 400px; gap:3rem; align-items:start; }
   .novo-local-map-col {
     position:sticky;
     top:calc(var(--nav-h) + 1rem);
-    height:calc(100vh - var(--nav-h) - 2rem);
     display:flex;
     flex-direction:column;
   }
-  #mini-map { flex:1; min-height:180px; }
+  #mini-map { height:420px; }
   @media (max-width:900px) {
     .novo-local-grid { grid-template-columns:1fr; }
-    .novo-local-map-col { position:static; height:auto; }
+    .novo-local-map-col { position:static; }
     #mini-map { height:320px; }
   }
 </style>';
@@ -169,11 +168,21 @@ include dirname(__DIR__) . '/includes/header.php';
 
           <?php if (isset($erros['coords'])): ?><div class="form-error" style="margin-bottom:1rem;"><?= h($erros['coords']) ?></div><?php endif; ?>
 
+          <!-- Botões por baixo da descrição -->
+          <div style="display:flex;gap:1rem;margin-top:.5rem;">
+            <button type="submit" class="btn btn-primary" style="flex:1;justify-content:center;">
+              <i class="fas fa-paper-plane"></i> Submeter Local
+            </button>
+            <a href="<?= SITE_URL ?>/pages/explorar.php" class="btn" style="border:1px solid var(--creme-escuro);color:var(--texto-muted);">
+              Cancelar
+            </a>
+          </div>
+
         </div>
 
         <!-- ── COLUNA DIREITA: mapa (sticky) ── -->
         <div class="novo-local-map-col">
-          <div style="background:var(--branco);padding:1.25rem;box-shadow:var(--sombra-md);margin-bottom:1rem;flex-shrink:0;">
+          <div style="background:var(--branco);padding:1.25rem;box-shadow:var(--sombra-md);margin-bottom:1rem;">
             <p style="font-size:.85rem;font-weight:600;margin:0 0 .75rem;color:var(--texto);">
               <i class="fas fa-map-pin" style="color:var(--verde);margin-right:.35rem;"></i>Localização (Clica no mapa)
             </p>
@@ -182,15 +191,6 @@ include dirname(__DIR__) . '/includes/header.php';
             </button>
           </div>
           <div id="mini-map" style="border:1.5px solid var(--creme-escuro);overflow:hidden;"></div>
-          <!-- Botões sempre visíveis no fundo da coluna sticky -->
-          <div style="display:flex;gap:1rem;margin-top:1rem;flex-shrink:0;">
-            <button type="submit" class="btn btn-primary" style="flex:1;justify-content:center;">
-              <i class="fas fa-paper-plane"></i> Submeter Local
-            </button>
-            <a href="<?= SITE_URL ?>/pages/explorar.php" class="btn" style="border:1px solid var(--creme-escuro);color:var(--texto-muted);">
-              Cancelar
-            </a>
-          </div>
         </div>
 
       </div>
