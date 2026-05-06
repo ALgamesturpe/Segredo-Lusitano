@@ -398,10 +398,12 @@ main { flex: 1; }
 .admin-nav .nav-section { font-size: .7rem; text-transform: uppercase; letter-spacing: .1em; color: rgba(245,239,230,.35); padding: 1rem .85rem .4rem; }
 .admin-content { flex: 1; padding: 2rem; min-width: 0; max-width: 100%; overflow-x: hidden; margin-left: 240px; }
 .admin-title { font-size: 1.6rem; margin-bottom: 1.5rem; }
-.admin-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px,1fr)); gap: 1rem; margin-bottom: 2rem; }
-.admin-stat-card { background: var(--branco); border-radius: var(--radius-lg); padding: 1.5rem; box-shadow: var(--sombra-sm); border-left: 4px solid var(--verde); }
-.admin-stat-card .num { font-family: 'Playfair Display', serif; font-size: 2.5rem; color: var(--verde-escuro); }
-.admin-stat-card .lbl { font-size: .82rem; color: var(--texto-muted); text-transform: uppercase; letter-spacing: .05em; }
+.admin-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px,1fr)); gap: 1.25rem; margin-bottom: 2rem; }
+.admin-stat-card { background: var(--branco); border-radius: var(--radius-lg); padding: 1.4rem 1.5rem 1.25rem; box-shadow: 0 1px 4px rgba(0,0,0,.07), 0 4px 16px rgba(0,0,0,.05); border-top: 3px solid var(--verde); display: flex; flex-direction: column; gap: .5rem; }
+.admin-stat-card .card-header { display: flex; align-items: center; justify-content: space-between; }
+.admin-stat-card .card-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: .95rem; opacity: .9; }
+.admin-stat-card .num { font-family: inherit; font-size: 2rem; font-weight: 700; line-height: 1; color: var(--verde-escuro); letter-spacing: -.02em; }
+.admin-stat-card .lbl { font-size: .75rem; color: var(--texto-muted); text-transform: uppercase; letter-spacing: .08em; font-weight: 500; }
 .admin-chart-container { position: relative; width: 100%; max-width: 100%; overflow-x: auto; }
 .admin-chart-container canvas { max-width: 100%; height: auto !important; }
 .data-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: var(--radius-lg); box-shadow: var(--sombra-sm); }
@@ -650,5 +652,5 @@ main { flex: 1; }
 
 /* Hover cards admin */
 a:has(.admin-stat-card) { display: block; border-radius: inherit; }
-a:has(.admin-stat-card) .admin-stat-card { transition: transform .18s ease, box-shadow .18s ease; }
-a:has(.admin-stat-card):hover .admin-stat-card { transform: translateY(-5px); box-shadow: 0 8px 24px rgba(0,0,0,.13); }
+.admin-stat-card { transition: transform .18s ease, box-shadow .18s ease; }
+a:has(.admin-stat-card):hover .admin-stat-card { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,.1); }
