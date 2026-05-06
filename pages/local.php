@@ -138,8 +138,18 @@ include dirname(__DIR__) . '/includes/header.php';
   </div>
 </div>
 
+<!-- BOTÃO VOLTAR -->
+<div class="container" style="padding-top:1.5rem;padding-bottom:0;">
+  <a href="<?= SITE_URL ?>/pages/explorar.php"
+     style="display:inline-flex;align-items:center;gap:.5rem;padding:.55rem .9rem;border:1.5px solid var(--creme-escuro);border-radius:var(--radius);background:var(--branco);color:var(--texto-muted);font-size:.88rem;text-decoration:none;transition:all var(--transition);"
+     onmouseover="this.style.borderColor='var(--verde-claro)';this.style.color='var(--verde)'"
+     onmouseout="this.style.borderColor='var(--creme-escuro)';this.style.color='var(--texto-muted)'">
+    <i class="fas fa-arrow-left"></i> Voltar ao arquivo
+  </a>
+</div>
+
 <!-- CONTEUDO -->
-<section class="section" style="padding-top:2.5rem;">
+<section class="section" style="padding-top:1.5rem;">
   <div class="container">
     <div class="detalhe-grid">
 
@@ -293,20 +303,22 @@ include dirname(__DIR__) . '/includes/header.php';
         <?php endif; ?>
 
         <!-- Comentários -->
-        <div class="info-card" id="comentarios">
-          <h3><i class="fas fa-comments"></i> Comentários <span style="color:var(--texto-muted);font-size:.9rem;">(<?= count($comentarios) ?>)</span></h3>
+        <div id="comentarios" style="padding-top:1.5rem;border-top:1px solid var(--creme-escuro);margin-top:1rem;">
+          <h3 style="display:flex;align-items:center;gap:.5rem;margin-bottom:1.25rem;"><i class="fas fa-comment" style="font-size:1rem;color:var(--texto-muted);"></i> Comentários <span style="color:var(--texto-muted);font-size:.9rem;font-weight:400;">(<?= count($comentarios) ?>)</span></h3>
 
           <?php if ($local_bloqueado): ?>
             <p style="margin-bottom:1.5rem;color:var(--texto-muted);font-size:.9rem;">Este post esta bloqueado. Novos comentarios estao desativados.</p>
           <?php elseif ($user): ?>
             <form method="POST" style="margin-bottom:1.5rem;">
-              <div class="form-group" style="margin-bottom:.75rem;">
-                <label for="comentario-local" style="display:none;">Comentario</label>
-                <textarea id="comentario-local" name="comentario" rows="3" placeholder="Partilha a tua experiência neste local..."
-                          style="width:100%;padding:.75rem 1rem;border:1.5px solid var(--creme-escuro);border-radius:3px;background:var(--creme);resize:vertical;"><?= h($_POST['comentario'] ?? '') ?></textarea>
-                <?php if ($erro_com): ?><div class="form-error"><?= h($erro_com) ?></div><?php endif; ?>
+              <div style="display:flex;gap:.75rem;align-items:flex-start;">
+                <input type="text" id="comentario-local" name="comentario" placeholder="Deixa um comentário..."
+                       value="<?= h($_POST['comentario'] ?? '') ?>"
+                       style="flex:1;padding:.65rem 1rem;border:1.5px solid var(--creme-escuro);border-radius:var(--radius);background:var(--branco);font-size:.93rem;color:var(--texto);">
+                <button type="submit" class="btn btn-primary btn-sm" style="white-space:nowrap;border-radius:var(--radius);">
+                  <i class="fas fa-paper-plane"></i> Publicar
+                </button>
               </div>
-              <button type="submit" class="btn btn-verde btn-sm"><i class="fas fa-paper-plane"></i> Publicar Comentário</button>
+              <?php if ($erro_com): ?><div class="form-error" style="margin-top:.4rem;"><?= h($erro_com) ?></div><?php endif ?>
             </form>
           <?php else: ?>
             <p style="margin-bottom:1.5rem;">

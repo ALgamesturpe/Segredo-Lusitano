@@ -86,7 +86,7 @@ include dirname(__DIR__) . '/includes/header.php';
           </select>
         </div>
         <button type="submit" class="btn btn-verde"><i class="fas fa-search"></i> Filtrar</button>
-        <a href="<?= SITE_URL ?>/pages/explorar.php" class="btn btn-outline" style="color:var(--texto-muted);border-color:var(--creme-escuro);">
+        <a href="<?= SITE_URL ?>/pages/explorar.php" class="btn btn-outline" style="color:var(--texto-muted);border-color:var(--creme-escuro);background:var(--branco);">
           Limpar
         </a>
       </form>

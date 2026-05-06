@@ -57,7 +57,7 @@ include dirname(__DIR__) . '/includes/header.php';
     <!-- Barra de pesquisa de utilizadores -->
     <div style="padding:.75rem 0;margin-bottom:2rem;border-bottom:1px solid var(--creme-escuro);">
       <form method="GET" style="display:flex;align-items:center;gap:.75rem;">
-        <div style="display:flex;align-items:center;gap:.5rem;flex:1;background:var(--creme);
+        <div style="display:flex;align-items:center;gap:.5rem;flex:1;background:var(--branco);
                     border:1.5px solid var(--creme-escuro);border-radius:3px;padding:.45rem .85rem;
                     transition:border-color .2s;"
              onfocusin="this.style.borderColor='var(--verde-claro)'"
@@ -68,16 +68,16 @@ include dirname(__DIR__) . '/includes/header.php';
                  style="border:none;background:transparent;outline:none;font-size:.9rem;width:100%;color:var(--texto);"
                  autocomplete="off">
         </div>
-        <?php if ($pesquisa): ?>
-          <a href="<?= SITE_URL ?>/pages/feed.php"
-             style="padding:.5rem .85rem;border:1.5px solid var(--creme-escuro);border-radius:3px;
-                    color:var(--texto-muted);font-size:.85rem;text-decoration:none;white-space:nowrap;">
-            Limpar
-          </a>
-        <?php endif; ?>
         <button type="submit" class="btn btn-sm btn-verde" style="white-space:nowrap;">
           <i class="fas fa-search"></i> Pesquisar
         </button>
+        <?php if ($pesquisa): ?>
+          <a href="<?= SITE_URL ?>/pages/feed.php"
+             style="padding:.5rem .85rem;border:1.5px solid var(--creme-escuro);border-radius:3px;
+                    background:var(--branco);color:var(--texto-muted);font-size:.85rem;text-decoration:none;white-space:nowrap;">
+            Limpar
+          </a>
+        <?php endif; ?>
       </form>
     </div>
 
