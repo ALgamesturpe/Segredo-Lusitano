@@ -196,111 +196,126 @@ include dirname(__DIR__) . '/includes/header.php';
           <p class="text-wrap-anywhere" style="line-height:1.8;color:var(--texto);"><?= nl2br(h(local_descricao_publica($local))) ?></p>
         </div>
 
-        <!-- Galeria de Fotos -->
-        <?php if ($fotos || is_admin()): ?>
-        <div class="info-card" style="margin-bottom:1.5rem;" id="galeria">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
-            <h3 style="margin:0;"><i class="fas fa-images"></i> Galeria</h3>
-            <?php if ($tem_fotos_alheias): ?>
-              <!-- Só aparece se há fotos de outros utilizadores -->
-              <button id="btn-denunciar-foto" onclick="toggleModoDenuncia()"
-                      class="btn btn-sm"
-                      style="color:var(--texto-muted);border:1px solid var(--creme-escuro);border-radius:3px;font-size:.8rem;transition:all .2s;">
-                <i class="fas fa-flag"></i> Denunciar foto
+        <!-- Upload compacto + Galeria -->
+        <?php if ($fotos || is_admin() || ($user && !$local_bloqueado)): ?>
+        <div style="margin-bottom:1.5rem;" id="galeria">
+          <div style="display:flex;align-items:flex-start;gap:1rem;margin-bottom:1rem;">
+
+            <?php if ($user && !$local_bloqueado): ?>
+            <!-- Upload compacto quadrado -->
+            <form method="POST" enctype="multipart/form-data"
+                  style="flex-shrink:0;width:130px;">
+              <div class="upload-area" data-input-id="fotos"
+                   style="width:130px;height:130px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.35rem;padding:.5rem;border-radius:var(--radius);">
+                <i class="fas fa-plus upload-icon" style="font-size:1.4rem;color:var(--verde-claro);"></i>
+                <p class="upload-label" style="font-size:.75rem;font-weight:500;margin:0;text-align:center;line-height:1.3;">Adicionar fotos</p>
+                <small style="color:var(--texto-muted);font-size:.68rem;text-align:center;">JPG · PNG · WebP<br>máx. 5MB</small>
+              </div>
+              <input type="file" id="fotos" name="fotos[]" multiple accept="image/*" style="display:none;">
+              <button type="submit" class="btn btn-sm btn-verde" style="margin-top:.5rem;width:100%;font-size:.78rem;">
+                <i class="fas fa-upload"></i> Enviar
               </button>
+            </form>
             <?php endif; ?>
-          </div>
 
-          <div class="galeria" id="galeria-fotos">
-            <?php $foto_idx = 0; foreach ($fotos as $foto): ?>
-              <?php
-                $foto_propria = ($user && (int)$foto['utilizador_id'] === (int)$user['id']);
-                $bloqueada    = !$user && $foto_idx >= 4;
-              ?>
-              <div class="galeria-item" style="position:relative;" data-foto-id="<?= $foto['id'] ?>">
-                <img src="<?= SITE_URL ?>/uploads/locais/<?= h($foto['ficheiro']) ?>"
-                     alt="Foto do local" loading="lazy"
-                     onclick="<?= $bloqueada
-                       ? 'mostrarAvisoLogin(\'Inicia sessão para ver todas as fotos.\', \'' . SITE_URL . '/pages/login.php\')'
-                       : 'clicarFotoGaleria(this)' ?>"
-                     style="cursor:pointer;width:100%;height:100%;object-fit:cover;<?= $bloqueada ? 'filter:blur(10px);' : '' ?>">
-
-                <?php if ($bloqueada): ?>
-                  <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
-                               cursor:pointer;background:rgba(0,0,0,.22);"
-                       onclick="mostrarAvisoLogin('Inicia sessão para ver todas as fotos.', '<?= SITE_URL ?>/pages/login.php')">
-                    <i class="fas fa-lock" style="color:#fff;font-size:1.8rem;filter:drop-shadow(0 2px 6px rgba(0,0,0,.7));"></i>
-                  </div>
-                <?php endif; ?>
-
-                <?php if (!$bloqueada && !$foto_propria && $user && !is_admin()): ?>
-                  <!-- Overlay de denúncia — só em fotos alheias -->
-                  <div class="foto-denuncia-overlay"
-                       style="display:none;position:absolute;inset:0;background:rgba(192,57,43,.45);
-                              border:3px solid #c0392b;border-radius:var(--radius);
-                              align-items:center;justify-content:center;cursor:pointer;flex-direction:column;gap:.35rem;"
-                       onclick="confirmarDenunciaFoto(<?= $foto['id'] ?>)">
-                    <i class="fas fa-flag" style="color:#fff;font-size:1.6rem;"></i>
-                    <span style="color:#fff;font-size:.78rem;font-weight:700;">Denunciar</span>
-                  </div>
-                <?php endif; ?>
-
-                <?php if (!$bloqueada && $foto_propria && $user && !is_admin()): ?>
-                  <span style="position:absolute;top:.35rem;left:.35rem;background:var(--verde);color:#fff;
-                               border-radius:6px;padding:.15rem .45rem;font-size:.7rem;font-weight:700;z-index:5;">
-                    Minha
-                  </span>
-                <?php endif; ?>
-
-                <?php if (is_admin()): ?>
-                  <a href="<?= SITE_URL ?>/pages/local.php?id=<?= $id ?>&apagar_foto=<?= $foto['id'] ?>"
-                     onclick="return confirm('Eliminar esta foto?')"
-                     style="position:absolute;top:.35rem;right:.35rem;background:#c0392b;color:#fff;
-                             border-radius:3px;padding:.2rem .45rem;font-size:.75rem;text-decoration:none;z-index:10;">
-                    <i class="fas fa-trash"></i>
-                  </a>
+            <!-- Galeria -->
+            <?php if ($fotos || is_admin()): ?>
+            <div style="flex:1;min-width:0;">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem;">
+                <h3 style="margin:0;font-size:1rem;"><i class="fas fa-images"></i> Galeria</h3>
+                <?php if ($tem_fotos_alheias): ?>
+                  <button id="btn-denunciar-foto" onclick="toggleModoDenuncia()"
+                          class="btn btn-sm"
+                          style="color:var(--texto-muted);border:1px solid var(--creme-escuro);border-radius:3px;font-size:.8rem;transition:all .2s;">
+                    <i class="fas fa-flag"></i> Denunciar foto
+                  </button>
                 <?php endif; ?>
               </div>
-            <?php $foto_idx++; endforeach; ?>
-          </div>
-
-          <!-- Aviso do modo denúncia -->
-          <div id="aviso-modo-denuncia" style="display:none;margin-top:.75rem;padding:.6rem 1rem;
-               background:rgba(192,57,43,.08);border:1px solid #c0392b;border-radius:3px;
-               font-size:.85rem;color:#c0392b;text-align:center;">
-            <i class="fas fa-hand-pointer"></i> Clica na foto que queres denunciar
-          </div>
-
-          <?php if (is_admin()): ?>
-          <form method="POST" enctype="multipart/form-data" style="margin-top:1rem;display:flex;gap:.75rem;align-items:center;flex-wrap:wrap;">
-            <input type="hidden" name="local_id_upload" value="<?= $id ?>">
-            <input type="file" name="foto_admin" accept="image/*" required
-                   style="border:1.5px solid var(--creme-escuro);border-radius:3px;padding:.4rem .75rem;background:var(--creme);font-size:.9rem;">
-            <button type="submit" name="upload_admin" class="btn btn-sm btn-verde">
-              <i class="fas fa-upload"></i> Adicionar Foto
-            </button>
-          </form>
-          <?php endif; ?>
-        </div>
-        <?php endif; ?>
-
-        <!-- Upload de Fotos -->
-        <?php if ($user && !$local_bloqueado): ?>
-        <div class="info-card" style="margin-bottom:1.5rem;">
-          <h3><i class="fas fa-camera"></i> Adicionar Fotos</h3>
-          <form method="POST" enctype="multipart/form-data">
-            <div class="upload-area" data-input-id="fotos">
-              <i class="fas fa-cloud-upload-alt upload-icon" style="font-size:2.5rem;color:var(--verde-claro);margin-bottom:.75rem;display:block;"></i>
-              <p class="upload-label" style="font-weight:500;margin-bottom:.25rem;">Clica ou arrasta as fotos aqui</p>
-              <small style="color:var(--texto-muted);">JPG, PNG ou WebP · Máx. 5MB · Várias fotos de uma vez</small>
+              <div class="galeria" id="galeria-fotos">
+                <?php $foto_idx = 0; foreach ($fotos as $foto): ?>
+                  <?php
+                    $foto_propria = ($user && (int)$foto['utilizador_id'] === (int)$user['id']);
+                    $bloqueada    = !$user && $foto_idx >= 4;
+                  ?>
+                  <div class="galeria-item" style="position:relative;" data-foto-id="<?= $foto['id'] ?>">
+                    <img src="<?= SITE_URL ?>/uploads/locais/<?= h($foto['ficheiro']) ?>"
+                         alt="Foto do local" loading="lazy"
+                         onclick="<?= $bloqueada
+                           ? 'mostrarAvisoLogin(\'Inicia sessão para ver todas as fotos.\', \'' . SITE_URL . '/pages/login.php\')'
+                           : 'clicarFotoGaleria(this)' ?>"
+                         style="cursor:pointer;width:100%;height:100%;object-fit:cover;<?= $bloqueada ? 'filter:blur(10px);' : '' ?>">
+                    <?php if ($bloqueada): ?>
+                      <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+                                   cursor:pointer;background:rgba(0,0,0,.22);"
+                           onclick="mostrarAvisoLogin('Inicia sessão para ver todas as fotos.', '<?= SITE_URL ?>/pages/login.php')">
+                        <i class="fas fa-lock" style="color:#fff;font-size:1.8rem;filter:drop-shadow(0 2px 6px rgba(0,0,0,.7));"></i>
+                      </div>
+                    <?php endif; ?>
+                    <?php if (!$bloqueada && !$foto_propria && $user && !is_admin()): ?>
+                      <div class="foto-denuncia-overlay"
+                           style="display:none;position:absolute;inset:0;background:rgba(192,57,43,.45);
+                                  border:3px solid #c0392b;border-radius:var(--radius);
+                                  align-items:center;justify-content:center;cursor:pointer;flex-direction:column;gap:.35rem;"
+                           onclick="confirmarDenunciaFoto(<?= $foto['id'] ?>)">
+                        <i class="fas fa-flag" style="color:#fff;font-size:1.6rem;"></i>
+                        <span style="color:#fff;font-size:.78rem;font-weight:700;">Denunciar</span>
+                      </div>
+                    <?php endif; ?>
+                    <?php if (!$bloqueada && $foto_propria && $user && !is_admin()): ?>
+                      <span style="position:absolute;top:.35rem;left:.35rem;background:var(--verde);color:#fff;
+                                   border-radius:6px;padding:.15rem .45rem;font-size:.7rem;font-weight:700;z-index:5;">Minha</span>
+                    <?php endif; ?>
+                    <?php if (is_admin()): ?>
+                      <a href="<?= SITE_URL ?>/pages/local.php?id=<?= $id ?>&apagar_foto=<?= $foto['id'] ?>"
+                         onclick="return confirm('Eliminar esta foto?')"
+                         style="position:absolute;top:.35rem;right:.35rem;background:#c0392b;color:#fff;
+                                 border-radius:3px;padding:.2rem .45rem;font-size:.75rem;text-decoration:none;z-index:10;">
+                        <i class="fas fa-trash"></i>
+                      </a>
+                    <?php endif; ?>
+                  </div>
+                <?php $foto_idx++; endforeach; ?>
+              </div>
+              <div id="aviso-modo-denuncia" style="display:none;margin-top:.75rem;padding:.6rem 1rem;
+                   background:rgba(192,57,43,.08);border:1px solid #c0392b;border-radius:3px;
+                   font-size:.85rem;color:#c0392b;text-align:center;">
+                <i class="fas fa-hand-pointer"></i> Clica na foto que queres denunciar
+              </div>
+              <?php if (is_admin()): ?>
+              <form method="POST" enctype="multipart/form-data" style="margin-top:1rem;display:flex;gap:.75rem;align-items:center;flex-wrap:wrap;">
+                <input type="hidden" name="local_id_upload" value="<?= $id ?>">
+                <input type="file" name="foto_admin" accept="image/*" required
+                       style="border:1.5px solid var(--creme-escuro);border-radius:3px;padding:.4rem .75rem;background:var(--creme);font-size:.9rem;">
+                <button type="submit" name="upload_admin" class="btn btn-sm btn-verde">
+                  <i class="fas fa-upload"></i> Adicionar Foto
+                </button>
+              </form>
+              <?php endif; ?>
             </div>
-            <input type="file" id="fotos" name="fotos[]" multiple accept="image/*" style="display:none;">
-            <button type="submit" class="btn btn-verde" style="margin-top:1rem;width:100%;">
-              <i class="fas fa-upload"></i> Enviar Fotos
-            </button>
-          </form>
+            <?php endif; ?>
+          </div>
         </div>
         <?php endif; ?>
+
+        <!-- Mini Mapa (coluna principal, acima dos comentários) -->
+        <div style="margin-bottom:1.5rem;border-radius:var(--radius-lg);overflow:hidden;position:relative;">
+          <p style="font-size:.75rem;color:var(--texto-muted);margin-bottom:.4rem;display:flex;align-items:center;gap:.35rem;">
+            <i class="fas fa-info-circle" style="color:var(--verde);"></i>
+            Clica no <strong>PINO</strong> para obter direções via Maps
+          </p>
+          <div style="position:relative;">
+            <div id="mini-map-detalhe" style="height:320px;border-radius:var(--radius);"></div>
+            <button onclick="<?= $user ? 'abrirMapaFullscreen()' : 'mostrarAvisoLogin(\'Precisas de iniciar sessão para expandir o mapa.\', \'' . SITE_URL . '/pages/login.php\')' ?>"
+                    style="position:absolute;top:.6rem;right:.6rem;z-index:999;background:var(--verde-escuro);color:#fff;border:none;
+                           border-radius:var(--radius);padding:.4rem .65rem;cursor:pointer;font-size:.8rem;display:flex;align-items:center;gap:.35rem;">
+              <i class="fas fa-expand"></i> Expandir
+            </button>
+            <div id="mapa-estado" style="position:absolute;bottom:.6rem;left:.6rem;z-index:999;
+                 background:rgba(26,58,42,.85);color:#c9a84c;font-size:.75rem;padding:.3rem .65rem;border-radius:6px;display:none;">
+              <i class="fas fa-spinner fa-spin"></i> A obter localização...
+            </div>
+          </div>
+        </div>
 
         <!-- Comentários -->
         <div id="comentarios" style="padding-top:1.5rem;border-top:1px solid var(--creme-escuro);margin-top:1rem;">
@@ -372,35 +387,18 @@ include dirname(__DIR__) . '/includes/header.php';
 
       <!-- SIDEBAR -->
       <div class="detalhe-sidebar">
-        <p style="font-size:.75rem;color:var(--texto-muted);margin-bottom:.35rem;display:flex;align-items:center;gap:.35rem;">
-          <i class="fas fa-info-circle" style="color:var(--verde);"></i>
-          Clica no <strong>PINO</strong> para obter direções via Maps
-        </p>
-        <div class="info-card" style="padding:0;overflow:hidden;position:relative;">
-          <div id="mini-map-detalhe" style="height:220px;border-radius:var(--radius-lg);"></div>
-          <button onclick="<?= $user ? 'abrirMapaFullscreen()' : 'mostrarAvisoLogin(\'Precisas de iniciar sessão para expandir o mapa.\', \'' . SITE_URL . '/pages/login.php\')' ?>"
-                  style="position:absolute;top:.6rem;right:.6rem;z-index:999;background:var(--verde-escuro);color:#fff;border:none;
-                         border-radius:3px;padding:.4rem .65rem;cursor:pointer;font-size:.8rem;display:flex;align-items:center;gap:.35rem;">
-            <i class="fas fa-expand"></i> Expandir
-          </button>
-          <div id="mapa-estado" style="position:absolute;bottom:.6rem;left:.6rem;z-index:999;
-               background:rgba(26,58,42,.85);color:#c9a84c;font-size:.75rem;padding:.3rem .65rem;border-radius:6px;display:none;">
-            <i class="fas fa-spinner fa-spin"></i> A obter localização...
-          </div>
-        </div>
 
-        <div class="info-card">
-          <h3>Informações</h3>
+        <!-- Informações + Explorador (fundo branco, borda) -->
+        <div style="border:1.5px solid var(--creme-escuro);border-radius:var(--radius);padding:1.25rem;background:var(--branco);">
+          <h3 style="font-size:.95rem;margin-bottom:.75rem;">Informações</h3>
           <div class="info-row"><span class="label"><i class="fas fa-map-marker-alt"></i> Região</span><span class="val"><?= h($local['regiao_nome']) ?></span></div>
           <div class="info-row"><span class="label"><i class="fas fa-tag"></i> Categoria</span><span class="val"><?= h($local['categoria_nome']) ?></span></div>
           <div class="info-row"><span class="label"><i class="fas fa-hiking"></i> Dificuldade</span><span class="val"><?= $dif_label ?></span></div>
           <div class="info-row"><span class="label"><i class="fas fa-eye"></i> Visualizações</span><span class="val"><?= number_format($local['vistas']) ?></span></div>
-          <div class="info-row"><span class="label"><i class="fas fa-calendar"></i> Publicado em</span><span class="val"><?= date('d/m/Y', strtotime($local['criado_em'])) ?></span></div>
-        </div>
+          <div class="info-row" style="border-bottom:none;"><span class="label"><i class="fas fa-calendar"></i> Publicado em</span><span class="val"><?= date('d/m/Y', strtotime($local['criado_em'])) ?></span></div>
 
-        <div class="info-card">
-          <h3>Explorador</h3>
-          <div style="display:flex;align-items:center;gap:.75rem;">
+          <!-- Explorador dentro das informações -->
+          <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid var(--creme-escuro);display:flex;align-items:center;gap:.75rem;">
             <div class="rank-avatar">
               <?php if (!empty($local['avatar'])): ?>
                 <img src="<?= SITE_URL ?>/uploads/locais/<?= h($local['avatar']) ?>" alt="<?= h($local['autor_nome']) ?>">
@@ -409,29 +407,31 @@ include dirname(__DIR__) . '/includes/header.php';
               <?php endif; ?>
             </div>
             <div class="rank-user-info">
-              <div style="font-weight:700;"><?= h($local['autor_nome']) ?></div>
-              <a href="<?= SITE_URL ?>/pages/perfil.php?id=<?= $local['utilizador_id'] ?>" style="color:var(--verde);font-size:.85rem;"><?= h($local['username']) ?></a>
+              <div style="font-weight:700;font-size:.9rem;"><?= h($local['autor_nome']) ?></div>
+              <a href="<?= SITE_URL ?>/pages/perfil.php?id=<?= $local['utilizador_id'] ?>" style="color:var(--verde);font-size:.82rem;"><?= h($local['username']) ?></a>
             </div>
           </div>
         </div>
 
-        <div class="info-card">
-          <h3>Coordenadas GPS</h3>
-          <code style="font-size:.85rem;word-break:break-all;color:var(--verde-escuro);">
+        <!-- Coordenadas GPS (abaixo das informações, fundo branco) -->
+        <div style="border:1.5px solid var(--creme-escuro);border-radius:var(--radius);padding:1.25rem;background:var(--branco);">
+          <h3 style="font-size:.95rem;margin-bottom:.6rem;">Coordenadas GPS</h3>
+          <code style="font-size:.82rem;word-break:break-all;color:var(--verde-escuro);display:block;margin-bottom:.75rem;">
             <?= number_format($local['latitude'],6,',','') ?>°N,
             <?= number_format(abs($local['longitude']),6,',','') ?>°O
           </code>
           <?php if ($user): ?>
             <a href="https://www.google.com/maps/dir/?api=1&destination=<?= $local['latitude'] ?>,<?= $local['longitude'] ?>"
-               target="_blank" rel="noopener" class="btn btn-sm btn-verde" style="margin-top:.75rem;width:100%;">
+               target="_blank" rel="noopener" class="btn btn-sm btn-verde" style="width:100%;">
               <i class="fas fa-external-link-alt"></i> Abrir no Google Maps
             </a>
           <?php else: ?>
-            <a href="<?= SITE_URL ?>/pages/login.php" class="btn btn-sm btn-verde" style="margin-top:.75rem;width:100%;">
+            <a href="<?= SITE_URL ?>/pages/login.php" class="btn btn-sm btn-verde" style="width:100%;">
               <i class="fas fa-sign-in-alt"></i> Inicia sessão para navegar
             </a>
           <?php endif; ?>
         </div>
+
       </div>
     </div>
   </div>
