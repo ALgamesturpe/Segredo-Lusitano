@@ -482,9 +482,9 @@ main { flex: 1; }
 }
 
 /* ============================================================
-   RESPONSIVE — 768px (TELEMÓVEL)
+   RESPONSIVE — 1040px (NAVBAR → HAMBURGER)
    ============================================================ */
-@media (max-width: 768px) {
+@media (max-width: 1040px) {
 
   /* Mostrar hamburger, esconder nav-links do desktop */
   .hamburger { display: flex !important; }
@@ -576,6 +576,12 @@ main { flex: 1; }
     font-size: .95rem !important;
     justify-content: flex-start !important;
   }
+}
+
+/* ============================================================
+   RESPONSIVE — 768px (TELEMÓVEL)
+   ============================================================ */
+@media (max-width: 768px) {
 
   /* Tabelas */
   .data-table, .ranking-table {
@@ -587,7 +593,7 @@ main { flex: 1; }
   .data-table th:nth-child(6), .data-table td:nth-child(6),
   .data-table th:nth-child(7), .data-table td:nth-child(7) { display: none; }
   .ranking-table th:nth-child(4), .ranking-table td:nth-child(4) { display: none; }
-  
+
   /* Filtros da página explorar */
   .filtros-bar { padding: .85rem 1rem; }
   .filtros-form { flex-direction: column; gap: .5rem; }
