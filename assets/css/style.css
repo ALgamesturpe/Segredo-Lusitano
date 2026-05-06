@@ -309,8 +309,11 @@ main { flex: 1; }
 .detalhe-hero img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .55; }
 .detalhe-hero-content { position: relative; z-index: 1; padding: 2.5rem; max-width: 1200px; margin: 0 auto; width: 100%; }
 .detalhe-hero-content h1 { color: var(--creme); font-size: clamp(1.8rem, 4vw, 3rem); }
-.detalhe-grid { display: grid; grid-template-columns: 1fr 340px; gap: 2rem; align-items: start; }
-.detalhe-sidebar { display: flex; flex-direction: column; gap: 1.25rem; }
+.detalhe-grid { display: grid; grid-template-columns: 1fr 340px; grid-template-areas: "top sidebar" "mapa sidebar" "comments sidebar"; gap: 2rem; align-items: start; }
+.detalhe-main-top { grid-area: top; }
+.detalhe-mapa { grid-area: mapa; }
+.detalhe-comentarios { grid-area: comments; }
+.detalhe-sidebar { grid-area: sidebar; display: flex; flex-direction: column; gap: 1.25rem; }
 .info-card { background: transparent; border-radius: var(--radius-lg); padding: 1.5rem 0; }
 .info-card h3 { font-size: 1.05rem; margin-bottom: 1rem; color: var(--verde-escuro); }
 .info-row { display: flex; justify-content: space-between; align-items: center; padding: .5rem 0; border-bottom: 1px solid var(--creme-escuro); font-size: .9rem; }
@@ -476,7 +479,7 @@ main { flex: 1; }
    RESPONSIVE — 900px
    ============================================================ */
 @media (max-width: 900px) {
-  .detalhe-grid { grid-template-columns: 1fr; }
+  .detalhe-grid { grid-template-columns: 1fr; grid-template-areas: "top" "sidebar" "mapa" "comments"; }
   .admin-wrapper { flex-direction: column; }
   .admin-sidebar { width: 100%; height: auto; position: static; }
 }

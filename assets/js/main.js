@@ -185,17 +185,25 @@ function showUploadPreview(input, area, preview) {
   const file = files[0];
   const reader = new FileReader();
   reader.onload = (e) => {
-    preview.src = e.target.result;
-    preview.style.display = 'block';
-    area.classList.add('has-file');
-    const label = area.querySelector('.upload-label');
-    if (label) {
-      label.textContent = files.length > 1
-        ? `✓ ${files.length} fotos selecionadas`
-        : `✓ ${file.name}`;
+    const isCompact = area.dataset.compact === '1';
+    if (isCompact) {
+      preview.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block;';
+      preview.src = e.target.result;
+      area.querySelectorAll('.upload-icon,.upload-label,small').forEach(el => el.style.display = 'none');
+      area.classList.add('has-file');
+    } else {
+      preview.src = e.target.result;
+      preview.style.display = 'block';
+      area.classList.add('has-file');
+      const label = area.querySelector('.upload-label');
+      if (label) {
+        label.textContent = files.length > 1
+          ? `✓ ${files.length} fotos selecionadas`
+          : `✓ ${file.name}`;
+      }
+      const icon = area.querySelector('.upload-icon');
+      if (icon) { icon.className = 'fas fa-check-circle upload-icon'; icon.style.color = '#40916c'; }
     }
-    const icon = area.querySelector('.upload-icon');
-    if (icon) { icon.className = 'fas fa-check-circle upload-icon'; icon.style.color = '#40916c'; }
   };
   reader.readAsDataURL(file);
 }

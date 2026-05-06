@@ -20,13 +20,13 @@ $motivos_denuncia = motivos_denuncia();
 $local_bloqueado  = ((int)($local['bloqueado'] ?? 0) === 1);
 
 // Verificar se há fotos de outros utilizadores (para mostrar botão de denúncia)
-$tem_fotos_alheias = false;
+$tem_fotos_alheias  = false;
+$tem_fotos_proprias = false;
 if ($user && !is_admin()) {
     foreach ($fotos as $foto) {
-        if ((int)$foto['utilizador_id'] !== (int)$user['id']) {
-            $tem_fotos_alheias = true;
-            break;
-        }
+        if ((int)$foto['utilizador_id'] !== (int)$user['id']) $tem_fotos_alheias  = true;
+        else                                                   $tem_fotos_proprias = true;
+        if ($tem_fotos_alheias && $tem_fotos_proprias) break;
     }
 }
 
@@ -58,6 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['fotos'])) {
     }
     $files = $_FILES['fotos'];
     $count = count($files['name']);
+    $enviadas = 0;
     for ($i = 0; $i < $count; $i++) {
         $f = [
             'name'     => $files['name'][$i],
@@ -66,9 +67,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['fotos'])) {
             'error'    => $files['error'][$i],
             'size'     => $files['size'][$i],
         ];
-        if ($f['error'] === 0) upload_foto($f, $id, $user['id']);
+        if ($f['error'] === 0 && upload_foto($f, $id, $user['id'])) $enviadas++;
     }
-    flash('success', 'Foto(s) adicionada(s)!');
+    if ($enviadas > 0) flash('success', 'Foto(s) adicionada(s)!');
+    else flash('error', 'Nenhuma foto foi enviada. Seleciona pelo menos um ficheiro válido.');
     header('Location: ' . SITE_URL . '/pages/local.php?id=' . $id); exit;
 }
 
@@ -79,13 +81,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload_admin']) && is
     header('Location: ' . SITE_URL . '/pages/local.php?id=' . $id); exit;
 }
 
-// --- GET: Apagar foto pelo admin ---
-if (isset($_GET['apagar_foto']) && is_admin()) {
+// --- GET: Apagar foto pelo admin ou pelo dono ---
+if (isset($_GET['apagar_foto']) && $user) {
     $fid = (int)$_GET['apagar_foto'];
-    $st  = db()->prepare('SELECT ficheiro FROM fotos WHERE id = ?');
+    $st  = db()->prepare('SELECT ficheiro, utilizador_id FROM fotos WHERE id = ?');
     $st->execute([$fid]);
     $foto = $st->fetch();
-    if ($foto) {
+    if ($foto && (is_admin() || (int)$foto['utilizador_id'] === (int)$user['id'])) {
         apagar_upload_local($foto['ficheiro']);
         db()->prepare('DELETE FROM fotos WHERE id = ?')->execute([$fid]);
         flash('success', 'Foto eliminada.');
@@ -144,7 +146,7 @@ include dirname(__DIR__) . '/includes/header.php';
      style="display:inline-flex;align-items:center;gap:.5rem;padding:.55rem .9rem;border:1.5px solid var(--creme-escuro);border-radius:var(--radius);background:var(--branco);color:var(--texto-muted);font-size:.88rem;text-decoration:none;transition:all var(--transition);"
      onmouseover="this.style.borderColor='var(--verde-claro)';this.style.color='var(--verde)'"
      onmouseout="this.style.borderColor='var(--creme-escuro)';this.style.color='var(--texto-muted)'">
-    <i class="fas fa-arrow-left"></i> Voltar ao arquivo
+    <i class="fas fa-arrow-left"></i> Voltar
   </a>
 </div>
 
@@ -154,7 +156,7 @@ include dirname(__DIR__) . '/includes/header.php';
     <div class="detalhe-grid">
 
       <!-- COLUNA PRINCIPAL -->
-      <div>
+      <div class="detalhe-main-top">
         <!-- Ações -->
         <div style="display:flex;align-items:center;gap:1rem;margin-bottom:2rem;flex-wrap:wrap;">
           <button class="like-btn <?= $liked ? 'liked' : '' ?>" id="like-btn" data-local="<?= $id ?>">
@@ -191,35 +193,43 @@ include dirname(__DIR__) . '/includes/header.php';
         </div>
 
         <!-- Descrição -->
-        <div class="info-card" style="margin-bottom:1.5rem;">
-          <h3><i class="fas fa-align-left"></i> Descrição</h3>
-          <p class="text-wrap-anywhere" style="line-height:1.8;color:var(--texto);"><?= nl2br(h(local_descricao_publica($local))) ?></p>
+        <div style="margin-bottom:1.5rem;border:1.5px solid var(--creme-escuro);border-radius:var(--radius);padding:1.25rem;background:var(--branco);">
+          <h3 style="font-size:.95rem;margin-bottom:.75rem;color:var(--verde-escuro);"><i class="fas fa-align-left"></i> Descrição</h3>
+          <p class="text-wrap-anywhere" style="line-height:1.8;color:var(--texto);margin:0;"><?= nl2br(h(local_descricao_publica($local))) ?></p>
         </div>
 
         <!-- Upload compacto + Galeria -->
         <?php if ($fotos || is_admin() || ($user && !$local_bloqueado)): ?>
         <div style="margin-bottom:1.5rem;" id="galeria">
-          <div style="display:flex;align-items:flex-start;gap:1rem;margin-bottom:1rem;">
+          <div style="display:flex;align-items:stretch;gap:1rem;margin-bottom:1rem;">
 
             <?php if ($user && !$local_bloqueado): ?>
             <!-- Upload compacto quadrado -->
-            <form method="POST" enctype="multipart/form-data"
-                  style="flex-shrink:0;width:130px;">
-              <div class="upload-area" data-input-id="fotos"
-                   style="width:130px;height:130px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.35rem;padding:.5rem;border-radius:var(--radius);">
-                <i class="fas fa-plus upload-icon" style="font-size:1.4rem;color:var(--verde-claro);"></i>
-                <p class="upload-label" style="font-size:.75rem;font-weight:500;margin:0;text-align:center;line-height:1.3;">Adicionar fotos</p>
-                <small style="color:var(--texto-muted);font-size:.68rem;text-align:center;">JPG · PNG · WebP<br>máx. 5MB</small>
-              </div>
-              <input type="file" id="fotos" name="fotos[]" multiple accept="image/*" style="display:none;">
-              <button type="submit" class="btn btn-sm btn-verde" style="margin-top:.5rem;width:100%;font-size:.78rem;">
-                <i class="fas fa-upload"></i> Enviar
+            <div style="flex-shrink:0;width:130px;">
+              <form method="POST" enctype="multipart/form-data"
+                    onsubmit="if(!document.getElementById('fotos').files.length){alert('Seleciona pelo menos uma foto antes de enviar.');return false;}">
+                <div class="upload-area" data-input-id="fotos" data-compact="1"
+                     style="width:130px;height:130px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.35rem;padding:.5rem;border-radius:var(--radius);position:relative;overflow:hidden;">
+                  <i class="fas fa-plus upload-icon" style="font-size:1.4rem;color:var(--verde-claro);"></i>
+                  <p class="upload-label" style="font-size:.75rem;font-weight:500;margin:0;text-align:center;line-height:1.3;">Adicionar fotos</p>
+                  <small style="color:var(--texto-muted);font-size:.68rem;text-align:center;">JPG · PNG · WebP<br>máx. 5MB</small>
+                </div>
+                <input type="file" id="fotos" name="fotos[]" multiple accept="image/*" style="display:none;">
+                <button type="submit" class="btn btn-sm btn-verde" style="margin-top:.5rem;width:100%;font-size:.78rem;">
+                  <i class="fas fa-upload"></i> Enviar
+                </button>
+              </form>
+              <?php if (!is_admin()): ?>
+              <button id="btn-eliminar-foto" onclick="toggleModoEliminar()"
+                      class="btn btn-sm"
+                      style="margin-top:.4rem;width:100%;font-size:.78rem;color:#c0392b;border:1px solid #c0392b;">
+                <i class="fas fa-trash"></i> Eliminar fotos
               </button>
-            </form>
+              <?php endif; ?>
+            </div>
             <?php endif; ?>
 
             <!-- Galeria -->
-            <?php if ($fotos || is_admin()): ?>
             <div style="flex:1;min-width:0;">
               <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem;">
                 <h3 style="margin:0;font-size:1rem;"><i class="fas fa-images"></i> Galeria</h3>
@@ -231,6 +241,15 @@ include dirname(__DIR__) . '/includes/header.php';
                   </button>
                 <?php endif; ?>
               </div>
+              <?php if (!$fotos): ?>
+              <div style="border:1.5px solid #6b7280;border-radius:var(--radius);background:var(--creme);height:100%;
+                          display:flex;align-items:center;justify-content:center;">
+                <div style="text-align:center;color:var(--texto-muted);">
+                  <i class="fas fa-images" style="font-size:2rem;margin-bottom:.5rem;display:block;opacity:.35;"></i>
+                  <span style="font-size:.85rem;">Galeria vazia</span>
+                </div>
+              </div>
+              <?php endif; ?>
               <div class="galeria" id="galeria-fotos">
                 <?php $foto_idx = 0; foreach ($fotos as $foto): ?>
                   <?php
@@ -263,7 +282,15 @@ include dirname(__DIR__) . '/includes/header.php';
                     <?php endif; ?>
                     <?php if (!$bloqueada && $foto_propria && $user && !is_admin()): ?>
                       <span style="position:absolute;top:.35rem;left:.35rem;background:var(--verde);color:#fff;
-                                   border-radius:6px;padding:.15rem .45rem;font-size:.7rem;font-weight:700;z-index:5;">Minha</span>
+                                   border-radius:0;padding:.15rem .45rem;font-size:.7rem;font-weight:700;z-index:5;">Minha</span>
+                      <div class="foto-eliminar-overlay"
+                           style="display:none;position:absolute;inset:0;background:rgba(192,57,43,.55);
+                                  border:3px solid #c0392b;border-radius:var(--radius);
+                                  align-items:center;justify-content:center;cursor:pointer;flex-direction:column;gap:.35rem;"
+                           onclick="confirmarEliminarFoto(<?= $foto['id'] ?>)">
+                        <i class="fas fa-trash" style="color:#fff;font-size:1.6rem;"></i>
+                        <span style="color:#fff;font-size:.78rem;font-weight:700;">Eliminar</span>
+                      </div>
                     <?php endif; ?>
                     <?php if (is_admin()): ?>
                       <a href="<?= SITE_URL ?>/pages/local.php?id=<?= $id ?>&apagar_foto=<?= $foto['id'] ?>"
@@ -281,6 +308,11 @@ include dirname(__DIR__) . '/includes/header.php';
                    font-size:.85rem;color:#c0392b;text-align:center;">
                 <i class="fas fa-hand-pointer"></i> Clica na foto que queres denunciar
               </div>
+              <div id="aviso-modo-eliminar" style="display:none;margin-top:.75rem;padding:.6rem 1rem;
+                   background:rgba(192,57,43,.08);border:1px solid #c0392b;border-radius:3px;
+                   font-size:.85rem;color:#c0392b;text-align:center;">
+                <i class="fas fa-hand-pointer"></i> Clica numa das tuas fotos para a eliminar
+              </div>
               <?php if (is_admin()): ?>
               <form method="POST" enctype="multipart/form-data" style="margin-top:1rem;display:flex;gap:.75rem;align-items:center;flex-wrap:wrap;">
                 <input type="hidden" name="local_id_upload" value="<?= $id ?>">
@@ -292,12 +324,13 @@ include dirname(__DIR__) . '/includes/header.php';
               </form>
               <?php endif; ?>
             </div>
-            <?php endif; ?>
           </div>
         </div>
         <?php endif; ?>
+      </div><!-- /detalhe-main-top -->
 
-        <!-- Mini Mapa (coluna principal, acima dos comentários) -->
+      <div class="detalhe-mapa">
+        <!-- Mini Mapa -->
         <div style="margin-bottom:1.5rem;border-radius:var(--radius-lg);overflow:hidden;position:relative;">
           <p style="font-size:.75rem;color:var(--texto-muted);margin-bottom:.4rem;display:flex;align-items:center;gap:.35rem;">
             <i class="fas fa-info-circle" style="color:var(--verde);"></i>
@@ -316,7 +349,9 @@ include dirname(__DIR__) . '/includes/header.php';
             </div>
           </div>
         </div>
+      </div><!-- /detalhe-mapa -->
 
+      <div class="detalhe-comentarios">
         <!-- Comentários -->
         <div id="comentarios" style="padding-top:1.5rem;border-top:1px solid var(--creme-escuro);margin-top:1rem;">
           <h3 style="display:flex;align-items:center;gap:.5rem;margin-bottom:1.25rem;"><i class="fas fa-comment" style="font-size:1rem;color:var(--texto-muted);"></i> Comentários <span style="color:var(--texto-muted);font-size:.9rem;font-weight:400;">(<?= count($comentarios) ?>)</span></h3>
@@ -342,7 +377,7 @@ include dirname(__DIR__) . '/includes/header.php';
           <?php endif; ?>
 
           <?php if ($comentarios): ?>
-            <div>
+            <div id="lista-comentarios">
               <?php foreach ($comentarios as $com): ?>
                 <?php $comentario_bloqueado = ((int)$com['denunciado'] === 1); ?>
                 <?php if ($comentario_bloqueado && !is_admin()) continue; ?>
@@ -550,8 +585,38 @@ function confirmarDenunciaFoto(fotoId) {
   abrirModalDenuncia('foto', fotoId, 'Fotografia');
 }
 
+// ── Eliminar foto própria — modo de seleção ───────────────
+let modoEliminarFoto = false;
+
+function toggleModoEliminar() {
+  modoEliminarFoto = !modoEliminarFoto;
+  const btn      = document.getElementById('btn-eliminar-foto');
+  const overlays = document.querySelectorAll('.foto-eliminar-overlay');
+  const aviso    = document.getElementById('aviso-modo-eliminar');
+  if (modoEliminarFoto) {
+    btn.style.background  = '#c0392b';
+    btn.style.color       = '#fff';
+    btn.style.borderColor = '#c0392b';
+    btn.innerHTML         = '<i class="fas fa-times"></i> Cancelar';
+    overlays.forEach(o => o.style.display = 'flex');
+    if (aviso) aviso.style.display = 'block';
+  } else {
+    btn.style.background  = '';
+    btn.style.color       = 'var(--texto-muted)';
+    btn.style.borderColor = 'var(--creme-escuro)';
+    btn.innerHTML         = '<i class="fas fa-trash"></i> Eliminar fotos';
+    overlays.forEach(o => o.style.display = 'none');
+    if (aviso) aviso.style.display = 'none';
+  }
+}
+
+function confirmarEliminarFoto(fotoId) {
+  if (!confirm('Tens a certeza que queres eliminar esta fotografia? Esta ação é irreversível.')) return;
+  window.location.href = '<?= SITE_URL ?>/pages/local.php?id=<?= $id ?>&apagar_foto=' + fotoId + '#galeria';
+}
+
 function clicarFotoGaleria(img) {
-  if (modoDenunciaFoto) return;
+  if (modoDenunciaFoto || modoEliminarFoto) return;
   abrirFoto(img.src);
 }
 
@@ -661,6 +726,42 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('rota-info').style.display = 'block';
       })
       .catch(() => { mapFS.fitBounds([[uLat,uLng],[destLat,destLng]], { padding:[40,40] }); });
+  }
+});
+
+// ── Ver mais / menos comentários ─────────────────────────
+document.addEventListener('DOMContentLoaded', function() {
+  const LIMITE = 7;
+  const lista  = document.getElementById('lista-comentarios');
+  if (!lista) return;
+  const items = Array.from(lista.querySelectorAll(':scope > .comentario'));
+  if (items.length <= LIMITE) return;
+
+  const extra = document.createElement('div');
+  extra.id = 'comentarios-extra';
+  extra.style.cssText = 'display:none;max-height:480px;overflow-y:auto;padding-right:.5rem;scrollbar-width:thin;';
+  items.slice(LIMITE).forEach(el => extra.appendChild(el));
+
+  const btnMenos = document.createElement('button');
+  btnMenos.className = 'btn btn-sm';
+  btnMenos.style.cssText = 'margin-top:.75rem;color:var(--texto-muted);border:1px solid var(--creme-escuro);width:100%;justify-content:center;';
+  btnMenos.innerHTML = '<i class="fas fa-chevron-up"></i> Mostrar menos comentários';
+  btnMenos.onclick = toggleComentarios;
+  extra.appendChild(btnMenos);
+  lista.appendChild(extra);
+
+  const btnMais = document.createElement('button');
+  btnMais.id = 'btn-ver-mais-com';
+  btnMais.className = 'btn btn-sm';
+  btnMais.style.cssText = 'margin-top:.75rem;color:var(--texto-muted);border:1px solid var(--creme-escuro);width:100%;justify-content:center;';
+  btnMais.innerHTML = '<i class="fas fa-chevron-down"></i> Ver mais comentários (' + (items.length - LIMITE) + ')';
+  btnMais.onclick = toggleComentarios;
+  lista.after(btnMais);
+
+  function toggleComentarios() {
+    const aberto = extra.style.display !== 'none';
+    extra.style.display = aberto ? 'none' : 'block';
+    btnMais.style.display = aberto ? '' : 'none';
   }
 });
 </script>

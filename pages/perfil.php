@@ -191,7 +191,7 @@ include dirname(__DIR__) . '/includes/header.php';
     </h2>
 
     <?php if ($locais_perfil): ?>
-      <div class="cards-grid">
+      <div class="cards-grid" style="grid-template-columns:repeat(auto-fill,minmax(260px,300px));">
         <?php foreach ($locais_perfil as $local):
           if ($is_own || is_admin()): ?>
             <!-- Card com badge de estado para o próprio utilizador e admin -->

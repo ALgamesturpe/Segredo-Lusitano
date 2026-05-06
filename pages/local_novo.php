@@ -58,14 +58,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 $page_title    = 'Partilhar Local';
 $extra_head    = '<style>
-  .novo-local-grid { display:grid; grid-template-columns:1fr 400px; gap:3rem; align-items:start; }
+  .novo-local-grid { display:grid; grid-template-columns:1fr 520px; gap:2rem; align-items:start; }
   .novo-local-map-col {
     position:sticky;
     top:calc(var(--nav-h) + 1rem);
     display:flex;
     flex-direction:column;
+    gap:.75rem;
   }
-  #mini-map { height:682px; }
+  #mini-map { height:600px; border-radius:var(--radius); overflow:hidden; }
   @media (max-width:900px) {
     .novo-local-grid { grid-template-columns:1fr; }
     .novo-local-map-col { position:static; }
@@ -96,7 +97,7 @@ include dirname(__DIR__) . '/includes/header.php';
       <div class="novo-local-grid">
 
         <!-- ── COLUNA ESQUERDA: campos ── -->
-        <div style="background:var(--branco);padding:2rem;">
+        <div>
 
           <!-- Nome -->
           <div class="form-group">
@@ -180,18 +181,18 @@ include dirname(__DIR__) . '/includes/header.php';
 
         <!-- ── COLUNA DIREITA: mapa (sticky) ── -->
         <div class="novo-local-map-col">
-          <div style="background:var(--branco);overflow:hidden;">
-            <div style="padding:1rem 1.25rem;">
-              <p style="font-size:.85rem;font-weight:600;margin:0 0 .75rem;color:var(--texto);">
-                <i class="fas fa-map-pin" style="color:var(--verde);margin-right:.35rem;"></i>Localização <span style="font-weight:400;color:var(--texto-muted);">— Clica no mapa para marcar</span>
-              </p>
-              <?php if (isset($erros['coords'])): ?><div class="form-error" style="margin-bottom:.75rem;"><?= h($erros['coords']) ?></div><?php endif; ?>
-              <button type="button" id="btn-geolocalizacao" class="btn btn-sm btn-verde" style="width:100%;justify-content:center;">
-                <i class="fas fa-crosshairs"></i> Usar Localização Atual
-              </button>
-            </div>
-            <div id="mini-map" style="overflow:hidden;"></div>
+          <!-- Localização (separado do mapa) -->
+          <div style="border:1.5px solid var(--creme-escuro);border-radius:var(--radius);padding:1rem 1.25rem;background:var(--branco);">
+            <p style="font-size:.85rem;font-weight:600;margin:0 0 .75rem;color:var(--texto);">
+              <i class="fas fa-map-pin" style="color:var(--verde);margin-right:.35rem;"></i>Localização <span style="font-weight:400;color:var(--texto-muted);">— Clica no mapa para marcar</span>
+            </p>
+            <?php if (isset($erros['coords'])): ?><div class="form-error" style="margin-bottom:.75rem;"><?= h($erros['coords']) ?></div><?php endif; ?>
+            <button type="button" id="btn-geolocalizacao" class="btn btn-sm btn-verde" style="width:100%;justify-content:center;">
+              <i class="fas fa-crosshairs"></i> Usar Localização Atual
+            </button>
           </div>
+          <!-- Mapa -->
+          <div id="mini-map"></div>
         </div>
 
       </div>
