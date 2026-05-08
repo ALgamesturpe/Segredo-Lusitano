@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 // SEGREDO LUSITANO — Detalhe do Local
 require_once dirname(__DIR__) . '/includes/functions.php';
 
@@ -186,7 +186,7 @@ include dirname(__DIR__) . '/includes/header.php';
             <button onclick="<?= $user
                 ? "abrirModalDenuncia('local', {$id}, 'Local')"
                 : "mostrarAvisoLogin('Precisas de iniciar sessão para denunciar este local.', '" . SITE_URL . "/pages/login.php')" ?>"
-                    class="btn btn-sm" style="color:var(--texto-muted);border:1px solid var(--creme-escuro);border-radius:3px;">
+                    class="btn btn-sm" style="color:var(--texto-muted);border:1px solid var(--creme-escuro);border-radius:0;">
               <i class="fas fa-flag"></i> Denunciar
             </button>
           <?php endif; ?>
@@ -236,7 +236,7 @@ include dirname(__DIR__) . '/includes/header.php';
                 <?php if ($tem_fotos_alheias): ?>
                   <button id="btn-denunciar-foto" onclick="toggleModoDenuncia()"
                           class="btn btn-sm"
-                          style="color:var(--texto-muted);border:1px solid var(--creme-escuro);border-radius:3px;font-size:.8rem;transition:all .2s;">
+                          style="color:var(--texto-muted);border:1px solid var(--creme-escuro);border-radius:0;font-size:.8rem;transition:all .2s;">
                     <i class="fas fa-flag"></i> Denunciar foto
                   </button>
                 <?php endif; ?>
@@ -296,7 +296,7 @@ include dirname(__DIR__) . '/includes/header.php';
                       <a href="<?= SITE_URL ?>/pages/local.php?id=<?= $id ?>&apagar_foto=<?= $foto['id'] ?>"
                          onclick="return confirm('Eliminar esta foto?')"
                          style="position:absolute;top:.35rem;right:.35rem;background:#c0392b;color:#fff;
-                                 border-radius:3px;padding:.2rem .45rem;font-size:.75rem;text-decoration:none;z-index:10;">
+                                 border-radius:0;padding:.2rem .45rem;font-size:.75rem;text-decoration:none;z-index:10;">
                         <i class="fas fa-trash"></i>
                       </a>
                     <?php endif; ?>
@@ -304,12 +304,12 @@ include dirname(__DIR__) . '/includes/header.php';
                 <?php $foto_idx++; endforeach; ?>
               </div>
               <div id="aviso-modo-denuncia" style="display:none;margin-top:.75rem;padding:.6rem 1rem;
-                   background:rgba(192,57,43,.08);border:1px solid #c0392b;border-radius:3px;
+                   background:rgba(192,57,43,.08);border:1px solid #c0392b;border-radius:0;
                    font-size:.85rem;color:#c0392b;text-align:center;">
                 <i class="fas fa-hand-pointer"></i> Clica na foto que queres denunciar
               </div>
               <div id="aviso-modo-eliminar" style="display:none;margin-top:.75rem;padding:.6rem 1rem;
-                   background:rgba(192,57,43,.08);border:1px solid #c0392b;border-radius:3px;
+                   background:rgba(192,57,43,.08);border:1px solid #c0392b;border-radius:0;
                    font-size:.85rem;color:#c0392b;text-align:center;">
                 <i class="fas fa-hand-pointer"></i> Clica numa das tuas fotos para a eliminar
               </div>
@@ -317,7 +317,7 @@ include dirname(__DIR__) . '/includes/header.php';
               <form method="POST" enctype="multipart/form-data" style="margin-top:1rem;display:flex;gap:.75rem;align-items:center;flex-wrap:wrap;">
                 <input type="hidden" name="local_id_upload" value="<?= $id ?>">
                 <input type="file" name="foto_admin" accept="image/*" required
-                       style="border:1.5px solid var(--creme-escuro);border-radius:3px;padding:.4rem .75rem;background:var(--creme);font-size:.9rem;">
+                       style="border:1.5px solid var(--creme-escuro);border-radius:0;padding:.4rem .75rem;background:var(--creme);font-size:.9rem;">
                 <button type="submit" name="upload_admin" class="btn btn-sm btn-verde">
                   <i class="fas fa-upload"></i> Adicionar Foto
                 </button>
@@ -344,7 +344,7 @@ include dirname(__DIR__) . '/includes/header.php';
               <i class="fas fa-expand"></i> Expandir
             </button>
             <div id="mapa-estado" style="position:absolute;bottom:.6rem;left:.6rem;z-index:999;
-                 background:rgba(26,58,42,.85);color:#c9a84c;font-size:.75rem;padding:.3rem .65rem;border-radius:6px;display:none;">
+                 background:rgba(26,58,42,.85);color:#c9a84c;font-size:.75rem;padding:.3rem .65rem;border-radius:0;display:none;">
               <i class="fas fa-spinner fa-spin"></i> A obter localização...
             </div>
           </div>
@@ -404,7 +404,7 @@ include dirname(__DIR__) . '/includes/header.php';
                         <button type="button"
                                 onclick="abrirModalDenuncia('comentario', <?= (int)$com['id'] ?>, 'Comentario')"
                                 class="btn btn-sm"
-                                style="margin-left:.35rem;padding:.2rem .55rem;border:1px solid var(--creme-escuro);color:var(--texto-muted);border-radius:3px;">
+                                style="margin-left:.35rem;padding:.2rem .55rem;border:1px solid var(--creme-escuro);color:var(--texto-muted);border-radius:0;">
                           <i class="fas fa-flag"></i> Denunciar
                         </button>
                       <?php endif; ?>
@@ -480,20 +480,20 @@ include dirname(__DIR__) . '/includes/header.php';
     </span>
     <div style="display:flex;gap:.4rem;">
       <button class="btn-modo" data-modo="driving" onclick="mudarModo('driving')"
-              style="background:var(--dourado);color:var(--verde-escuro);border:none;border-radius:3px;padding:.35rem .75rem;cursor:pointer;font-size:.82rem;font-weight:700;display:flex;align-items:center;gap:.3rem;">
+              style="background:var(--dourado);color:var(--verde-escuro);border:none;border-radius:0;padding:.35rem .75rem;cursor:pointer;font-size:.82rem;font-weight:700;display:flex;align-items:center;gap:.3rem;">
         <i class="fas fa-car"></i> Carro
       </button>
       <button class="btn-modo" data-modo="foot" onclick="mudarModo('foot')"
-              style="background:rgba(255,255,255,.15);color:#fff;border:none;border-radius:3px;padding:.35rem .75rem;cursor:pointer;font-size:.82rem;display:flex;align-items:center;gap:.3rem;">
+              style="background:rgba(255,255,255,.15);color:#fff;border:none;border-radius:0;padding:.35rem .75rem;cursor:pointer;font-size:.82rem;display:flex;align-items:center;gap:.3rem;">
         <i class="fas fa-walking"></i> A Pé
       </button>
       <button class="btn-modo" data-modo="bike" onclick="mudarModo('bike')"
-              style="background:rgba(255,255,255,.15);color:#fff;border:none;border-radius:3px;padding:.35rem .75rem;cursor:pointer;font-size:.82rem;display:flex;align-items:center;gap:.3rem;">
+              style="background:rgba(255,255,255,.15);color:#fff;border:none;border-radius:0;padding:.35rem .75rem;cursor:pointer;font-size:.82rem;display:flex;align-items:center;gap:.3rem;">
         <i class="fas fa-bicycle"></i> Bicicleta
       </button>
     </div>
     <button onclick="fecharMapaFullscreen()"
-            style="background:rgba(255,255,255,.15);border:none;color:#fff;border-radius:3px;padding:.4rem .85rem;cursor:pointer;font-size:.9rem;">
+            style="background:rgba(255,255,255,.15);border:none;color:#fff;border-radius:0;padding:.4rem .85rem;cursor:pointer;font-size:.9rem;">
       <i class="fas fa-times"></i> Fechar
     </button>
   </div>

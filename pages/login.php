@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 // ============================================================
 // SEGREDO LUSITANO — Página de Login
 // Permite ao utilizador entrar na conta por 3 métodos:
@@ -124,7 +124,7 @@ include dirname(__DIR__) . '/includes/header.php';
 
     <!-- Mensagem de erro normal (credenciais incorretas) -->
     <?php elseif ($erro): ?>
-      <div class="flash flash-error" style="position:static; margin-bottom:1.25rem; border-radius:3px;">
+      <div class="flash flash-error" style="position:static; margin-bottom:1.25rem; border-radius:0;">
         <i class="fas fa-exclamation-circle"></i> <?= h($erro) ?>
       </div>
     <?php endif; ?>
@@ -176,7 +176,7 @@ include dirname(__DIR__) . '/includes/header.php';
         <a href="<?= SITE_URL ?>/pages/github_redirect.php"
            style="display:flex;align-items:center;justify-content:space-between;
                   width:300px;padding:.65rem 1rem;border:1.5px solid #d0d5dd;
-                  border-radius:3px;background:#fff;color:#1e1e1e;
+                  border-radius:0;background:#fff;color:#1e1e1e;
                   font-size:.9rem;font-weight:500;text-decoration:none;
                   transition:background .2s;">
           <div style="display:flex;align-items:center;gap:.65rem;">

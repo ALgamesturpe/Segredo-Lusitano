@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 // ============================================================
 // SEGREDO LUSITANO - Cabeçalho (include)
 // ============================================================
@@ -70,12 +70,12 @@ if ($user) {
           <i class="fas fa-comments"></i> Mensagens
           <?php if ($nao_lidas_msg > 0): ?>
             <span id="msg-badge" style="position:absolute;top:-6px;right:-8px;background:#e74c3c;color:#fff;
-                   border-radius:50px;padding:.1rem .4rem;font-size:.7rem;font-weight:700;line-height:1.4;">
+                   border-radius:0;padding:.1rem .4rem;font-size:.7rem;font-weight:700;line-height:1.4;">
               <?= $nao_lidas_msg ?>
             </span>
           <?php else: ?>
             <span id="msg-badge" style="position:absolute;top:-6px;right:-8px;background:#e74c3c;color:#fff;
-                   border-radius:50px;padding:.1rem .4rem;font-size:.7rem;font-weight:700;line-height:1.4;display:none;">
+                   border-radius:0;padding:.1rem .4rem;font-size:.7rem;font-weight:700;line-height:1.4;display:none;">
               0
             </span>
           <?php endif; ?>

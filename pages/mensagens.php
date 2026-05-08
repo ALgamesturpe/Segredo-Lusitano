@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once dirname(__DIR__) . '/includes/functions.php';
 require_login();
 
@@ -98,7 +98,7 @@ include dirname(__DIR__) . '/includes/header.php';
               <div style="font-size:.8rem;color:var(--texto-muted);">@<?= h($conv['username']) ?></div>
             </div>
             <?php if ($conv['nao_lidas'] > 0): ?>
-              <span style="background:#e74c3c;color:#fff;border-radius:50px;padding:.15rem .5rem;font-size:.75rem;font-weight:700;flex-shrink:0;"><?= $conv['nao_lidas'] ?></span>
+              <span style="background:#e74c3c;color:#fff;border-radius:0;padding:.15rem .5rem;font-size:.75rem;font-weight:700;flex-shrink:0;"><?= $conv['nao_lidas'] ?></span>
             <?php endif; ?>
           </a>
         <?php endforeach; ?>
@@ -143,7 +143,7 @@ include dirname(__DIR__) . '/includes/header.php';
             <div class="msg-opts-wrap" style="position:relative;order:-1;">
               <button class="btn-msg-opts"
                       style="display:none;background:var(--branco);color:var(--texto-muted);border:1px solid var(--creme-escuro);
-                             border-radius:50%;width:26px;height:26px;cursor:pointer;font-size:.72rem;
+                             border-radius:0;width:26px;height:26px;cursor:pointer;font-size:.72rem;
                              align-items:center;justify-content:center;">
                 <i class="fas fa-ellipsis-v"></i>
               </button>
@@ -151,11 +151,11 @@ include dirname(__DIR__) . '/includes/header.php';
             <?php endif; ?>
 
             <div style="max-width:70%;background:<?= $propria ? 'var(--verde)' : 'var(--branco)' ?>;color:<?= $propria ? '#fff' : 'var(--texto)' ?>;
-                        padding:.65rem 1rem;border-radius:<?= $propria ? '18px 18px 4px 18px' : '18px 18px 18px 4px' ?>;
+                        padding:.65rem 1rem;border-radius:0;
                         font-size:.92rem;line-height:1.5;word-break:break-word;">
               <?php if ($isImg): ?>
                 <img src="<?= SITE_URL ?>/uploads/mensagens/<?= h($msg['ficheiro']) ?>"
-                     style="max-width:220px;border-radius:8px;display:block;cursor:pointer;"
+                     style="max-width:220px;border-radius:0;display:block;cursor:pointer;"
                      onclick="abrirFotoMsg('<?= SITE_URL ?>/uploads/mensagens/<?= h($msg['ficheiro']) ?>')">
               <?php elseif ($isFich): ?>
                 <a href="<?= SITE_URL ?>/uploads/mensagens/<?= h($msg['ficheiro']) ?>" target="_blank"
@@ -175,7 +175,7 @@ include dirname(__DIR__) . '/includes/header.php';
             <div class="msg-opts-wrap" style="position:relative;">
               <button class="btn-msg-opts"
                       style="display:none;background:var(--branco);color:var(--texto-muted);border:1px solid var(--creme-escuro);
-                             border-radius:50%;width:26px;height:26px;cursor:pointer;font-size:.72rem;
+                             border-radius:0;width:26px;height:26px;cursor:pointer;font-size:.72rem;
                              align-items:center;justify-content:center;">
                 <i class="fas fa-ellipsis-v"></i>
               </button>
@@ -194,16 +194,16 @@ include dirname(__DIR__) . '/includes/header.php';
 
       <div style="padding:1rem 1.25rem;background:var(--branco);border-top:1px solid var(--creme-escuro);">
         <div id="preview-ficheiro" style="display:none;margin-bottom:.75rem;position:relative;width:fit-content;">
-          <img id="preview-img" src="" style="max-height:120px;max-width:200px;border-radius:8px;display:block;">
+          <img id="preview-img" src="" style="max-height:120px;max-width:200px;border-radius:0;display:block;">
           <div id="preview-nome" style="font-size:.8rem;color:var(--texto-muted);margin-top:.25rem;"></div>
           <button onclick="cancelarFicheiro()" style="position:absolute;top:-8px;right:-8px;width:22px;height:22px;
-                  border-radius:50%;background:#e74c3c;color:#fff;border:none;cursor:pointer;
+                  border-radius:0;background:#e74c3c;color:#fff;border:none;cursor:pointer;
                   font-size:.7rem;display:flex;align-items:center;justify-content:center;">
             <i class="fas fa-times"></i>
           </button>
         </div>
         <div style="display:flex;gap:.75rem;align-items:flex-end;">
-          <label for="msg-ficheiro" style="width:44px;height:44px;border-radius:50%;background:var(--creme);
+          <label for="msg-ficheiro" style="width:44px;height:44px;border-radius:0;background:var(--creme);
                  border:1.5px solid var(--creme-escuro);display:flex;align-items:center;justify-content:center;
                  cursor:pointer;flex-shrink:0;color:var(--texto-muted);font-size:1rem;" title="Enviar ficheiro">
             <i class="fas fa-paperclip"></i>
@@ -211,11 +211,11 @@ include dirname(__DIR__) . '/includes/header.php';
           <input type="file" id="msg-ficheiro" accept="image/*,.pdf,.doc,.docx,.txt"
                  style="display:none;" onchange="selecionarFicheiro(this)">
           <textarea id="msg-input" placeholder="Escreve uma mensagem..." rows="1"
-                    style="flex:1;border:1.5px solid var(--creme-escuro);border-radius:3px;padding:.65rem 1.1rem;
+                    style="flex:1;border:1.5px solid var(--creme-escuro);border-radius:0;padding:.65rem 1.1rem;
                            resize:none;font-size:.95rem;font-family:inherit;background:var(--creme);outline:none;
                            max-height:120px;overflow-y:auto;"
                     onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();enviarMensagem();}"></textarea>
-          <button onclick="enviarMensagem()" style="width:44px;height:44px;border-radius:50%;background:var(--verde);
+          <button onclick="enviarMensagem()" style="width:44px;height:44px;border-radius:0;background:var(--verde);
                   color:#fff;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:1rem;">
             <i class="fas fa-paper-plane"></i>
           </button>
@@ -298,7 +298,7 @@ function toggleMenu(btnEl, msgId) {
   const menu = document.createElement('div');
   menu.className = 'msg-menu';
   menu.style.cssText = `position:absolute;bottom:calc(100% + 4px);left:50%;transform:translateX(-50%);
-      background:var(--branco);border:1px solid var(--creme-escuro);border-radius:3px;
+      background:var(--branco);border:1px solid var(--creme-escuro);border-radius:0;
       box-shadow:var(--sombra-md);z-index:500;min-width:140px;overflow:hidden;white-space:nowrap;`;
 
   const btnEliminar = document.createElement('button');
@@ -398,7 +398,7 @@ function criarWrapper(msgId, propria, innerHtml) {
   btnOpts.className = 'btn-msg-opts';
   btnOpts.innerHTML = '<i class="fas fa-ellipsis-v"></i>';
   btnOpts.style.cssText = `display:none;background:var(--branco);color:var(--texto-muted);
-      border:1px solid var(--creme-escuro);border-radius:50%;width:26px;height:26px;
+      border:1px solid var(--creme-escuro);border-radius:0;width:26px;height:26px;
       cursor:pointer;font-size:.72rem;align-items:center;justify-content:center;`;
   btnOpts.addEventListener('click', (e) => { e.stopPropagation(); toggleMenu(btnOpts, msgId); });
   optsWrap.appendChild(btnOpts);
@@ -406,7 +406,7 @@ function criarWrapper(msgId, propria, innerHtml) {
   const bubble = document.createElement('div');
   bubble.style.cssText = `max-width:70%;background:${propria ? 'var(--verde)' : 'var(--branco)'};
       color:${propria ? '#fff' : 'var(--texto)'};padding:.65rem 1rem;
-      border-radius:${propria ? '18px 18px 4px 18px' : '18px 18px 18px 4px'};
+      border-radius:0;
       font-size:.92rem;line-height:1.5;word-break:break-word;`;
   bubble.innerHTML = innerHtml;
 
@@ -447,7 +447,7 @@ function adicionarMensagemFicheiro(msg, propria) {
   const url   = `${SITE_URL_JS}/uploads/mensagens/${msg.ficheiro}`;
   const isImg = /\.(jpg|jpeg|png|webp|gif)$/i.test(msg.ficheiro);
   const inner = (isImg
-    ? `<img src="${url}" style="max-width:220px;border-radius:8px;display:block;cursor:pointer;" onclick="abrirFotoMsg('${url}')">`
+    ? `<img src="${url}" style="max-width:220px;border-radius:0;display:block;cursor:pointer;" onclick="abrirFotoMsg('${url}')">`
     : `<a href="${url}" target="_blank" style="color:inherit;display:flex;align-items:center;gap:.5rem;"><i class="fas fa-file"></i> ${msg.ficheiro}</a>`)
     + `<div style="font-size:.72rem;opacity:.65;text-align:right;margin-top:.3rem;">${hora}</div>`;
   chat.appendChild(criarWrapper(msg.id, propria, inner));

@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 // ============================================================
 // SEGREDO LUSITANO — Admin: Gerir Utilizadores
 // Permite ao administrador ver, suspender, reativar e banir
@@ -172,7 +172,7 @@ include dirname(__DIR__) . '/includes/header.php';
       <?php if ($filtro !== 'todos'): ?>
         <input type="hidden" name="filtro" value="<?= h($filtro) ?>">
       <?php endif; ?>
-      <div style="display:flex;align-items:center;gap:.5rem;background:var(--creme);border:2px solid var(--verde-claro);border-radius:3px;padding:.4rem .75rem;max-width:400px;">
+      <div style="display:flex;align-items:center;gap:.5rem;background:var(--creme);border:2px solid var(--verde-claro);border-radius:0;padding:.4rem .75rem;max-width:400px;">
         <i class="fas fa-search" style="color:var(--texto-muted);font-size:.85rem;"></i>
         <input type="text" name="q" value="<?= h($pesquisa) ?>" placeholder="Pesquisar utilizadores..."
                style="border:none;background:transparent;outline:none;font-size:.9rem;width:100%;">

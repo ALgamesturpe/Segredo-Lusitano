@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 // ============================================================
 // SEGREDO LUSITANO — Admin: Estatísticas Detalhadas
 // ============================================================
@@ -190,17 +190,17 @@ function avatar_cell(array $u): string {
     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1.5rem;">
       <h1 class="admin-title" style="margin:0;"><i class="fas fa-chart-bar"></i> Estatísticas</h1>
       <form method="GET" style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;">
-        <select name="mes" style="padding:.45rem .75rem;border:1.5px solid var(--creme-escuro);border-radius:3px;background:var(--creme);font-size:.9rem;color:var(--texto);">
+        <select name="mes" style="padding:.45rem .75rem;border:1.5px solid var(--creme-escuro);border-radius:0;background:var(--creme);font-size:.9rem;color:var(--texto);">
           <?php foreach ($nomes_meses as $i => $nome): ?>
             <option value="<?= $i+1 ?>" <?= ($i+1) == $mes_sel ? 'selected' : '' ?>><?= $nome ?></option>
           <?php endforeach; ?>
         </select>
-        <select name="ano" style="padding:.45rem .75rem;border:1.5px solid var(--creme-escuro);border-radius:3px;background:var(--creme);font-size:.9rem;color:var(--texto);">
+        <select name="ano" style="padding:.45rem .75rem;border:1.5px solid var(--creme-escuro);border-radius:0;background:var(--creme);font-size:.9rem;color:var(--texto);">
           <?php for ($y = (int)date('Y'); $y >= 2024; $y--): ?>
             <option value="<?= $y ?>" <?= $y == $ano_sel ? 'selected' : '' ?>><?= $y ?></option>
           <?php endfor; ?>
         </select>
-        <select name="top" style="padding:.45rem .75rem;border:1.5px solid var(--creme-escuro);border-radius:3px;background:var(--creme);font-size:.9rem;color:var(--texto);">
+        <select name="top" style="padding:.45rem .75rem;border:1.5px solid var(--creme-escuro);border-radius:0;background:var(--creme);font-size:.9rem;color:var(--texto);">
           <?php foreach ([1,3,5,10,20] as $t): ?>
             <option value="<?= $t ?>" <?= $top_sel == $t ? 'selected' : '' ?>>Top <?= $t ?></option>
           <?php endforeach; ?>

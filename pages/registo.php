@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 // SEGREDO LUSITANO — Registo
 require_once dirname(__DIR__) . '/includes/auth.php';
 require_once dirname(__DIR__) . '/includes/mailer.php';
@@ -166,7 +166,7 @@ include dirname(__DIR__) . '/includes/header.php';
       <a href="#" onclick="verificarTermosParaSocial('<?= SITE_URL ?>/pages/github_redirect.php'); return false;"
         style="display:flex;align-items:center;justify-content:space-between;
                 width:300px;padding:.65rem 1rem;border:1.5px solid #d0d5dd;
-                border-radius:3px;background:#fff;color:#1e1e1e;
+                border-radius:0;background:#fff;color:#1e1e1e;
                 font-size:.9rem;font-weight:500;text-decoration:none;
                 transition:background .2s;margin-top:.5rem;">
         <div style="display:flex;align-items:center;gap:.65rem;">

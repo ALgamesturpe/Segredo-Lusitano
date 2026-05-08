@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 // ============================================================
 // SEGREDO LUSITANO — Perfil de Utilizador
 // ============================================================
@@ -173,7 +173,7 @@ include dirname(__DIR__) . '/includes/header.php';
     </div>
     <!-- Barra de pesquisa no modal -->
     <div style="padding:.75rem 1.25rem;border-bottom:1px solid var(--creme-escuro);">
-      <div style="display:flex;align-items:center;gap:.5rem;background:var(--creme);border:1.5px solid var(--creme-escuro);border-radius:3px;padding:.4rem .75rem;">
+      <div style="display:flex;align-items:center;gap:.5rem;background:var(--creme);border:1.5px solid var(--creme-escuro);border-radius:0;padding:.4rem .75rem;">
         <i class="fas fa-search" style="color:var(--texto-muted);font-size:.85rem;"></i>
         <input type="text" id="modal-seg-pesquisa" placeholder="Pesquisar..."
                style="border:none;background:transparent;outline:none;font-size:.9rem;width:100%;">

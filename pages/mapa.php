@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 // ============================================================
 // SEGREDO LUSITANO — Mapa Interativo
 // ============================================================
@@ -43,7 +43,7 @@ footer, .site-footer { display:none !important; height:0 !important; }
   background: rgba(255,255,255,.08);
   color: var(--creme);
   border: 1px solid rgba(201,168,76,.25);
-  border-radius: 4px;
+  border-radius:0;
   padding: .35rem .6rem;
   font-size: .82rem;
   cursor: pointer;
@@ -111,11 +111,11 @@ include dirname(__DIR__) . '/includes/header.php';
         </select>
       </div>
 
-      <button type="submit" style="background:var(--dourado);color:var(--verde-escuro);border:none;border-radius:4px;padding:.38rem .85rem;font-size:.82rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:.35rem;">
+      <button type="submit" style="background:var(--dourado);color:var(--verde-escuro);border:none;border-radius:0;padding:.38rem .85rem;font-size:.82rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:.35rem;">
         <i class="fas fa-search"></i> Filtrar
       </button>
       <a id="btn-limpar-filtro" href="#" onclick="limparFiltrosMapa(); return false;"
-         style="display:<?= $tem_filtros ? 'flex' : 'none' ?>;color:rgba(245,239,230,.5);font-size:.82rem;text-decoration:none;padding:.38rem .5rem;border:1px solid rgba(245,239,230,.15);border-radius:4px;align-items:center;" title="Limpar filtros">
+         style="display:<?= $tem_filtros ? 'flex' : 'none' ?>;color:rgba(245,239,230,.5);font-size:.82rem;text-decoration:none;padding:.38rem .5rem;border:1px solid rgba(245,239,230,.15);border-radius:0;align-items:center;" title="Limpar filtros">
         <i class="fas fa-times"></i>
       </a>
     </form>

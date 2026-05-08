@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 // ============================================================
 // SEGREDO LUSITANO — Painel de Administração (Dashboard)
 // ============================================================
@@ -158,7 +158,7 @@ function render_top_user(?array $u, string $valor_label): string {
       <div class="nav-section">Moderação</div>
       <a href="#denuncias">
         <i class="fas fa-flag"></i> Denúncias
-        <span style="background:#e74c3c;color:#fff;padding:.1rem .4rem;border-radius:50px;font-size:.7rem;margin-left:.25rem;"><?= $total_denuncias ?></span>
+        <span style="background:#e74c3c;color:#fff;padding:.1rem .4rem;border-radius:0;font-size:.7rem;margin-left:.25rem;"><?= $total_denuncias ?></span>
       </a>
     </nav>
   </aside>
@@ -179,14 +179,14 @@ function render_top_user(?array $u, string $valor_label): string {
           </div>
           <form method="GET" style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;">
             <select name="mes" onchange="this.form.submit()"
-                    style="padding:.3rem .75rem;border:1.5px solid var(--creme-escuro);border-radius:3px;background:var(--creme);font-size:.9rem;color:var(--texto);cursor:pointer;">
+                    style="padding:.3rem .75rem;border:1.5px solid var(--creme-escuro);border-radius:0;background:var(--creme);font-size:.9rem;color:var(--texto);cursor:pointer;">
               <option value="0" <?= $mes_selecionado === 0 ? 'selected' : '' ?>>Ano todo</option>
               <?php foreach ($nomes_meses_g as $i => $nome): ?>
                 <option value="<?= $i+1 ?>" <?= ($i+1) === $mes_selecionado ? 'selected' : '' ?>><?= $nome ?></option>
               <?php endforeach; ?>
             </select>
             <select name="ano" onchange="this.form.submit()"
-                    style="padding:.3rem .75rem;border:1.5px solid var(--creme-escuro);border-radius:3px;background:var(--creme);font-size:.9rem;color:var(--texto);cursor:pointer;">
+                    style="padding:.3rem .75rem;border:1.5px solid var(--creme-escuro);border-radius:0;background:var(--creme);font-size:.9rem;color:var(--texto);cursor:pointer;">
               <?php for ($y = $ano_atual; $y >= 2024; $y--): ?>
                 <option value="<?= $y ?>" <?= $y === $ano_selecionado ? 'selected' : '' ?>><?= $y ?></option>
               <?php endfor; ?>
@@ -395,7 +395,7 @@ function render_top_user(?array $u, string $valor_label): string {
         <span id="modal-den-motivo" style="font-size:.9rem;font-weight:600;color:#e74c3c;"></span>
       </div>
       <div style="font-size:.8rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-muted);margin-bottom:.5rem;">Conteúdo denunciado</div>
-      <div id="modal-den-conteudo" style="background:var(--creme);border:1.5px solid var(--creme-escuro);border-radius:3px;padding:1rem;font-size:.95rem;white-space:pre-wrap;line-height:1.6;margin-bottom:1.25rem;"></div>
+      <div id="modal-den-conteudo" style="background:var(--creme);border:1.5px solid var(--creme-escuro);border-radius:0;padding:1rem;font-size:.95rem;white-space:pre-wrap;line-height:1.6;margin-bottom:1.25rem;"></div>
       <a id="modal-den-link" href="#" target="_blank" rel="noopener" class="btn btn-sm btn-verde" style="display:none;">
         <i class="fas fa-external-link-alt"></i> Abrir local
       </a>
@@ -452,15 +452,15 @@ function abrirModalDenuncia(btn) {
 
   if (tipo === 'local') {
     const capaHtml = capa
-      ? `<div style="width:100%;height:160px;background:url('${SITE_URL}/uploads/locais/${capa}') center/cover no-repeat;border-radius:10px 10px 0 0;"></div>`
-      : `<div style="width:100%;height:80px;background:linear-gradient(135deg,var(--verde) 0%,var(--verde-escuro) 100%);border-radius:10px 10px 0 0;display:flex;align-items:center;justify-content:center;">
+      ? `<div style="width:100%;height:160px;background:url('${SITE_URL}/uploads/locais/${capa}') center/cover no-repeat;border-radius:0;"></div>`
+      : `<div style="width:100%;height:80px;background:linear-gradient(135deg,var(--verde) 0%,var(--verde-escuro) 100%);border-radius:0;display:flex;align-items:center;justify-content:center;">
            <i class="fas fa-map-marker-alt" style="font-size:2rem;color:rgba(255,255,255,.5);"></i>
          </div>`;
     const badgesDif = dificuldade
-      ? `<span style="background:${difColors[dificuldade]||'#aaa'};color:#fff;font-size:.72rem;font-weight:700;padding:.2rem .55rem;border-radius:20px;">${difLabels[dificuldade]||dificuldade}</span>`
+      ? `<span style="background:${difColors[dificuldade]||'#aaa'};color:#fff;font-size:.72rem;font-weight:700;padding:.2rem .55rem;border-radius:0;">${difLabels[dificuldade]||dificuldade}</span>`
       : '';
     const badgeCat = categoria
-      ? `<span style="background:var(--creme-escuro);color:var(--texto-muted);font-size:.72rem;font-weight:600;padding:.2rem .55rem;border-radius:20px;">${categoria}</span>`
+      ? `<span style="background:var(--creme-escuro);color:var(--texto-muted);font-size:.72rem;font-weight:600;padding:.2rem .55rem;border-radius:0;">${categoria}</span>`
       : '';
     const metaVistas = `<span style="font-size:.8rem;color:var(--texto-muted);"><i class="fas fa-eye" style="margin-right:.25rem;"></i>${parseInt(vistas).toLocaleString('pt-PT')} visitas</span>`;
 
@@ -495,7 +495,7 @@ function abrirModalDenuncia(btn) {
     conteudoEl.style.padding    = '1rem';
     conteudoEl.style.whiteSpace = 'normal';
     conteudoEl.innerHTML = `<img src="${SITE_URL}/uploads/locais/${ficheiro}"
-      style="max-width:100%;max-height:300px;object-fit:contain;border-radius:3px;display:block;margin:0 auto;">`;
+      style="max-width:100%;max-height:300px;object-fit:contain;border-radius:0;display:block;margin:0 auto;">`;
   } else {
     conteudoEl.style.padding    = '1rem';
     conteudoEl.style.whiteSpace = 'pre-wrap';

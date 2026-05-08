@@ -18,8 +18,8 @@
   --sombra-sm:     0 2px 8px rgba(0,0,0,.08);
   --sombra-md:     0 8px 24px rgba(0,0,0,.12);
   --sombra-lg:     0 20px 60px rgba(0,0,0,.18);
-  --radius:        3px;
-  --radius-lg:     4px;
+  --radius:        0;
+  --radius-lg:     0;
   --nav-h:         80px;
   --transition:    .25s ease;
 }
@@ -96,7 +96,7 @@ main { flex: 1; }
 .nav-links a {
   color: var(--creme);
   padding: .45rem .85rem;
-  border-radius: 4px;
+  border-radius: 0;
   font-size: .9rem; font-weight: 400;
   display: flex; align-items: center; gap: .4rem;
   transition: background var(--transition), color var(--transition);
@@ -131,7 +131,7 @@ main { flex: 1; }
   display: flex; align-items: center; gap: .5rem;
   background: none; border: none; cursor: pointer;
   color: var(--creme); padding: .45rem .85rem;
-  border-radius: 8px; font-size: .9rem; font-weight: 400;
+  border-radius: 0; font-size: .9rem; font-weight: 400;
   font-family: inherit;
   transition: background var(--transition), color var(--transition);
 }
@@ -140,13 +140,13 @@ main { flex: 1; }
 .dropdown-menu {
   position: absolute; top: calc(100% + 4px); right: 0;
   background: var(--verde-escuro); border: 1px solid var(--dourado);
-  border-radius: var(--radius); min-width: 210px; padding: .5rem;
+  border-radius: 0; min-width: 210px; padding: .5rem;
   z-index: 9999; display: none;
 }
 .dropdown-menu.open { display: block; }
 .dropdown-menu li a {
   display: flex; align-items: center; gap: .5rem;
-  padding: .5rem .75rem; border-radius: 6px; color: var(--creme); font-size: .9rem;
+  padding: .5rem .75rem; border-radius: 0; color: var(--creme); font-size: .9rem;
 }
 .dropdown-menu li a:hover { background: rgba(201,168,76,.15); color: var(--dourado); }
 
@@ -258,7 +258,7 @@ main { flex: 1; }
 .card-img img { width: 100%; height: 100%; object-fit: cover; transition: transform .5s ease; }
 .card-img-placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 3rem; color: var(--verde-claro); background: linear-gradient(135deg, var(--creme-escuro), #d4e8d8); }
 .card-badges { position: absolute; top: .75rem; left: .75rem; display: flex; gap: .4rem; flex-wrap: wrap; }
-.badge { display: inline-flex; align-items: center; gap: .3rem; padding: .25rem .65rem; border-radius: 4px; font-size: .75rem; font-weight: 600; }
+.badge { display: inline-flex; align-items: center; gap: .3rem; padding: .25rem .65rem; border-radius: 0; font-size: .75rem; font-weight: 600; }
 .badge-cat        { background: rgba(26,58,42,.85); color: var(--dourado); }
 .badge-dif-facil  { background: #27ae60; color: #fff; }
 .badge-dif-medio  { background: #f39c12; color: #fff; }
@@ -404,7 +404,7 @@ main { flex: 1; }
 .admin-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px,1fr)); gap: 1.25rem; margin-bottom: 2rem; }
 .admin-stat-card { background: var(--branco); border-radius: var(--radius-lg); padding: 1.4rem 1.5rem 1.25rem; box-shadow: 0 1px 4px rgba(0,0,0,.07), 0 4px 16px rgba(0,0,0,.05); border-top: 3px solid var(--verde); display: flex; flex-direction: column; gap: .5rem; }
 .admin-stat-card .card-header { display: flex; align-items: center; justify-content: space-between; }
-.admin-stat-card .card-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: .95rem; opacity: .9; }
+.admin-stat-card .card-icon { width: 36px; height: 36px; border-radius: 0; display: flex; align-items: center; justify-content: center; font-size: .95rem; opacity: .9; }
 .admin-stat-card .num { font-family: inherit; font-size: 2rem; font-weight: 700; line-height: 1; color: var(--verde-escuro); letter-spacing: -.02em; }
 .admin-stat-card .lbl { font-size: .75rem; color: var(--texto-muted); text-transform: uppercase; letter-spacing: .08em; font-weight: 500; }
 .admin-chart-container { position: relative; width: 100%; max-width: 100%; overflow-x: auto; }
@@ -557,7 +557,7 @@ main { flex: 1; }
     display: none !important;
     border: none !important;
     background: rgba(255,255,255,.06) !important;
-    border-radius: 8px !important;
+    border-radius: 0 !important;
     margin: 2px 0 4px !important;
     min-width: unset !important;
     width: 100% !important;

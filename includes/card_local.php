@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 // ============================================================
 // SEGREDO LUSITANO — Partial: Card de Local
 // ============================================================
@@ -55,7 +55,7 @@ if ($_card_user && !$_card_e_proprio) {
                   data-seguindo="<?= $_card_segue ? '1' : '0' ?>"
                   style="background:none;border:1px solid <?= $_card_segue ? 'var(--creme-escuro)' : 'var(--verde)' ?>;
                          color:<?= $_card_segue ? 'var(--texto-muted)' : 'var(--verde)' ?>;
-                         border-radius:20px;padding:.1rem .55rem;font-size:.72rem;cursor:pointer;
+                         border-radius:0;padding:.1rem .55rem;font-size:.72rem;cursor:pointer;
                          display:inline-flex;align-items:center;gap:.25rem;transition:all .15s;">
             <i class="fas <?= $_card_segue ? 'fa-user-check' : 'fa-user-plus' ?>"></i>
             <?= $_card_segue ? 'A seguir' : 'Seguir' ?>
