@@ -251,7 +251,7 @@ main { flex: 1; }
 /* ============================================================
    CARDS
    ============================================================ */
-.cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.75rem; }
+.cards-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.75rem; }
 .card { background: var(--branco); border-radius: var(--radius-lg); overflow: hidden; transition: transform var(--transition); display: flex; flex-direction: column; }
 .card:hover { transform: translateY(-4px); }
 .card-img { position: relative; height: 175px; overflow: hidden; background: var(--creme-escuro); }
@@ -494,6 +494,8 @@ main { flex: 1; }
    ============================================================ */
 @media (max-width: 1040px) {
 
+  .cards-grid { grid-template-columns: repeat(2, 1fr); }
+
   /* Mostrar hamburger, esconder nav-links do desktop */
   .hamburger { display: flex !important; }
 
@@ -591,6 +593,8 @@ main { flex: 1; }
    ============================================================ */
 @media (max-width: 768px) {
 
+  .cards-grid { grid-template-columns: repeat(2, 1fr); }
+
   /* Tabelas */
   .data-table, .ranking-table {
     display: block;
@@ -642,7 +646,7 @@ main { flex: 1; }
 /* ============================================================
    PÁGINA / MAPA
    ============================================================ */
-.page-content { padding-top: var(--nav-h); }
+.page-content { padding-top: 50px; }
 .page-content:has(#map) { display: flex; flex-direction: column; height: 100vh; padding-top: var(--nav-h); }
 
 /* ============================================================
