@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 // ============================================================
 // SEGREDO LUSITANO — Mapa Interativo
 // ============================================================
@@ -36,7 +36,7 @@ $tem_filtros = $filtro_regiao || $filtro_categoria || $filtro_dificuldade;
 
 $extra_head = '<style>
 body { overflow: hidden; margin:0; padding:0; }
-.page-content { height: calc(100vh - var(--nav-h)); display:flex; flex-direction:column; margin:0; padding:0; }
+.page-content { height: calc(100vh - var(--nav-h)); display:flex; flex-direction:column; margin:0; padding:0; background:var(--verde-escuro); }
 footer, .site-footer { display:none !important; height:0 !important; }
 #map { flex:1; min-height:0; }
 .mapa-select {
@@ -44,8 +44,8 @@ footer, .site-footer { display:none !important; height:0 !important; }
   color: var(--creme);
   border: 1px solid rgba(201,168,76,.25);
   border-radius:0;
-  padding: .35rem .6rem;
-  font-size: .82rem;
+  padding: .3rem .55rem;
+  font-size: .8rem;
   cursor: pointer;
   outline: none;
   min-width: 110px;
@@ -54,28 +54,38 @@ footer, .site-footer { display:none !important; height:0 !important; }
 .mapa-select:focus { border-color: var(--dourado); }
 .mapa-select option { background: var(--verde-escuro); color: var(--creme); }
 .mapa-filtro-label { font-size: .68rem; color: rgba(245,239,230,.45); letter-spacing: .05em; text-transform: uppercase; display: block; margin-bottom: .2rem; }
+.mapa-filtros-bar { background: var(--verde-escuro); border-bottom: 2px solid var(--dourado); padding: .45rem 1.25rem .55rem; flex-shrink: 0; }
+.mapa-filtros-top { display: flex; align-items: center; justify-content: space-between; gap: .75rem; margin-bottom: .35rem; }
+#form-filtro-mapa { display: flex; align-items: flex-end; gap: .5rem; }
+@media (max-width: 600px) {
+  .mapa-filtros-bar { padding: .4rem .75rem .45rem; }
+  #form-filtro-mapa { overflow-x: auto; gap: .35rem; padding-bottom: .1rem; }
+  .mapa-select { min-width: 82px; font-size: .76rem; padding: .22rem .3rem; }
+}
 </style>';
 include dirname(__DIR__) . '/includes/header.php';
 ?>
 
 <div class="page-content">
 
-  <!-- Segunda barra: título + filtros + acção -->
-  <div style="background:var(--verde-escuro);border-bottom:2px solid var(--dourado);padding:.6rem 1.25rem;display:flex;align-items:flex-end;gap:1rem;flex-wrap:wrap;">
+  <!-- Barra de filtros -->
+  <div class="mapa-filtros-bar">
 
-    <!-- Título -->
-    <div style="flex-shrink:0;padding-bottom:.1rem;">
-      <span style="color:var(--dourado);font-family:'Playfair Display',serif;font-weight:700;font-size:.95rem;display:block;line-height:1;">
-        <i class="fas fa-map"></i> Mapa Interativo
-      </span>
-      <span id="mapa-count" style="color:rgba(245,239,230,.5);font-size:.75rem;"><?= count($locais) ?> locais</span>
+    <!-- Linha 1: Título + Ver em Lista -->
+    <div class="mapa-filtros-top">
+      <div>
+        <span style="color:var(--dourado);font-family:'Playfair Display',serif;font-weight:700;font-size:.95rem;display:block;line-height:1;">
+          <i class="fas fa-map"></i> Mapa Interativo
+        </span>
+        <span id="mapa-count" style="color:rgba(245,239,230,.5);font-size:.75rem;"><?= count($locais) ?> locais</span>
+      </div>
+      <a href="<?= SITE_URL ?>/pages/explorar.php" class="btn btn-sm btn-primary">
+        <i class="fas fa-list"></i> Ver em Lista
+      </a>
     </div>
 
-    <!-- Separador -->
-    <div style="width:1px;background:rgba(201,168,76,.2);align-self:stretch;flex-shrink:0;"></div>
-
-    <!-- Formulário de filtros (sem reload — JS trata tudo) -->
-    <form id="form-filtro-mapa" onsubmit="return aplicarFiltrosMapa(event)" style="display:flex;align-items:flex-end;gap:.75rem;flex-wrap:wrap;flex:1;">
+    <!-- Linha 2: Filtros -->
+    <form id="form-filtro-mapa" onsubmit="return aplicarFiltrosMapa(event)">
 
       <div>
         <label class="mapa-filtro-label">Região</label>
@@ -111,19 +121,15 @@ include dirname(__DIR__) . '/includes/header.php';
         </select>
       </div>
 
-      <button type="submit" style="background:var(--dourado);color:var(--verde-escuro);border:none;border-radius:0;padding:.38rem .85rem;font-size:.82rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:.35rem;">
+      <button type="submit" style="background:var(--dourado);color:var(--verde-escuro);border:none;border-radius:0;padding:.2rem .55rem;font-size:.75rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:.3rem;white-space:nowrap;align-self:flex-end;">
         <i class="fas fa-search"></i> Filtrar
       </button>
       <a id="btn-limpar-filtro" href="#" onclick="limparFiltrosMapa(); return false;"
-         style="display:<?= $tem_filtros ? 'flex' : 'none' ?>;color:rgba(245,239,230,.5);font-size:.82rem;text-decoration:none;padding:.38rem .5rem;border:1px solid rgba(245,239,230,.15);border-radius:0;align-items:center;" title="Limpar filtros">
+         style="display:<?= $tem_filtros ? 'flex' : 'none' ?>;color:rgba(245,239,230,.5);font-size:.75rem;text-decoration:none;padding:.2rem .4rem;border:1px solid rgba(245,239,230,.15);border-radius:0;align-items:center;align-self:flex-end;" title="Limpar filtros">
         <i class="fas fa-times"></i>
       </a>
     </form>
 
-    <!-- Ver em Lista -->
-    <a href="<?= SITE_URL ?>/pages/explorar.php" class="btn btn-sm btn-primary" style="flex-shrink:0;margin-left:auto;">
-      <i class="fas fa-list"></i> Ver em Lista
-    </a>
   </div>
 
   <!-- MAPA -->

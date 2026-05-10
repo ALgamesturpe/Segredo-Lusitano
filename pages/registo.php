@@ -8,7 +8,46 @@ limpar_codigos_expirados();
 
 if (auth_user()) { header('Location: ' . SITE_URL . '/index.php'); exit; }
 
+// --- Fluxo GitHub pendente (utilizador novo vindo do login.php sem termos) ---
+$github_pendente = null;
+if (($_GET['continuar'] ?? '') === 'github' && !empty($_SESSION['github_pendente'])) {
+    $github_pendente = $_SESSION['github_pendente'];
+}
+
 $erros = [];
+
+if ($github_pendente && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['github_criar'])) {
+    if (empty($_POST['aceitar_termos'])) {
+        $erros['termos'] = 'Deves aceitar os Termos e Condições para continuar.';
+    } else {
+        $termos_em = trim($_POST['termos_aceites_em'] ?? '');
+        if (!preg_match('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/', $termos_em)) {
+            $termos_em = date('Y-m-d H:i:s');
+        }
+        $st_check = db()->prepare('SELECT id FROM utilizadores WHERE email = ?');
+        $st_check->execute([$github_pendente['email']]);
+        if ($st_check->fetch()) {
+            unset($_SESSION['github_pendente']);
+            flash('info', 'Já existe uma conta com este email. Inicia sessão normalmente.');
+            header('Location: ' . SITE_URL . '/pages/login.php');
+            exit;
+        }
+        $gh_user = $github_pendente['username'];
+        $st_u = db()->prepare('SELECT id FROM utilizadores WHERE username = ?');
+        $st_u->execute([$gh_user]);
+        if ($st_u->fetch()) $gh_user .= '_gh';
+
+        $st_ins = db()->prepare('INSERT INTO utilizadores (nome, username, email, password, verificado, pontos, tipo_auth, termos_aceites_em) VALUES (?,?,?,?,1,0,"github",?)');
+        $st_ins->execute([$github_pendente['nome'], $gh_user, $github_pendente['email'], $github_pendente['password_hash'], $termos_em]);
+        $new_id = (int)db()->lastInsertId();
+        unset($_SESSION['github_pendente']);
+        $_SESSION['user_id'] = $new_id;
+        flash('success', 'Conta criada com GitHub, bem-vindo à comunidade!');
+        header('Location: ' . SITE_URL . '/index.php');
+        exit;
+    }
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nome     = trim($_POST['nome']     ?? '');
     $username = trim($_POST['username'] ?? '');
@@ -81,6 +120,39 @@ include dirname(__DIR__) . '/includes/header.php';
     <h1 class="form-title" style="text-align:center;">Torna-te um Explorador</h1>
     <p class="form-subtitle" style="text-align:center;">Junta-te à comunidade de Segredos Lusitanos</p>
 
+    <?php if ($github_pendente): ?>
+    <!-- Formulário simplificado para GitHub pendente -->
+    <div style="background:rgba(64,145,108,.07);border:1.5px solid var(--verde-claro);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1.5rem;">
+      <p style="font-weight:700;color:var(--verde-escuro);margin:0 0 .25rem;"><i class="fab fa-github"></i> Registo com GitHub</p>
+      <p style="font-size:.88rem;color:var(--texto-muted);margin:0;">A criar conta para <strong><?= h($github_pendente['nome']) ?></strong> (<?= h($github_pendente['email']) ?>). Aceita os termos para finalizar.</p>
+    </div>
+    <form method="POST" novalidate>
+      <input type="hidden" name="github_criar" value="1">
+      <input type="checkbox" id="aceitar-termos" name="aceitar_termos" style="display:none;">
+      <input type="hidden" id="termos-aceites-em" name="termos_aceites_em" value="">
+      <div class="form-group" style="margin-bottom:.75rem;">
+        <p style="font-size:.85rem;line-height:1.6;color:var(--texto-muted);margin:0;">
+          <a href="#" onclick="document.getElementById('modal-termos').style.display='flex';return false;" class="form-link" style="font-weight:600;">Termos e Condições</a>
+          &nbsp;&mdash; Li e aceito os termos. Compreendo que a visita a locais pode envolver riscos e que a entrada em propriedade privada é da responsabilidade exclusiva do utilizador.
+        </p>
+        <div style="display:flex;align-items:center;gap:.5rem;margin-top:.5rem;">
+          <input type="checkbox" id="termos-status-visual" tabindex="-1"
+                 style="accent-color:var(--verde);width:15px;height:15px;cursor:default;pointer-events:none;">
+          <label style="font-size:.82rem;color:var(--texto-muted);cursor:default;user-select:none;margin:0;">Termos e condições aceites</label>
+        </div>
+        <div id="erro-termos-js" style="display:none;" class="form-error">Deves aceitar os Termos e Condições para continuar.</div>
+        <?php if (isset($erros['termos'])): ?><div class="form-error"><?= h($erros['termos']) ?></div><?php endif; ?>
+      </div>
+      <button type="button" class="btn btn-primary" style="width:100%;justify-content:center;margin-top:.5rem;" onclick="submeterComTermos()">
+        <i class="fab fa-github"></i> Criar Conta com GitHub
+      </button>
+    </form>
+    <div class="form-divider" style="margin-top:1.25rem;"></div>
+    <p style="text-align:center;font-size:.9rem;">
+      Preferires criar conta com email? <a href="<?= SITE_URL ?>/pages/registo.php" class="form-link">Registo normal</a>
+    </p>
+
+    <?php else: ?>
     <form method="POST" novalidate>
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
         <div class="form-group">
@@ -181,6 +253,7 @@ include dirname(__DIR__) . '/includes/header.php';
     <p style="text-align:center; font-size:.9rem;">
       Já tens conta? <a href="<?= SITE_URL ?>/pages/login.php" class="form-link">Iniciar sessão</a>
     </p>
+    <?php endif; // fim do else (não github_pendente) ?>
   </div>
 </div>
 

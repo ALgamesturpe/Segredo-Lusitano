@@ -125,8 +125,21 @@ if ($st2->fetch()) {
 
 $password_hash = password_hash(bin2hex(random_bytes(16)), PASSWORD_BCRYPT, ['cost' => 12]);
 
-$termos_em = $_SESSION['github_termos_aceites_em'] ?? date('Y-m-d H:i:s');
+$termos_em = $_SESSION['github_termos_aceites_em'] ?? null;
 unset($_SESSION['github_termos_aceites_em']);
+
+if (!$termos_em) {
+    // Conta nova sem termos aceites — guardar dados e redirecionar para aceitar termos
+    $_SESSION['github_pendente'] = [
+        'nome'          => $nome,
+        'email'         => $email,
+        'username'      => $username,
+        'password_hash' => $password_hash,
+    ];
+    flash('info', 'Para criar a tua conta com GitHub, aceita primeiro os Termos e Condições.');
+    header('Location: ' . SITE_URL . '/pages/registo.php?continuar=github');
+    exit;
+}
 
 $st3 = db()->prepare('INSERT INTO utilizadores (nome, username, email, password, verificado, pontos, tipo_auth, termos_aceites_em) VALUES (?,?,?,?,1,0,"github",?)');
 $st3->execute([$nome, $username, $email, $password_hash, $termos_em]);

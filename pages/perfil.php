@@ -88,6 +88,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['apagar_conta']) && $u
 }
 
 $page_title = $perfil['nome'];
+$extra_head = '<style>
+.page-content { background: var(--verde-escuro); }
+</style>';
 include dirname(__DIR__) . '/includes/header.php';
 ?>
 

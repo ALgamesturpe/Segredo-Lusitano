@@ -137,13 +137,15 @@ try {
             $username = $base_username . $sufixo++;
         }
 
-        // Password aleatória — não é usada porque o login é via Google
-        $password_hash = password_hash(bin2hex(random_bytes(16)), PASSWORD_BCRYPT);
-
+        // Termos obrigatórios para contas novas
         $termos_em = trim($_POST['termos_aceites_em'] ?? '');
         if (!preg_match('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/', $termos_em)) {
-            $termos_em = date('Y-m-d H:i:s');
+            echo json_encode(['ok' => false, 'precisa_termos' => true]);
+            exit;
         }
+
+        // Password aleatória — não é usada porque o login é via Google
+        $password_hash = password_hash(bin2hex(random_bytes(16)), PASSWORD_BCRYPT);
 
         $st = db()->prepare('INSERT INTO utilizadores (nome, username, email, password, verificado, pontos, tipo_auth, termos_aceites_em) VALUES (?, ?, ?, ?, 1, 0, "google", ?)');
         $st->execute([$google_nome, $username, $google_email, $password_hash, $termos_em]);

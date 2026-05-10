@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 // ============================================================
 // SEGREDO LUSITANO - Envio de Email + SMS
 // ============================================================
@@ -12,6 +12,7 @@ require_once __DIR__ . '/config.php';
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\SMTP;
 use PHPMailer\PHPMailer\Exception;
+
 
 $phpmailer_disponivel = false;
 
@@ -192,7 +193,7 @@ function email_template(string $nome, string $codigo, string $tipo): string {
     foreach (str_split($codigo) as $d) {
         $digitos .= "<span style='display:inline-block;width:44px;height:54px;line-height:54px;text-align:center;
                      background:#1a3a2a;color:#c9a84c;font-size:1.6rem;font-weight:700;
-                     border:2px solid #c9a84c;border-radius:0;margin:0 3px;
+                     border:2px solid #c9a84c;border-radius:8px;margin:0 3px;
                      font-family:monospace;'>$d</span>";
     }
 

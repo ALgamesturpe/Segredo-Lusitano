@@ -280,13 +280,15 @@ main { flex: 1; }
 /* ============================================================
    FILTROS
    ============================================================ */
-.filtros-bar { background: transparent; padding: 1.25rem 0; margin-bottom: 2rem; border-bottom: 1px solid var(--creme-escuro); }
+.filtros-bar { background: transparent; padding: 1.25rem 0; margin-bottom: 2rem; border-bottom: 2px solid var(--dourado); }
 .filtros-form { display: flex; flex-wrap: wrap; gap: .75rem; align-items: flex-end; }
 .filtro-group { display: flex; flex-direction: column; gap: .35rem; flex: 1; min-width: 160px; }
 .filtro-group label { font-size: .8rem; font-weight: 600; color: var(--texto-muted); text-transform: uppercase; letter-spacing: .05em; }
 .filtro-group select, .filtro-group input { padding: .6rem .9rem; border: 1.5px solid var(--creme-escuro); border-radius: var(--radius); background: var(--branco); color: var(--texto); font-size: .9rem; }
 .filtro-group select:focus, .filtro-group input:focus { border-color: var(--verde-claro); box-shadow: 0 0 0 3px rgba(64,145,108,.15); }
 .filtros-form .btn { align-self: flex-end; }
+.filtros-grid { display: flex; flex-wrap: nowrap; gap: .75rem; flex: 4; min-width: 0; align-items: flex-end; }
+.filtros-actions { display: flex; gap: .75rem; align-self: flex-end; }
 
 /* ============================================================
    PAGINAÇÃO
@@ -601,11 +603,6 @@ main { flex: 1; }
 
   /* Filtros da página explorar */
   .filtros-bar { padding: .85rem 1rem; }
-  .filtros-form { flex-direction: column; gap: .5rem; }
-  .filtro-group { min-width: unset; width: 100%; }
-  .filtro-group select,
-  .filtro-group input { width: 100%; }
-  .filtros-form .btn { width: 100%; justify-content: center; }
 
   /* Admin */
   .admin-cards { grid-template-columns: repeat(2, 1fr) !important; }
@@ -624,7 +621,13 @@ main { flex: 1; }
    ============================================================ */
 @media (max-width: 560px) {
   .cards-grid { grid-template-columns: 1fr; }
-  .filtros-form { flex-direction: column; }
+  .filtros-form { flex-direction: column; gap: .5rem; }
+  .filtro-group { min-width: unset; width: 100%; }
+  .filtro-group select, .filtro-group input { width: 100%; }
+  .filtros-grid { display: grid !important; grid-template-columns: 1fr 1fr; gap: .5rem; width: 100%; flex: none; }
+  .filtros-grid .filtro-group { width: auto; }
+  .filtros-actions { width: 100%; }
+  .filtros-actions .btn { flex: 1; justify-content: center; }
   .section { padding: 3rem 1rem; }
   .form-container { padding: 1.5rem; }
   .detalhe-hero { height: 280px; }

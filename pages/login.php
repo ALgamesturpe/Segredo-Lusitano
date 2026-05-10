@@ -197,25 +197,60 @@ include dirname(__DIR__) . '/includes/header.php';
   </div>
 </div>
 
+<!-- Modal Termos e Condições (para novos utilizadores via Google) -->
+<input type="hidden" id="termos-aceites-em" value="">
+<div id="modal-termos" style="display:none;position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.55);align-items:center;justify-content:center;padding:1rem;">
+  <div style="background:#fff;width:100%;max-width:600px;max-height:88vh;display:flex;flex-direction:column;box-shadow:0 8px 32px rgba(0,0,0,.2);">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:1.25rem 1.75rem;border-bottom:1px solid #e5e7eb;flex-shrink:0;">
+      <h3 style="font-size:1rem;font-weight:700;color:var(--verde-escuro);margin:0;">Termos e Condições de Utilização</h3>
+      <button onclick="document.getElementById('modal-termos').style.display='none'" style="background:none;border:none;font-size:1.1rem;cursor:pointer;color:#9ca3af;padding:.2rem .4rem;">&#x2715;</button>
+    </div>
+    <div style="overflow-y:auto;flex:1;padding:1.5rem 1.75rem;font-size:.85rem;line-height:1.75;color:#374151;">
+      <p style="margin:0 0 1rem;color:#6b7280;">Ao criares conta através do Google no Segredo Lusitano, declaras ter lido e aceite os presentes Termos e a nossa Política de Privacidade.</p>
+      <p style="font-weight:700;margin:0 0 .3rem;">Responsabilidade</p>
+      <p style="margin:0 0 1rem;">O utilizador é exclusivamente responsável pela visita a locais partilhados. Muitos podem situar-se em propriedade privada. O Segredo Lusitano não se responsabiliza por acidentes, lesões ou infrações.</p>
+      <p style="font-weight:700;margin:0 0 .3rem;">Dados Pessoais (RGPD)</p>
+      <p style="margin:0 0 1rem;">Os dados recolhidos destinam-se ao funcionamento da plataforma. Podes apagar a conta em Perfil → Zona de Perigo.</p>
+      <p style="font-weight:700;margin:0 0 .3rem;">Conduta</p>
+      <p style="margin:0;">É proibido publicar conteúdo falso, difamatório ou ilegal. O incumprimento pode resultar na suspensão imediata da conta.</p>
+    </div>
+    <div style="padding:1rem 1.75rem;border-top:1px solid #e5e7eb;display:flex;justify-content:flex-end;gap:.75rem;flex-shrink:0;">
+      <button onclick="document.getElementById('modal-termos').style.display='none'"
+              style="background:none;border:1px solid #d1d5db;padding:.55rem 1.1rem;cursor:pointer;font-size:.85rem;color:#6b7280;border-radius:3px;">
+        Fechar
+      </button>
+      <button onclick="aceitarTermos()" class="btn btn-primary btn-sm">
+        <i class="fas fa-check"></i> Li e Aceito os Termos
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- Biblioteca Google Identity Services -->
 <?php if (GOOGLE_CLIENT_ID && GOOGLE_CLIENT_ID !== ''): ?>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script>
+window._pendingGoogleResponse = null;
+
 function handleGoogleSignIn(response) {
   _executarGoogleLogin(response);
 }
 
 function _executarGoogleLogin(response) {
   const msg = document.getElementById('google-msg');
+  const termosEm = document.getElementById('termos-aceites-em')?.value || '';
   fetch('<?= SITE_URL ?>/pages/google_auth.php', {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: 'id_token=' + encodeURIComponent(response.credential)
+    body: 'id_token=' + encodeURIComponent(response.credential) + '&termos_aceites_em=' + encodeURIComponent(termosEm)
   })
   .then(r => r.json())
   .then(data => {
     if (data.ok) {
       window.location.href = data.redirect;
+    } else if (data.precisa_termos) {
+      window._pendingGoogleResponse = response;
+      document.getElementById('modal-termos').style.display = 'flex';
     } else {
       msg.innerHTML = data.msg || 'Erro ao iniciar sessão com Google.';
       msg.style.display = 'block';
@@ -225,6 +260,19 @@ function _executarGoogleLogin(response) {
     msg.textContent = 'Erro de ligação. Tenta novamente.';
     msg.style.display = 'block';
   });
+}
+
+function aceitarTermos() {
+  document.getElementById('modal-termos').style.display = 'none';
+  const now = new Date();
+  const pad = n => String(n).padStart(2, '0');
+  const dt = now.getFullYear() + '-' + pad(now.getMonth()+1) + '-' + pad(now.getDate())
+           + ' ' + pad(now.getHours()) + ':' + pad(now.getMinutes()) + ':' + pad(now.getSeconds());
+  document.getElementById('termos-aceites-em').value = dt;
+  if (window._pendingGoogleResponse) {
+    _executarGoogleLogin(window._pendingGoogleResponse);
+    window._pendingGoogleResponse = null;
+  }
 }
 </script>
 <?php endif; ?>

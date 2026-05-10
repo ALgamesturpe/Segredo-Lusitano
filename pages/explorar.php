@@ -45,48 +45,52 @@ include dirname(__DIR__) . '/includes/header.php';
           <input type="search" id="pesquisa" name="pesquisa" placeholder="Nome do local..."
                 value="<?= h($filtros['pesquisa']) ?>" autocomplete="off">
         </div>
-        <div class="filtro-group">
-          <label for="regiao">Região</label>
-          <select id="regiao" name="regiao">
-            <option value="">Todas</option>
-            <?php foreach ($regioes as $r): ?>
-              <option value="<?= $r['id'] ?>" <?= $filtros['regiao'] == $r['id'] ? 'selected' : '' ?>>
-                <?= h($r['nome']) ?>
-              </option>
-            <?php endforeach; ?>
-          </select>
+        <div class="filtros-grid">
+          <div class="filtro-group">
+            <label for="regiao">Região</label>
+            <select id="regiao" name="regiao">
+              <option value="">Todas</option>
+              <?php foreach ($regioes as $r): ?>
+                <option value="<?= $r['id'] ?>" <?= $filtros['regiao'] == $r['id'] ? 'selected' : '' ?>>
+                  <?= h($r['nome']) ?>
+                </option>
+              <?php endforeach; ?>
+            </select>
+          </div>
+          <div class="filtro-group">
+            <label for="categoria">Categoria</label>
+            <select id="categoria" name="categoria">
+              <option value="">Todas</option>
+              <?php foreach ($categorias as $c): ?>
+                <option value="<?= $c['id'] ?>" <?= $filtros['categoria'] == $c['id'] ? 'selected' : '' ?>>
+                  <?= h($c['nome']) ?>
+                </option>
+              <?php endforeach; ?>
+            </select>
+          </div>
+          <div class="filtro-group">
+            <label for="dificuldade">Dificuldade</label>
+            <select id="dificuldade" name="dificuldade">
+              <option value="">Todas</option>
+              <option value="facil"   <?= $filtros['dificuldade']==='facil'   ? 'selected':'' ?>>Fácil</option>
+              <option value="medio"   <?= $filtros['dificuldade']==='medio'   ? 'selected':'' ?>>Médio</option>
+              <option value="dificil" <?= $filtros['dificuldade']==='dificil' ? 'selected':'' ?>>Difícil</option>
+            </select>
+          </div>
+          <div class="filtro-group">
+            <label for="ordem">Ordenar</label>
+            <select id="ordem" name="ordem">
+              <option value="recente" <?= $filtros['ordem']==='recente' ? 'selected':'' ?>>Mais Recentes</option>
+              <option value="antigo"  <?= $filtros['ordem']==='antigo'  ? 'selected':'' ?>>Mais Antigos</option>
+              <option value="likes"   <?= $filtros['ordem']==='likes'   ? 'selected':'' ?>>Mais Curtidos</option>
+              <option value="vistas"  <?= $filtros['ordem']==='vistas'  ? 'selected':'' ?>>Mais Vistos</option>
+            </select>
+          </div>
         </div>
-        <div class="filtro-group">
-          <label for="categoria">Categoria</label>
-          <select id="categoria" name="categoria">
-            <option value="">Todas</option>
-            <?php foreach ($categorias as $c): ?>
-              <option value="<?= $c['id'] ?>" <?= $filtros['categoria'] == $c['id'] ? 'selected' : '' ?>>
-                <?= h($c['nome']) ?>
-              </option>
-            <?php endforeach; ?>
-          </select>
+        <div class="filtros-actions">
+          <button type="submit" class="btn btn-verde" style="border:1.5px solid transparent;justify-content:center;"><i class="fas fa-search"></i> Filtrar</button>
+          <a href="<?= SITE_URL ?>/pages/explorar.php" class="btn" style="border:1.5px solid var(--creme-escuro);color:var(--texto-muted);background:transparent;justify-content:center;">Limpar</a>
         </div>
-        <div class="filtro-group">
-          <label for="dificuldade">Dificuldade</label>
-          <select id="dificuldade" name="dificuldade">
-            <option value="">Todas</option>
-            <option value="facil"   <?= $filtros['dificuldade']==='facil'   ? 'selected':'' ?>>Fácil</option>
-            <option value="medio"   <?= $filtros['dificuldade']==='medio'   ? 'selected':'' ?>>Médio</option>
-            <option value="dificil" <?= $filtros['dificuldade']==='dificil' ? 'selected':'' ?>>Difícil</option>
-          </select>
-        </div>
-        <div class="filtro-group">
-          <label for="ordem">Ordenar</label>
-          <select id="ordem" name="ordem">
-            <option value="recente" <?= $filtros['ordem']==='recente' ? 'selected':'' ?>>Mais Recentes</option>
-            <option value="antigo"  <?= $filtros['ordem']==='antigo'  ? 'selected':'' ?>>Mais Antigos</option>
-            <option value="likes"   <?= $filtros['ordem']==='likes'   ? 'selected':'' ?>>Mais Curtidos</option>
-            <option value="vistas"  <?= $filtros['ordem']==='vistas'  ? 'selected':'' ?>>Mais Vistos</option>
-          </select>
-        </div>
-        <button type="submit" class="btn btn-verde"><i class="fas fa-search"></i> Filtrar</button>
-        <a href="<?= SITE_URL ?>/pages/explorar.php" class="btn" style="border:1.5px solid var(--creme-escuro);color:var(--texto-muted);background:transparent;">Limpar</a>
       </form>
     </div>
 
