@@ -89,7 +89,7 @@ include dirname(__DIR__) . '/includes/header.php';
         </div>
         <div class="filtros-actions">
           <button type="submit" class="btn btn-verde" style="border:1.5px solid transparent;justify-content:center;"><i class="fas fa-search"></i> Filtrar</button>
-          <a href="<?= SITE_URL ?>/pages/explorar.php" class="btn" style="border:1.5px solid var(--creme-escuro);color:var(--texto-muted);background:transparent;justify-content:center;">Limpar</a>
+          <a href="<?= SITE_URL ?>/pages/explorar.php" class="btn" style="border:1.5px solid var(--creme-escuro);color:var(--texto-muted);background:transparent;justify-content:center;padding:.6rem 1.75rem;font-size:.9rem;">Limpar</a>
         </div>
       </form>
     </div>

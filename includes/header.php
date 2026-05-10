@@ -36,11 +36,11 @@ if ($user) {
 <!-- Leaflet -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 
-<!-- CSS próprio -->
-<link rel="stylesheet" href="<?= SITE_URL ?>/assets/css/style.css">
+<!-- Bootstrap (base) -->
+<link rel="stylesheet" href="<?= SITE_URL ?>/assets/css/bootstrap.min.css?v=<?= filemtime(dirname(__DIR__).'/assets/css/bootstrap.min.css') ?>">
 
-<!-- Bootstrap -->
-<link rel="stylesheet" href="<?= SITE_URL ?>/assets/css/bootstrap.min.css">
+<!-- CSS próprio (sobrepõe Bootstrap) -->
+<link rel="stylesheet" href="<?= SITE_URL ?>/assets/css/style.css?v=<?= filemtime(dirname(__DIR__).'/assets/css/style.css') ?>">
 
 <?= $extra_head ?? '' ?>
 <script>const SITE_URL = "<?= SITE_URL ?>";</script>
