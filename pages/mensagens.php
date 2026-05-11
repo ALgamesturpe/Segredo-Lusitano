@@ -223,7 +223,7 @@ include dirname(__DIR__) . '/includes/header.php';
       </div>
 
     <?php else: ?>
-      <div style="flex:1;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1rem;color:var(--texto-muted);">
+      <div style="flex:1;display:flex;align-items:center;justify-content:flex-end;flex-direction:column;gap:1rem;color:var(--texto-muted);padding-bottom:3rem;">
         <i class="fas fa-comments" style="font-size:4rem;color:var(--verde-brilho);"></i>
         <h3 style="color:var(--verde-escuro);">Seleciona uma conversa</h3>
         <p style="font-size:.9rem;max-width:300px;text-align:center;">Escolhe um utilizador à esquerda para começar a conversar.</p>

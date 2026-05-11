@@ -251,7 +251,7 @@ main { flex: 1; }
 /* ============================================================
    CARDS
    ============================================================ */
-.cards-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.75rem; }
+.cards-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;}
 .card { background: var(--branco); border-radius: var(--radius-lg); overflow: hidden; transition: transform var(--transition); display: flex; flex-direction: column; }
 .card:hover { transform: translateY(-4px); }
 .card-img { position: relative; height: 175px; overflow: hidden; background: var(--creme-escuro); }
@@ -447,7 +447,7 @@ main { flex: 1; }
 .steps-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 2rem; }
 .step-card { background: var(--branco); border-radius: var(--radius-lg); padding: 2rem 1.5rem; text-align: center; box-shadow: var(--sombra-sm); transition: transform var(--transition); }
 .step-card:hover { transform: translateY(-4px); }
-.step-icon { width: 60px; height: 60px; border-radius: var(--radius); background: linear-gradient(135deg, var(--verde), var(--verde-claro)); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 1.5rem; color: #fff; }
+.step-icon { width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, var(--verde), var(--verde-claro)); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 1.5rem; color: #fff; }
 .step-card h3 { font-size: 1.1rem; margin-bottom: .5rem; }
 .step-card p { font-size: .9rem; color: var(--texto-muted); }
 
