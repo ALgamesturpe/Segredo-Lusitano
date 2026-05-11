@@ -245,53 +245,31 @@ function render_top_user(?array $u, string $valor_label): string {
     <div class="admin-cards">
       <a href="<?= SITE_URL ?>/admin/locais.php" style="text-decoration:none;">
         <div class="admin-stat-card">
-          <div class="card-header">
-            <div class="lbl">Locais Aprovados</div>
-            <div class="card-icon" style="background:rgba(52,107,73,.1);color:var(--verde-escuro);"><i class="fas fa-map-marker-alt"></i></div>
-          </div>
+          <div class="card-header"><div class="lbl">Locais Aprovados</div></div>
           <div class="num"><?= $total_locais ?></div>
         </div>
       </a>
       <a href="<?= SITE_URL ?>/admin/utilizadores.php" style="text-decoration:none;">
-        <div class="admin-stat-card" style="border-color:var(--dourado);">
-          <div class="card-header">
-            <div class="lbl">Utilizadores</div>
-            <div class="card-icon" style="background:rgba(201,168,76,.12);color:var(--dourado);"><i class="fas fa-users"></i></div>
-          </div>
+        <div class="admin-stat-card">
+          <div class="card-header"><div class="lbl">Utilizadores</div></div>
           <div class="num" style="color:var(--dourado);"><?= $total_users ?></div>
         </div>
       </a>
-      <div class="admin-stat-card" style="border-color:#2e86ab;">
-        <div class="card-header">
-          <div class="lbl">Comentários</div>
-          <div class="card-icon" style="background:rgba(46,134,171,.1);color:#2e86ab;"><i class="fas fa-comment-alt"></i></div>
-        </div>
+      <div class="admin-stat-card">
+        <div class="card-header"><div class="lbl">Comentários</div></div>
         <div class="num" style="color:#2e86ab;"><?= $total_comentarios ?></div>
       </div>
       <a href="#denuncias" style="text-decoration:none;">
-        <div class="admin-stat-card" style="border-color:#c0392b;">
-          <div class="card-header">
-            <div class="lbl">Denúncias Abertas</div>
-            <div class="card-icon" style="background:rgba(192,57,43,.1);color:#c0392b;"><i class="fas fa-flag"></i></div>
+        <div class="admin-stat-card">
+          <div class="card-header"><div class="lbl">Denúncias Abertas</div></div>
+          <div class="num" style="color:#c0392b;">
+            <span style="display:inline-flex;align-items:center;justify-content:center;width:2.4rem;height:2.4rem;border-radius:50%;background:#fdecea;color:#c0392b;font-size:1.1rem;font-weight:700;line-height:1;"><?= $total_denuncias ?></span>
           </div>
-          <div class="num" style="color:#c0392b;"><?= $total_denuncias ?></div>
-        </div>
-      </a>
-      <a href="<?= SITE_URL ?>/admin/locais.php?bloqueado=1" style="text-decoration:none;">
-        <div class="admin-stat-card" style="border-color:#7d3c98;">
-          <div class="card-header">
-            <div class="lbl">Locais Bloqueados</div>
-            <div class="card-icon" style="background:rgba(125,60,152,.1);color:#7d3c98;"><i class="fas fa-ban"></i></div>
-          </div>
-          <div class="num" style="color:#7d3c98;"><?= $total_bloqueados ?></div>
         </div>
       </a>
       <a href="<?= SITE_URL ?>/admin/utilizadores.php?filtro=suspensos" style="text-decoration:none;">
-        <div class="admin-stat-card" style="border-color:#ca6f1e;">
-          <div class="card-header">
-            <div class="lbl">Utilizadores Suspensos</div>
-            <div class="card-icon" style="background:rgba(202,111,30,.1);color:#ca6f1e;"><i class="fas fa-user-slash"></i></div>
-          </div>
+        <div class="admin-stat-card">
+          <div class="card-header"><div class="lbl">Utilizadores Suspensos</div></div>
           <div class="num" style="color:#ca6f1e;"><?= $total_suspensos ?></div>
         </div>
       </a>

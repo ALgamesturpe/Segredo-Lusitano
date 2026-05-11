@@ -255,8 +255,6 @@ include dirname(__DIR__) . '/includes/header.php';
       <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
         <a href="?filtro=aprovado" class="btn btn-sm <?= $filtro==='aprovado' ? 'btn-verde' : '' ?>"
            style="<?= $filtro!=='aprovado' ? 'border:1px solid var(--creme-escuro);color:var(--texto-muted);' : '' ?>">Ativos</a>
-        <a href="?bloqueado=1" class="btn btn-sm"
-           style="<?= $bloqueado ? 'background:#c0392b;color:#fff;border:none;' : 'border:1px solid var(--creme-escuro);color:var(--texto-muted);' ?>">Bloqueados</a>
         <a href="?apagado=1" class="btn btn-sm"
            style="<?= $apagado ? 'background:#7f8c8d;color:#fff;border:none;' : 'border:1px solid var(--creme-escuro);color:var(--texto-muted);' ?>">Apagados</a>
       </div>
@@ -351,10 +349,6 @@ include dirname(__DIR__) . '/includes/header.php';
               <!-- Editar local -->
               <a href="<?= SITE_URL ?>/pages/local_editar.php?id=<?= $l['id'] ?>" class="btn btn-sm" style="border:1px solid var(--creme-escuro);color:var(--texto-muted);" title="Editar">
                 <i class="fas fa-edit"></i>
-              </a>
-              <!-- Bloquear local -->
-              <a href="?bloquear=<?= $l['id'] ?>" class="btn btn-sm btn-danger" title="Bloquear local">
-                <i class="fas fa-ban"></i>
               </a>
               <!-- Apagar local (soft delete) -->
               <a href="?apagar=<?= $l['id'] ?>" class="btn btn-sm btn-danger" title="Apagar local">

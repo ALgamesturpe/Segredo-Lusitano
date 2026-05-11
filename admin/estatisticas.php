@@ -37,9 +37,6 @@ $st = db()->prepare('SELECT COUNT(*) FROM likes WHERE MONTH(criado_em)=? AND YEA
 $st->execute([$mes_sel, $ano_sel]);
 $stats['total_likes'] = (int)$st->fetchColumn();
 
-$st = db()->prepare('SELECT COUNT(*) FROM seguidores WHERE MONTH(criado_em)=? AND YEAR(criado_em)=?');
-$st->execute([$mes_sel, $ano_sel]);
-$stats['total_seguidores'] = (int)$st->fetchColumn();
 
 $st = db()->prepare('SELECT AVG(pontos) FROM utilizadores WHERE role="user" AND ativo=1 AND MONTH(criado_em)=? AND YEAR(criado_em)=?');
 $st->execute([$mes_sel, $ano_sel]);
@@ -90,15 +87,6 @@ $st = db()->prepare('SELECT u.id, u.nome, u.username, u.avatar, u.pontos
 $st->execute([$mes_sel, $ano_sel, $top_sel]);
 $rank_pontos = $st->fetchAll();
 
-$st = db()->prepare('SELECT u.id, u.nome, u.username, u.avatar,
-        COUNT(s.seguidor_id) AS total_seguidores
-     FROM utilizadores u
-     LEFT JOIN seguidores s ON s.seguido_id = u.id
-                           AND MONTH(s.criado_em) = ? AND YEAR(s.criado_em) = ?
-     WHERE u.role = "user" AND u.ativo = 1
-     GROUP BY u.id HAVING total_seguidores > 0 ORDER BY total_seguidores DESC LIMIT ?');
-$st->execute([$mes_sel, $ano_sel, $top_sel]);
-$rank_seguidores = $st->fetchAll();
 
 $st = db()->prepare('SELECT u.id, u.nome, u.username, u.avatar,
         COUNT(f.id) AS total_fotos
@@ -238,10 +226,7 @@ function avatar_cell(array $u): string {
           <div class="num" style="color:#e74c3c;"><?= number_format($stats['total_likes']) ?></div>
           <div class="lbl">Total de Likes</div>
         </div>
-        <div class="admin-stat-card" style="border-color:#3498db;">
-          <div class="num" style="color:#3498db;"><?= number_format($stats['total_seguidores']) ?></div>
-          <div class="lbl">Seguidores Totais</div>
-        </div>
+
         <div class="admin-stat-card" style="border-color:#8e44ad;">
           <div class="num" style="color:#8e44ad;"><?= number_format($stats['media_pontos'], 0) ?></div>
           <div class="lbl">Média de Pontos</div>
@@ -324,23 +309,6 @@ function avatar_cell(array $u): string {
             </tr>
             <?php endforeach; ?>
             <?php if (!$rank_pontos): ?><tr><td colspan="3" style="text-align:center;color:var(--texto-muted);padding:1.5rem;">Sem dados.</td></tr><?php endif; ?>
-          </tbody>
-        </table>
-      </div>
-
-      <div>
-        <h3 style="font-size:1rem;margin-bottom:.75rem;"><i class="fas fa-user-friends" style="color:#3498db;margin-right:.35rem;"></i> Mais Seguidores</h3>
-        <table class="data-table">
-          <thead><tr><th>#</th><th>Explorador</th><th>Seguidores</th></tr></thead>
-          <tbody>
-            <?php foreach ($rank_seguidores as $i => $u): ?>
-            <tr>
-              <td style="font-weight:700;color:var(--dourado);"><?= $i+1 ?>º</td>
-              <td style="display:flex;align-items:center;gap:.5rem;"><?= avatar_cell($u) ?><a href="<?= SITE_URL ?>/pages/perfil.php?id=<?= $u['id'] ?>" style="color:var(--verde);font-size:.85rem;">@<?= h($u['username']) ?></a></td>
-              <td style="font-weight:700;color:#3498db;"><?= number_format($u['total_seguidores']) ?></td>
-            </tr>
-            <?php endforeach; ?>
-            <?php if (!$rank_seguidores): ?><tr><td colspan="3" style="text-align:center;color:var(--texto-muted);padding:1.5rem;">Sem dados.</td></tr><?php endif; ?>
           </tbody>
         </table>
       </div>

@@ -142,12 +142,12 @@ include dirname(__DIR__) . '/includes/header.php';
 
 <!-- BOTÃO VOLTAR -->
 <div class="container" style="padding-top:1.5rem;padding-bottom:0;">
-  <a href="<?= SITE_URL ?>/pages/explorar.php"
-     style="display:inline-flex;align-items:center;gap:.5rem;padding:.55rem .9rem;border:1.5px solid var(--creme-escuro);border-radius:var(--radius);background:var(--branco);color:var(--texto-muted);font-size:.88rem;text-decoration:none;transition:all var(--transition);"
+  <button onclick="history.back()"
+     style="display:inline-flex;align-items:center;gap:.5rem;padding:.55rem .9rem;border:1.5px solid var(--creme-escuro);border-radius:var(--radius);background:var(--branco);color:var(--texto-muted);font-size:.88rem;cursor:pointer;transition:all var(--transition);"
      onmouseover="this.style.borderColor='var(--verde-claro)';this.style.color='var(--verde)'"
      onmouseout="this.style.borderColor='var(--creme-escuro)';this.style.color='var(--texto-muted)'">
     <i class="fas fa-arrow-left"></i> Voltar
-  </a>
+  </button>
 </div>
 
 <!-- CONTEUDO -->

@@ -73,8 +73,8 @@ include dirname(__DIR__) . '/includes/header.php';
 
     <!-- Linha 1: Título + Ver em Lista -->
     <div class="mapa-filtros-top">
-      <div>
-        <span style="color:var(--dourado);font-family:'Playfair Display',serif;font-weight:700;font-size:.95rem;display:block;line-height:1;">
+      <div style="display:flex;align-items:center;gap:.5rem;">
+        <span style="color:var(--dourado);font-family:'Playfair Display',serif;font-weight:700;font-size:.95rem;line-height:1;">
           <i class="fas fa-map"></i> Mapa Interativo
         </span>
         <span id="mapa-count" style="color:rgba(245,239,230,.5);font-size:.75rem;"><?= count($locais) ?> locais</span>
