@@ -24,7 +24,7 @@ if ($_card_user && !$_card_e_proprio) {
     $_card_segue = (bool)$__st->fetch();
 }
 ?>
-<article class="card">
+<div class="card">
   <a href="<?= SITE_URL ?>/pages/local.php?id=<?= $local['id'] ?>" class="card-img" style="display:block;">
     <?php if ($local['foto_capa']): ?>
       <img src="<?= SITE_URL ?>/uploads/locais/<?= h($local['foto_capa']) ?>"
@@ -68,4 +68,4 @@ if ($_card_user && !$_card_e_proprio) {
       </div>
     </div>
   </div>
-</article>
+</div>
