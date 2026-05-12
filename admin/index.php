@@ -16,6 +16,10 @@ $total_bloqueados  = (int)db()->query('SELECT COUNT(*) FROM locais WHERE bloquea
 $total_suspensos   = (int)db()->query('SELECT COUNT(*) FROM utilizadores WHERE ativo=0 AND role="user"')->fetchColumn();
 $total_likes       = (int)db()->query('SELECT COUNT(*) FROM likes')->fetchColumn();
 
+// ── Distribuição por categoria e região ──────────────────
+$dist_categorias = db()->query('SELECT c.nome, COUNT(l.id) AS total FROM locais l JOIN categorias c ON c.id=l.categoria_id WHERE l.estado="aprovado" GROUP BY c.id ORDER BY total DESC LIMIT 5')->fetchAll();
+$dist_regioes    = db()->query('SELECT r.nome, COUNT(l.id) AS total FROM locais l JOIN regioes r ON r.id=l.regiao_id WHERE l.estado="aprovado" GROUP BY r.id ORDER BY total DESC LIMIT 5')->fetchAll();
+
 // ── Top utilizadores ─────────────────────────────────────
 
 // Utilizador com mais locais publicados
@@ -241,32 +245,84 @@ function render_top_user(?array $u, string $valor_label): string {
       </div>
     </div>
 
-    <!-- CARDS DE ESTATÍSTICAS -->
-    <div class="admin-cards">
-      <a href="<?= SITE_URL ?>/admin/locais.php" style="text-decoration:none;">
-        <div class="admin-stat-card">
-          <div class="card-header"><div class="lbl">Locais Aprovados</div></div>
-          <div class="num"><?= $total_locais ?></div>
-        </div>
-      </a>
-      <a href="<?= SITE_URL ?>/admin/utilizadores.php" style="text-decoration:none;">
-        <div class="admin-stat-card">
-          <div class="card-header"><div class="lbl">Utilizadores</div></div>
-          <div class="num" style="color:var(--dourado);"><?= $total_users ?></div>
-        </div>
-      </a>
-      <a href="#denuncias" style="text-decoration:none;">
-        <div class="admin-stat-card">
-          <div class="card-header"><div class="lbl">Denúncias Abertas</div></div>
-          <div class="num" style="color:#c0392b;"><?= $total_denuncias ?></div>
-        </div>
-      </a>
-      <a href="<?= SITE_URL ?>/admin/utilizadores.php?filtro=suspensos" style="text-decoration:none;">
-        <div class="admin-stat-card">
-          <div class="card-header"><div class="lbl">Utilizadores Suspensos</div></div>
-          <div class="num" style="color:#ca6f1e;"><?= $total_suspensos ?></div>
-        </div>
-      </a>
+    <!-- CARDS DE ESTATÍSTICAS + CHARTS -->
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.25rem;margin-bottom:2rem;">
+
+      <!-- Stat cards (coluna esquerda) -->
+      <div class="admin-cards" style="margin-bottom:0;max-width:none;">
+        <a href="<?= SITE_URL ?>/admin/locais.php" style="text-decoration:none;">
+          <div class="admin-stat-card">
+            <div class="card-header"><div class="lbl">Locais Aprovados</div></div>
+            <div class="num"><?= $total_locais ?></div>
+          </div>
+        </a>
+        <a href="<?= SITE_URL ?>/admin/utilizadores.php" style="text-decoration:none;">
+          <div class="admin-stat-card">
+            <div class="card-header"><div class="lbl">Utilizadores</div></div>
+            <div class="num" style="color:var(--dourado);"><?= $total_users ?></div>
+          </div>
+        </a>
+        <a href="#denuncias" style="text-decoration:none;">
+          <div class="admin-stat-card">
+            <div class="card-header"><div class="lbl">Denúncias Abertas</div></div>
+            <div class="num" style="color:#c0392b;"><?= $total_denuncias ?></div>
+          </div>
+        </a>
+        <a href="<?= SITE_URL ?>/admin/utilizadores.php?filtro=suspensos" style="text-decoration:none;">
+          <div class="admin-stat-card">
+            <div class="card-header"><div class="lbl">Utilizadores Suspensos</div></div>
+            <div class="num" style="color:#ca6f1e;"><?= $total_suspensos ?></div>
+          </div>
+        </a>
+      </div>
+
+      <!-- Painel Categorias (fundo claro) -->
+      <?php
+        $max_cat = $dist_categorias ? max(array_column($dist_categorias, 'total')) : 1;
+        $bar_colors = ['var(--verde)', 'var(--dourado)', 'var(--verde)', 'var(--dourado)', 'var(--verde)'];
+      ?>
+      <div style="background:var(--branco);border-radius:var(--radius-lg);box-shadow:var(--sombra-sm);padding:1.25rem 1.4rem;">
+        <div style="font-size:.68rem;letter-spacing:.1em;color:var(--texto-muted);text-transform:uppercase;margin-bottom:.15rem;">TIPOLOGIA DE LOCAIS</div>
+        <h3 style="font-family:'Playfair Display',serif;font-size:1.3rem;color:var(--verde-escuro);margin-bottom:1rem;font-style:italic;">Categorias</h3>
+        <?php foreach ($dist_categorias as $i => $cat): ?>
+          <?php $pct = $max_cat > 0 ? round(($cat['total'] / $max_cat) * 100) : 0; ?>
+          <div style="margin-bottom:.65rem;">
+            <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:.22rem;">
+              <span style="font-size:.82rem;font-style:italic;color:var(--texto);"><?= h($cat['nome']) ?></span>
+              <span style="font-size:.82rem;font-weight:600;color:var(--texto-muted);margin-left:.5rem;flex-shrink:0;"><?= $cat['total'] ?></span>
+            </div>
+            <div style="background:var(--creme-escuro);height:7px;overflow:hidden;">
+              <div style="height:100%;width:<?= $pct ?>%;background:<?= $bar_colors[$i % 2] ?>;"></div>
+            </div>
+          </div>
+        <?php endforeach; ?>
+        <?php if (!$dist_categorias): ?>
+          <p style="font-size:.82rem;color:var(--texto-muted);">Sem dados.</p>
+        <?php endif; ?>
+      </div>
+
+      <!-- Painel Regiões (fundo escuro) -->
+      <?php $max_reg = $dist_regioes ? max(array_column($dist_regioes, 'total')) : 1; ?>
+      <div style="background:var(--verde-escuro);border-radius:var(--radius-lg);padding:1.25rem 1.4rem;color:#fff;">
+        <div style="font-size:.68rem;letter-spacing:.1em;color:rgba(201,168,76,.7);text-transform:uppercase;margin-bottom:.15rem;">REGIÕES MAIS ACTIVAS</div>
+        <h3 style="font-family:'Playfair Display',serif;font-size:1.3rem;color:#fff;margin-bottom:1rem;font-style:italic;">Por distrito</h3>
+        <?php foreach ($dist_regioes as $reg): ?>
+          <?php $pct = $max_reg > 0 ? round(($reg['total'] / $max_reg) * 100) : 0; ?>
+          <div style="margin-bottom:.65rem;">
+            <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:.22rem;">
+              <span style="font-size:.82rem;color:rgba(255,255,255,.85);"><?= h($reg['nome']) ?></span>
+              <span style="font-size:.82rem;font-weight:700;color:var(--dourado);margin-left:.5rem;flex-shrink:0;"><?= $reg['total'] ?></span>
+            </div>
+            <div style="background:rgba(255,255,255,.1);height:7px;overflow:hidden;">
+              <div style="height:100%;width:<?= $pct ?>%;background:var(--dourado);"></div>
+            </div>
+          </div>
+        <?php endforeach; ?>
+        <?php if (!$dist_regioes): ?>
+          <p style="font-size:.82rem;color:rgba(255,255,255,.5);">Sem dados.</p>
+        <?php endif; ?>
+      </div>
+
     </div>
 
     <!-- DENÚNCIAS ABERTAS -->
