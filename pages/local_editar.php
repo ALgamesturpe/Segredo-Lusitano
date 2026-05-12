@@ -183,16 +183,6 @@ include dirname(__DIR__) . '/includes/header.php';
             </a>
           </div>
 
-          <!-- Zona de perigo -->
-          <div style="margin-top:1.5rem;padding-top:1.25rem;border-top:1px solid var(--creme-escuro);">
-            <a href="<?= SITE_URL ?>/pages/local_apagar.php?id=<?= $id ?>"
-               class="btn btn-danger"
-               style="width:100%;justify-content:center;"
-               onclick="return confirm('Tens a certeza que queres apagar este local? Esta ação é irreversível.')">
-              <i class="fas fa-trash"></i> Eliminar Local
-            </a>
-          </div>
-
         </div>
 
         <!-- ── COLUNA DIREITA: mapa (sticky) ── -->
@@ -210,6 +200,15 @@ include dirname(__DIR__) . '/includes/header.php';
           <?php if (isset($erros['coords'])): ?><div class="form-error"><?= h($erros['coords']) ?></div><?php endif; ?>
           <!-- Mapa -->
           <div id="mini-map"></div>
+          <!-- Zona de perigo -->
+          <div style="padding-top:.75rem;">
+            <a href="<?= SITE_URL ?>/pages/local_apagar.php?id=<?= $id ?>"
+               class="btn btn-danger"
+               style="width:100%;justify-content:center;"
+               onclick="return confirm('Tens a certeza que queres apagar este local? Esta ação é irreversível.')">
+              <i class="fas fa-trash"></i> Eliminar Local
+            </a>
+          </div>
         </div>
 
       </div>

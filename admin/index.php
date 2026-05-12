@@ -158,7 +158,7 @@ function render_top_user(?array $u, string $valor_label): string {
       <div class="nav-section">Moderação</div>
       <a href="#denuncias">
         <i class="fas fa-flag"></i> Denúncias
-        <span style="background:#e74c3c;color:#fff;padding:.1rem .4rem;border-radius:0;font-size:.7rem;margin-left:.25rem;"><?= $total_denuncias ?></span>
+        <span style="background:#e74c3c;color:#fff;border-radius:50%;font-size:.65rem;margin-left:.35rem;display:inline-flex;align-items:center;justify-content:center;width:1.25rem;height:1.25rem;font-weight:700;flex-shrink:0;"><?= $total_denuncias ?></span>
       </a>
     </nav>
   </aside>
@@ -255,16 +255,10 @@ function render_top_user(?array $u, string $valor_label): string {
           <div class="num" style="color:var(--dourado);"><?= $total_users ?></div>
         </div>
       </a>
-      <div class="admin-stat-card">
-        <div class="card-header"><div class="lbl">Comentários</div></div>
-        <div class="num" style="color:#2e86ab;"><?= $total_comentarios ?></div>
-      </div>
       <a href="#denuncias" style="text-decoration:none;">
         <div class="admin-stat-card">
           <div class="card-header"><div class="lbl">Denúncias Abertas</div></div>
-          <div class="num" style="color:#c0392b;">
-            <span style="display:inline-flex;align-items:center;justify-content:center;width:2.4rem;height:2.4rem;border-radius:50%;background:#fdecea;color:#c0392b;font-size:1.1rem;font-weight:700;line-height:1;"><?= $total_denuncias ?></span>
-          </div>
+          <div class="num" style="color:#c0392b;"><?= $total_denuncias ?></div>
         </div>
       </a>
       <a href="<?= SITE_URL ?>/admin/utilizadores.php?filtro=suspensos" style="text-decoration:none;">
