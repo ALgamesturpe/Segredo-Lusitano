@@ -176,11 +176,6 @@ include dirname(__DIR__) . '/includes/header.php';
             <a href="<?= SITE_URL ?>/pages/local_editar.php?id=<?= $id ?>" class="btn btn-sm btn-outline" style="color:var(--texto-muted);border-color:var(--creme-escuro);">
               <i class="fas fa-edit"></i> Editar
             </a>
-            <a href="<?= SITE_URL ?>/pages/local_apagar.php?id=<?= $id ?>"
-               class="btn btn-sm btn-danger"
-               data-confirm="Tens a certeza que queres apagar este local? Esta ação é irreversível.">
-              <i class="fas fa-trash"></i>
-            </a>
           <?php endif; ?>
           <?php if (!$user || ($user['id'] != $local['utilizador_id'] && !is_admin())): ?>
             <button onclick="<?= $user
@@ -423,17 +418,17 @@ include dirname(__DIR__) . '/includes/header.php';
       <!-- SIDEBAR -->
       <div class="detalhe-sidebar">
 
-        <!-- Informações + Explorador (fundo branco, borda) -->
-        <div style="border:1.5px solid var(--creme-escuro);border-radius:var(--radius);padding:1.25rem;background:var(--branco);">
+        <!-- Informações + Explorador + GPS (card único) -->
+        <div style="border:1.5px solid var(--creme-escuro);border-radius:var(--radius);padding:1rem;background:var(--branco);">
           <h3 style="font-size:.95rem;margin-bottom:.75rem;">Informações</h3>
           <div class="info-row"><span class="label"><i class="fas fa-map-marker-alt"></i> Região</span><span class="val"><?= h($local['regiao_nome']) ?></span></div>
           <div class="info-row"><span class="label"><i class="fas fa-tag"></i> Categoria</span><span class="val"><?= h($local['categoria_nome']) ?></span></div>
           <div class="info-row"><span class="label"><i class="fas fa-hiking"></i> Dificuldade</span><span class="val"><?= $dif_label ?></span></div>
           <div class="info-row"><span class="label"><i class="fas fa-eye"></i> Visualizações</span><span class="val"><?= number_format($local['vistas']) ?></span></div>
-          <div class="info-row" style="border-bottom:none;"><span class="label"><i class="fas fa-calendar"></i> Publicado em</span><span class="val"><?= date('d/m/Y', strtotime($local['criado_em'])) ?></span></div>
+          <div class="info-row" style="border-bottom:none;"><span class="label"><i class="fas fa-calendar"></i> Publicado a</span><span class="val"><?= date('d/m/Y', strtotime($local['criado_em'])) ?></span></div>
 
-          <!-- Explorador dentro das informações -->
-          <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid var(--creme-escuro);display:flex;align-items:center;gap:.75rem;">
+          <!-- Explorador -->
+          <div style="margin-top:.85rem;padding-top:.85rem;border-top:1px solid var(--creme-escuro);display:flex;align-items:center;gap:.75rem;">
             <div class="rank-avatar">
               <?php if (!empty($local['avatar'])): ?>
                 <img src="<?= SITE_URL ?>/uploads/locais/<?= h($local['avatar']) ?>" alt="<?= h($local['autor_nome']) ?>">
@@ -446,25 +441,27 @@ include dirname(__DIR__) . '/includes/header.php';
               <a href="<?= SITE_URL ?>/pages/perfil.php?id=<?= $local['utilizador_id'] ?>" style="color:var(--verde);font-size:.82rem;"><?= h($local['username']) ?></a>
             </div>
           </div>
-        </div>
 
-        <!-- Coordenadas GPS (abaixo das informações, fundo branco) -->
-        <div style="border:1.5px solid var(--creme-escuro);border-radius:var(--radius);padding:1.25rem;background:var(--branco);">
-          <h3 style="font-size:.95rem;margin-bottom:.6rem;">Coordenadas GPS</h3>
-          <code style="font-size:.82rem;word-break:break-all;color:var(--verde-escuro);display:block;margin-bottom:.75rem;">
-            <?= number_format($local['latitude'],6,',','') ?>°N,
-            <?= number_format(abs($local['longitude']),6,',','') ?>°O
-          </code>
-          <?php if ($user): ?>
-            <a href="https://www.google.com/maps/dir/?api=1&destination=<?= $local['latitude'] ?>,<?= $local['longitude'] ?>"
-               target="_blank" rel="noopener" class="btn btn-sm btn-verde" style="width:100%;">
-              <i class="fas fa-external-link-alt"></i> Abrir no Google Maps
-            </a>
-          <?php else: ?>
-            <a href="<?= SITE_URL ?>/pages/login.php" class="btn btn-sm btn-verde" style="width:100%;">
-              <i class="fas fa-sign-in-alt"></i> Inicia sessão para navegar
-            </a>
-          <?php endif; ?>
+          <!-- Coordenadas GPS -->
+          <div style="margin-top:.85rem;padding-top:.85rem;border-top:1px solid var(--creme-escuro);">
+            <div style="font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-muted);margin-bottom:.5rem;">
+              <i class="fas fa-crosshairs" style="margin-right:.3rem;color:var(--verde);"></i>Coordenadas GPS
+            </div>
+            <code style="font-size:.8rem;color:var(--verde-escuro);display:block;margin-bottom:.65rem;">
+              <?= number_format($local['latitude'],6,',','') ?>°N,
+              <?= number_format(abs($local['longitude']),6,',','') ?>°O
+            </code>
+            <?php if ($user): ?>
+              <a href="https://www.google.com/maps/dir/?api=1&destination=<?= $local['latitude'] ?>,<?= $local['longitude'] ?>"
+                 target="_blank" rel="noopener" class="btn btn-sm btn-verde" style="width:100%;">
+                <i class="fas fa-external-link-alt"></i> Abrir no Google Maps
+              </a>
+            <?php else: ?>
+              <a href="<?= SITE_URL ?>/pages/login.php" class="btn btn-sm btn-verde" style="width:100%;">
+                <i class="fas fa-sign-in-alt"></i> Inicia sessão para navegar
+              </a>
+            <?php endif; ?>
+          </div>
         </div>
 
       </div>
