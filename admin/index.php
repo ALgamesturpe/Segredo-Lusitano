@@ -158,7 +158,7 @@ function render_top_user(?array $u, string $valor_label): string {
       <div class="nav-section">Moderação</div>
       <a href="#denuncias">
         <i class="fas fa-flag"></i> Denúncias
-        <span style="background:#e74c3c;color:#fff;padding:.1rem .4rem;border-radius:0;font-size:.7rem;margin-left:.25rem;"><?= $total_denuncias ?></span>
+        <span style="display:inline-flex;align-items:center;justify-content:center;width:1.25rem;height:1.25rem;border-radius:50%;background:#e74c3c;color:#fff;font-size:.68rem;font-weight:700;margin-left:.35rem;flex-shrink:0;"><?= $total_denuncias ?></span>
       </a>
     </nav>
   </aside>
@@ -262,9 +262,7 @@ function render_top_user(?array $u, string $valor_label): string {
       <a href="#denuncias" style="text-decoration:none;">
         <div class="admin-stat-card">
           <div class="card-header"><div class="lbl">Denúncias Abertas</div></div>
-          <div class="num" style="color:#c0392b;">
-            <span style="display:inline-flex;align-items:center;justify-content:center;width:2.4rem;height:2.4rem;border-radius:50%;background:#fdecea;color:#c0392b;font-size:1.1rem;font-weight:700;line-height:1;"><?= $total_denuncias ?></span>
-          </div>
+          <div class="num" style="color:#c0392b;"><?= $total_denuncias ?></div>
         </div>
       </a>
       <a href="<?= SITE_URL ?>/admin/utilizadores.php?filtro=suspensos" style="text-decoration:none;">
@@ -544,10 +542,5 @@ document.getElementById('modal-denuncia').addEventListener('click', function(e) 
 })();
 </script>
 
-<style>
-a:has(.admin-stat-card) { display:block; border-radius:inherit; }
-a:has(.admin-stat-card) .admin-stat-card { transition: transform .18s ease, box-shadow .18s ease; }
-a:has(.admin-stat-card):hover .admin-stat-card { transform: translateY(-5px); box-shadow: 0 8px 24px rgba(0,0,0,.13); }
-</style>
 
 <?php include dirname(__DIR__) . '/includes/footer.php'; ?>
