@@ -63,14 +63,18 @@ $d = ($_SERVER['REQUEST_METHOD'] === 'POST') ? $_POST : $local;
 
 $page_title = 'Editar Local';
 $extra_head = '<style>
-  .novo-local-grid { display:grid; grid-template-columns:1fr 400px; gap:3rem; align-items:start; }
+  .novo-local-grid { display:grid; grid-template-columns:1fr 520px; gap:2rem; align-items:start; }
+  .novo-local-grid .form-group input,
+  .novo-local-grid .form-group textarea,
+  .novo-local-grid .form-group select { background:#fff; }
   .novo-local-map-col {
     position:sticky;
     top:calc(var(--nav-h) + 1rem);
     display:flex;
     flex-direction:column;
+    gap:.75rem;
   }
-  #mini-map { height:660px; }
+  #mini-map { height:600px; border-radius:var(--radius); overflow:hidden; }
   @media (max-width:900px) {
     .novo-local-grid { grid-template-columns:1fr; }
     .novo-local-map-col { position:static; }
@@ -99,7 +103,7 @@ include dirname(__DIR__) . '/includes/header.php';
       <div class="novo-local-grid">
 
         <!-- ── COLUNA ESQUERDA: campos ── -->
-        <div style="background:var(--branco);padding:2rem;">
+        <div>
 
           <!-- Nome -->
           <div class="form-group">
@@ -179,30 +183,31 @@ include dirname(__DIR__) . '/includes/header.php';
             </a>
           </div>
 
+        </div>
+
+        <!-- ── COLUNA DIREITA: mapa (sticky) ── -->
+        <div class="novo-local-map-col">
+          <!-- Localização -->
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:.75rem;flex-wrap:wrap;">
+            <small style="color:var(--texto-muted);font-size:.82rem;">
+              <i class="fas fa-map-pin" style="color:var(--verde);margin-right:.25rem;"></i> Clica no mapa para marcar
+            </small>
+            <button type="button" id="btn-geolocalizacao"
+                    style="background:none;border:1px solid var(--verde);color:var(--verde);border-radius:50px;padding:.3rem .85rem;font-size:.8rem;cursor:pointer;font-weight:600;display:inline-flex;align-items:center;gap:.35rem;white-space:nowrap;">
+              <i class="fas fa-crosshairs"></i> Localização atual
+            </button>
+          </div>
+          <?php if (isset($erros['coords'])): ?><div class="form-error"><?= h($erros['coords']) ?></div><?php endif; ?>
+          <!-- Mapa -->
+          <div id="mini-map"></div>
           <!-- Zona de perigo -->
-          <div style="margin-top:1.5rem;padding-top:1.25rem;border-top:1px solid var(--creme-escuro);">
+          <div style="padding-top:.75rem;">
             <a href="<?= SITE_URL ?>/pages/local_apagar.php?id=<?= $id ?>"
                class="btn btn-danger"
                style="width:100%;justify-content:center;"
                onclick="return confirm('Tens a certeza que queres apagar este local? Esta ação é irreversível.')">
               <i class="fas fa-trash"></i> Eliminar Local
             </a>
-          </div>
-
-        </div>
-
-        <!-- ── COLUNA DIREITA: mapa (sticky) ── -->
-        <div class="novo-local-map-col">
-          <div style="background:var(--branco);overflow:hidden;">
-            <div style="padding:1rem 1.25rem;">
-              <p style="font-size:.85rem;font-weight:600;margin:0 0 .75rem;color:var(--texto);">
-                <i class="fas fa-map-pin" style="color:var(--verde);margin-right:.35rem;"></i>Localização <span style="font-weight:400;color:var(--texto-muted);">— Clica no mapa para alterar</span>
-              </p>
-              <button type="button" id="btn-geolocalizacao" class="btn btn-sm btn-verde" style="width:100%;justify-content:center;">
-                <i class="fas fa-crosshairs"></i> Usar Localização Atual
-              </button>
-            </div>
-            <div id="mini-map" style="overflow:hidden;"></div>
           </div>
         </div>
 

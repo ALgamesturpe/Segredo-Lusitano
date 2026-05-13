@@ -99,6 +99,15 @@ $st = db()->prepare('SELECT u.id, u.nome, u.username, u.avatar,
 $st->execute([$mes_sel, $ano_sel, $top_sel]);
 $rank_utilizadores_fotos = $st->fetchAll();
 
+$st = db()->prepare('SELECT u.id, u.nome, u.username, u.avatar,
+        SUM(l.vistas) AS total_vistas
+     FROM utilizadores u
+     JOIN locais l ON l.utilizador_id = u.id AND l.estado = "aprovado" AND l.bloqueado = 0
+     WHERE u.role = "user" AND u.ativo = 1
+     GROUP BY u.id HAVING total_vistas > 0 ORDER BY total_vistas DESC LIMIT ?');
+$st->execute([$top_sel]);
+$rank_vistas_totais = $st->fetchAll();
+
 $st = db()->prepare('SELECT l.id, l.nome, l.vistas,
         u.username, c.nome AS categoria_nome
      FROM locais l
@@ -326,6 +335,23 @@ function avatar_cell(array $u): string {
             </tr>
             <?php endforeach; ?>
             <?php if (!$rank_utilizadores_fotos): ?><tr><td colspan="3" style="text-align:center;color:var(--texto-muted);padding:1.5rem;">Sem dados.</td></tr><?php endif; ?>
+          </tbody>
+        </table>
+      </div>
+
+      <div>
+        <h3 style="font-size:1rem;margin-bottom:.75rem;"><i class="fas fa-eye" style="color:#8e44ad;margin-right:.35rem;"></i> Mais Vistas Totais</h3>
+        <table class="data-table">
+          <thead><tr><th>#</th><th>Explorador</th><th>Vistas</th></tr></thead>
+          <tbody>
+            <?php foreach ($rank_vistas_totais as $i => $u): ?>
+            <tr>
+              <td style="font-weight:700;color:var(--dourado);"><?= $i+1 ?>º</td>
+              <td style="display:flex;align-items:center;gap:.5rem;"><?= avatar_cell($u) ?><a href="<?= SITE_URL ?>/pages/perfil.php?id=<?= $u['id'] ?>" style="color:var(--verde);font-size:.85rem;">@<?= h($u['username']) ?></a></td>
+              <td style="font-weight:700;color:#8e44ad;"><?= number_format($u['total_vistas']) ?></td>
+            </tr>
+            <?php endforeach; ?>
+            <?php if (!$rank_vistas_totais): ?><tr><td colspan="3" style="text-align:center;color:var(--texto-muted);padding:1.5rem;">Sem dados.</td></tr><?php endif; ?>
           </tbody>
         </table>
       </div>
