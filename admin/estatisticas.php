@@ -1,3 +1,4 @@
+﻿@ -1,414 +1,440 @@
 ﻿<?php
 // ============================================================
 // SEGREDO LUSITANO — Admin: Estatísticas Detalhadas
