@@ -10,7 +10,8 @@
       "Bash(xargs grep -l \"foto\\\\|photo\\\\|image\\\\|gallery\")",
       "PowerShell(& \"C:\\\\wamp64\\\\bin\\\\php\\\\php8.2.28\\\\php.exe\" -l \"c:\\\\wamp64\\\\www\\\\PAP\\\\Segredo-Lusitano\\\\pages\\\\local.php\" 2>&1)",
       "PowerShell(& \"C:\\\\wamp64\\\\bin\\\\php\\\\php8.2.26\\\\php.exe\" -l \"c:\\\\wamp64\\\\www\\\\PAP\\\\Segredo-Lusitano\\\\pages\\\\local.php\")",
-      "Bash(Get-ChildItem -Path \"c:\\\\wamp64\\\\www\\\\PAP\\\\Segredo-Lusitano\" -Recurse -Filter \"*.html\" -File)"
+      "Bash(Get-ChildItem -Path \"c:\\\\wamp64\\\\www\\\\PAP\\\\Segredo-Lusitano\" -Recurse -Filter \"*.html\" -File)",
+      "Bash(xargs grep -l \"ativo.*0\\\\|suspenso\")"
     ]
   }
 }

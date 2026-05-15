@@ -14,6 +14,7 @@ $total_comentarios = (int)db()->query('SELECT COUNT(*) FROM comentarios')->fetch
 $total_denuncias   = (int)db()->query('SELECT COUNT(*) FROM denuncias WHERE resolvida=0')->fetchColumn();
 $total_bloqueados  = (int)db()->query('SELECT COUNT(*) FROM locais WHERE bloqueado=1')->fetchColumn();
 $total_suspensos   = (int)db()->query('SELECT COUNT(*) FROM utilizadores WHERE ativo=0 AND role="user"')->fetchColumn();
+$total_banidos     = (int)db()->query('SELECT COUNT(*) FROM banidos')->fetchColumn();
 $total_likes       = (int)db()->query('SELECT COUNT(*) FROM likes')->fetchColumn();
 
 // ── Distribuição por categoria e região ──────────────────
@@ -271,6 +272,12 @@ function render_top_user(?array $u, string $valor_label): string {
             <div class="num" style="color:#ca6f1e;"><?= $total_suspensos ?></div>
           </div>
         </a>
+        <a href="<?= SITE_URL ?>/admin/utilizadores.php?filtro=banidos" style="text-decoration:none;">
+          <div class="admin-stat-card">
+            <div class="card-header"><div class="lbl">Utilizadores Banidos</div></div>
+            <div class="num" style="color:#c0392b;"><?= $total_banidos ?></div>
+          </div>
+        </a>
       </div>
 
       <!-- Painel Categorias (fundo claro) -->
@@ -367,12 +374,21 @@ function render_top_user(?array $u, string $valor_label): string {
             </span>
           </td>
           <td><?= date('d/m/Y', strtotime($den['criado_em'])) ?></td>
-          <td>
+          <td style="white-space:nowrap;">
             <form method="POST" style="display:inline;">
               <input type="hidden" name="den_id" value="<?= (int)$den['id'] ?>">
               <button type="submit" name="devolver_denuncia" class="btn btn-sm"
                       style="border:1px solid var(--creme-escuro);color:var(--texto-muted);">
                 <i class="fas fa-undo"></i> Devolver
+              </button>
+            </form>
+            <form method="POST" style="display:inline;margin-left:.35rem;">
+              <input type="hidden" name="tipo"   value="<?= h($den['tipo']) ?>">
+              <input type="hidden" name="ref_id" value="<?= (int)$den['referencia_id'] ?>">
+              <input type="hidden" name="acao"   value="bloquear">
+              <button type="submit" name="moderar_denuncia_item" class="btn btn-sm btn-danger"
+                      <?= $bloqueado ? 'disabled title="Já bloqueado"' : '' ?>>
+                <i class="fas fa-ban"></i> Bloquear
               </button>
             </form>
           </td>
