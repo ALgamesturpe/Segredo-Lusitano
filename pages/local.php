@@ -433,10 +433,6 @@ include dirname(__DIR__) . '/includes/header.php';
             <div style="font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-muted);margin-bottom:.5rem;">
               <i class="fas fa-crosshairs" style="margin-right:.3rem;color:var(--verde);"></i>Coordenadas GPS
             </div>
-            <code style="font-size:.8rem;color:var(--verde-escuro);display:block;margin-bottom:.65rem;">
-              <?= number_format($local['latitude'],6,',','') ?>°N,
-              <?= number_format(abs($local['longitude']),6,',','') ?>°O
-            </code>
             <?php if ($user): ?>
               <a href="https://www.google.com/maps/dir/?api=1&destination=<?= $local['latitude'] ?>,<?= $local['longitude'] ?>"
                  target="_blank" rel="noopener" class="btn btn-sm btn-verde" style="width:100%;">
