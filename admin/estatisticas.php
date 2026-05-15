@@ -83,9 +83,8 @@ $rank_likes = $st->fetchAll();
 $st = db()->prepare('SELECT u.id, u.nome, u.username, u.avatar, u.pontos
      FROM utilizadores u
      WHERE u.role = "user" AND u.ativo = 1 AND u.pontos > 0
-       AND MONTH(u.criado_em) = ? AND YEAR(u.criado_em) = ?
      ORDER BY u.pontos DESC LIMIT ?');
-$st->execute([$mes_sel, $ano_sel, $top_sel]);
+$st->execute([$top_sel]);
 $rank_pontos = $st->fetchAll();
 
 
