@@ -87,7 +87,7 @@ include dirname(__DIR__) . '/includes/header.php';
     <!-- Cabeçalho alinhado à esquerda -->
     <div style="margin-bottom:2rem;">
       <h2 style="font-size:clamp(1.8rem,4vw,2.6rem);margin-bottom:.5rem;color:var(--verde-escuro);text-align:left;">Adiciona um novo local!</h2>
-      <p style="color:var(--texto-muted);margin:0;">Cada submissão dá +<?= PONTOS_LOCAL ?> pontos. Cada gosto e comentário recebido também conta.</p>
+      <p style="color:var(--texto-muted);margin:0;">Cada submissão dá +20 pontos. Cada gosto e comentário recebido também conta.</p>
     </div>
 
     <form method="POST" enctype="multipart/form-data" novalidate>
@@ -186,7 +186,7 @@ include dirname(__DIR__) . '/includes/header.php';
           <!-- Localização -->
           <div style="display:flex;align-items:center;justify-content:space-between;gap:.75rem;flex-wrap:wrap;">
             <small style="color:var(--texto-muted);font-size:.82rem;">
-              <i class="fas fa-map-pin" style="color:var(--verde);margin-right:.25rem;"></i> Clica no mapa para marcar
+              <i class="fa-solid fa-location-dot" style="color:var(--verde);margin-right:.25rem;"></i> Clica no mapa para marcar
             </small>
             <button type="button" id="btn-geolocalizacao"
                     style="background:none;border:1px solid var(--verde);color:var(--verde);border-radius:50px;padding:.3rem .85rem;font-size:.8rem;cursor:pointer;font-weight:600;display:inline-flex;align-items:center;gap:.35rem;white-space:nowrap;">
