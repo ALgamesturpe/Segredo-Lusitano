@@ -74,13 +74,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['fotos'])) {
     header('Location: ' . SITE_URL . '/pages/local.php?id=' . $id); exit;
 }
 
-// --- POST: Upload de foto pelo admin ---
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload_admin']) && is_admin()) {
-    $f = $_FILES['foto_admin'];
-    if ($f['error'] === 0) { upload_foto($f, $id, $user['id']); flash('success', 'Foto adicionada.'); }
-    header('Location: ' . SITE_URL . '/pages/local.php?id=' . $id); exit;
-}
-
 // --- GET: Apagar foto pelo admin ou pelo dono ---
 if (isset($_GET['apagar_foto']) && $user) {
     $fid = (int)$_GET['apagar_foto'];
@@ -196,6 +189,19 @@ include dirname(__DIR__) . '/includes/header.php';
         <!-- Upload compacto + Galeria -->
         <?php if ($fotos || is_admin() || ($user && !$local_bloqueado)): ?>
         <div style="margin-bottom:1.5rem;" id="galeria">
+
+          <!-- Cabeçalho da galeria (fora do flex para alinhar com o topo da caixa) -->
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem;">
+            <h3 style="margin:0;font-size:1rem;"><i class="fas fa-images"></i> Galeria</h3>
+            <?php if ($tem_fotos_alheias): ?>
+              <button id="btn-denunciar-foto" onclick="toggleModoDenuncia()"
+                      class="btn btn-sm"
+                      style="color:var(--texto-muted);border:1px solid var(--creme-escuro);border-radius:0;font-size:.8rem;transition:all .2s;">
+                <i class="fas fa-flag"></i> Denunciar foto
+              </button>
+            <?php endif; ?>
+          </div>
+
           <div style="display:flex;align-items:stretch;gap:1rem;margin-bottom:1rem;">
 
             <?php if ($user && !$local_bloqueado): ?>
@@ -226,16 +232,6 @@ include dirname(__DIR__) . '/includes/header.php';
 
             <!-- Galeria -->
             <div style="flex:1;min-width:0;">
-              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem;">
-                <h3 style="margin:0;font-size:1rem;"><i class="fas fa-images"></i> Galeria</h3>
-                <?php if ($tem_fotos_alheias): ?>
-                  <button id="btn-denunciar-foto" onclick="toggleModoDenuncia()"
-                          class="btn btn-sm"
-                          style="color:var(--texto-muted);border:1px solid var(--creme-escuro);border-radius:0;font-size:.8rem;transition:all .2s;">
-                    <i class="fas fa-flag"></i> Denunciar foto
-                  </button>
-                <?php endif; ?>
-              </div>
               <?php if (!$fotos): ?>
               <div style="border:1.5px solid #6b7280;border-radius:var(--radius);background:var(--creme);height:100%;
                           display:flex;align-items:center;justify-content:center;">
@@ -308,16 +304,6 @@ include dirname(__DIR__) . '/includes/header.php';
                    font-size:.85rem;color:#c0392b;text-align:center;">
                 <i class="fas fa-hand-pointer"></i> Clica numa das tuas fotos para a eliminar
               </div>
-              <?php if (is_admin()): ?>
-              <form method="POST" enctype="multipart/form-data" style="margin-top:1rem;display:flex;gap:.75rem;align-items:center;flex-wrap:wrap;">
-                <input type="hidden" name="local_id_upload" value="<?= $id ?>">
-                <input type="file" name="foto_admin" accept="image/*" required
-                       style="border:1.5px solid var(--creme-escuro);border-radius:0;padding:.4rem .75rem;background:var(--creme);font-size:.9rem;">
-                <button type="submit" name="upload_admin" class="btn btn-sm btn-verde">
-                  <i class="fas fa-upload"></i> Adicionar Foto
-                </button>
-              </form>
-              <?php endif; ?>
             </div>
           </div>
         </div>

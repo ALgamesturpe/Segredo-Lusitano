@@ -17,6 +17,7 @@ DROP TABLE IF EXISTS utilizadores;
 DROP TABLE IF EXISTS seguidores;
 DROP TABLE IF EXISTS mensagens;
 DROP TABLE IF EXISTS codigos_verificacao;
+DROP TABLE IF EXISTS app_meta;
 SET FOREIGN_KEY_CHECKS = 1;
 
 -- ============================================================
@@ -218,6 +219,17 @@ CREATE TABLE codigos_verificacao (
     criado_em DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (utilizador_id) REFERENCES utilizadores(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
+
+-- ============================================================
+-- TABELA: app_meta
+-- Token único gerado a cada reset para invalidar sessões antigas
+-- ============================================================
+CREATE TABLE app_meta (
+    nome VARCHAR(50) PRIMARY KEY,
+    valor TEXT NOT NULL
+) ENGINE=InnoDB;
+
+INSERT INTO app_meta (nome, valor) VALUES ('reset_token', UUID());
 
 -- ============================================================
 -- DADOS INICIAIS

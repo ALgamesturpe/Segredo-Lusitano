@@ -10,6 +10,23 @@ if (session_status() === PHP_SESSION_NONE) {
 
 function auth_user(): ?array {
     if (!isset($_SESSION['user_id'])) return null;
+
+    // Invalidar sessão se a base de dados foi reiniciada (token muda a cada reset)
+    try {
+        $token = db()->query("SELECT valor FROM app_meta WHERE nome='reset_token'")->fetchColumn();
+        if ($token !== false) {
+            if (!isset($_SESSION['reset_token'])) {
+                $_SESSION['reset_token'] = $token;
+            } elseif ($_SESSION['reset_token'] !== $token) {
+                $_SESSION = [];
+                session_destroy();
+                return null;
+            }
+        }
+    } catch (\Exception $e) {
+        // app_meta pode não existir em bases de dados antigas
+    }
+
     static $cache = null;
     if ($cache) return $cache;
     $st = db()->prepare('SELECT * FROM utilizadores WHERE id = ? AND ativo = 1');
