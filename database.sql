@@ -37,6 +37,7 @@ CREATE TABLE utilizadores (
     verificado TINYINT(1) DEFAULT 0,
     privado TINYINT(1) DEFAULT 0,
     tipo_auth ENUM('email','google','github') DEFAULT 'email',
+    termos_aceites_em DATETIME NULL,
     criado_em DATETIME DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
