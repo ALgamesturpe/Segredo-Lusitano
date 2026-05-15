@@ -53,20 +53,18 @@ $st = db()->prepare('SELECT u.id, u.nome, u.username, u.avatar, u.pontos,
         COUNT(l.id) AS total_locais
      FROM utilizadores u
      LEFT JOIN locais l ON l.utilizador_id = u.id AND l.estado = "aprovado"
-                       AND MONTH(l.criado_em) = ? AND YEAR(l.criado_em) = ?
      WHERE u.role = "user" AND u.ativo = 1
      GROUP BY u.id HAVING total_locais > 0 ORDER BY total_locais DESC LIMIT ?');
-$st->execute([$mes_sel, $ano_sel, $top_sel]);
+$st->execute([$top_sel]);
 $rank_locais = $st->fetchAll();
 
 $st = db()->prepare('SELECT u.id, u.nome, u.username, u.avatar,
         COUNT(c.id) AS total_comentarios
      FROM utilizadores u
      LEFT JOIN comentarios c ON c.utilizador_id = u.id
-                            AND MONTH(c.criado_em) = ? AND YEAR(c.criado_em) = ?
      WHERE u.role = "user" AND u.ativo = 1
      GROUP BY u.id HAVING total_comentarios > 0 ORDER BY total_comentarios DESC LIMIT ?');
-$st->execute([$mes_sel, $ano_sel, $top_sel]);
+$st->execute([$top_sel]);
 $rank_comentarios = $st->fetchAll();
 
 $st = db()->prepare('SELECT u.id, u.nome, u.username, u.avatar,
@@ -74,10 +72,9 @@ $st = db()->prepare('SELECT u.id, u.nome, u.username, u.avatar,
      FROM utilizadores u
      LEFT JOIN locais l ON l.utilizador_id = u.id
      LEFT JOIN likes lk ON lk.local_id = l.id
-                       AND MONTH(lk.criado_em) = ? AND YEAR(lk.criado_em) = ?
      WHERE u.role = "user" AND u.ativo = 1
      GROUP BY u.id HAVING total_likes > 0 ORDER BY total_likes DESC LIMIT ?');
-$st->execute([$mes_sel, $ano_sel, $top_sel]);
+$st->execute([$top_sel]);
 $rank_likes = $st->fetchAll();
 
 $st = db()->prepare('SELECT u.id, u.nome, u.username, u.avatar, u.pontos
@@ -93,10 +90,9 @@ $st = db()->prepare('SELECT u.id, u.nome, u.username, u.avatar,
      FROM utilizadores u
      LEFT JOIN locais l ON l.utilizador_id = u.id AND l.estado = "aprovado"
      LEFT JOIN fotos f ON f.local_id = l.id
-                      AND MONTH(f.criado_em) = ? AND YEAR(f.criado_em) = ?
      WHERE u.role = "user" AND u.ativo = 1
      GROUP BY u.id HAVING total_fotos > 0 ORDER BY total_fotos DESC LIMIT ?');
-$st->execute([$mes_sel, $ano_sel, $top_sel]);
+$st->execute([$top_sel]);
 $rank_utilizadores_fotos = $st->fetchAll();
 
 $st = db()->prepare('SELECT u.id, u.nome, u.username, u.avatar,
