@@ -388,7 +388,7 @@ function render_top_user(?array $u, string $valor_label): string {
               <input type="hidden" name="acao"   value="bloquear">
               <button type="submit" name="moderar_denuncia_item" class="btn btn-sm btn-danger"
                       <?= $bloqueado ? 'disabled title="Já bloqueado"' : '' ?>>
-                <i class="fas fa-ban"></i> Bloquear
+                <i class="fas fa-ban"></i> Banir
               </button>
             </form>
           </td>
