@@ -110,9 +110,8 @@ $st = db()->prepare('SELECT l.id, l.nome, l.vistas,
      JOIN utilizadores u ON u.id = l.utilizador_id
      JOIN categorias c ON c.id = l.categoria_id
      WHERE l.estado = "aprovado" AND l.bloqueado = 0
-       AND MONTH(l.criado_em) = ? AND YEAR(l.criado_em) = ?
      ORDER BY l.vistas DESC LIMIT ?');
-$st->execute([$mes_sel, $ano_sel, $top_sel]);
+$st->execute([$top_sel]);
 $rank_locais_vistos = $st->fetchAll();
 
 $st = db()->prepare('SELECT l.id, l.nome,
@@ -122,10 +121,9 @@ $st = db()->prepare('SELECT l.id, l.nome,
      JOIN utilizadores u ON u.id = l.utilizador_id
      JOIN categorias c ON c.id = l.categoria_id
      LEFT JOIN likes lk ON lk.local_id = l.id
-                       AND MONTH(lk.criado_em) = ? AND YEAR(lk.criado_em) = ?
      WHERE l.estado = "aprovado" AND l.bloqueado = 0
      GROUP BY l.id HAVING total_likes > 0 ORDER BY total_likes DESC LIMIT ?');
-$st->execute([$mes_sel, $ano_sel, $top_sel]);
+$st->execute([$top_sel]);
 $rank_locais_likes = $st->fetchAll();
 
 $st = db()->prepare('SELECT l.id, l.nome,
@@ -135,10 +133,9 @@ $st = db()->prepare('SELECT l.id, l.nome,
      JOIN utilizadores u ON u.id = l.utilizador_id
      JOIN categorias c ON c.id = l.categoria_id
      LEFT JOIN fotos f ON f.local_id = l.id
-                      AND MONTH(f.criado_em) = ? AND YEAR(f.criado_em) = ?
      WHERE l.estado = "aprovado" AND l.bloqueado = 0
      GROUP BY l.id HAVING total_fotos > 0 ORDER BY total_fotos DESC LIMIT ?');
-$st->execute([$mes_sel, $ano_sel, $top_sel]);
+$st->execute([$top_sel]);
 $rank_locais_fotografados = $st->fetchAll();
 
 $st = db()->prepare('SELECT l.id, l.nome, l.criado_em,
@@ -147,9 +144,8 @@ $st = db()->prepare('SELECT l.id, l.nome, l.criado_em,
      JOIN utilizadores u ON u.id = l.utilizador_id
      JOIN categorias c ON c.id = l.categoria_id
      WHERE l.estado = "aprovado" AND l.bloqueado = 0
-       AND MONTH(l.criado_em) = ? AND YEAR(l.criado_em) = ?
      ORDER BY l.criado_em DESC LIMIT ?');
-$st->execute([$mes_sel, $ano_sel, $top_sel]);
+$st->execute([$top_sel]);
 $rank_recentes = $st->fetchAll();
 
 include dirname(__DIR__) . '/includes/header.php';
