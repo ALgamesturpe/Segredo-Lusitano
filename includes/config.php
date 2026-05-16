@@ -12,7 +12,11 @@ define('GITHUB_CLIENT_SECRET', 'f28729cd84f0b8d531195ce8a795aa46fe7e3040');
 
 // Automatically detect SITE_URL based on current script location
 if (!defined('SITE_URL')) {
-    $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
+    // Detetar HTTPS — inclui o caso do ngrok que envia X-Forwarded-Proto
+    $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+        || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https')
+        || (($_SERVER['SERVER_PORT'] ?? '') == 443);
+    $protocol = $isHttps ? 'https://' : 'http://';
     $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
     $scriptPath = dirname($_SERVER['SCRIPT_NAME']);
 
