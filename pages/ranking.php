@@ -32,7 +32,7 @@ include dirname(__DIR__) . '/includes/header.php';
               </div>
               <div style="padding:1rem; background:var(--creme); border-radius:var(--radius); text-align:center;">
                 <div style="font-size:1.8rem; color:var(--dourado); font-family:'Playfair Display',serif;"><?= PONTOS_LIKE ?></div>
-                <div style="font-size:.85rem; color:var(--texto-muted);">por Like Dado</div>
+                <div style="font-size:.85rem; color:var(--texto-muted);">por Like Recebido</div>
               </div>
             </div>
           </div>

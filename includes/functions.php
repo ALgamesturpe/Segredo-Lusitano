@@ -236,12 +236,18 @@ function incrementar_vistas(int $local_id): void {
 function toggle_like(int $local_id, int $user_id): array {
     $st = db()->prepare('SELECT id FROM likes WHERE local_id=? AND utilizador_id=?');
     $st->execute([$local_id, $user_id]);
+
+    $st_owner = db()->prepare('SELECT utilizador_id FROM locais WHERE id=?');
+    $st_owner->execute([$local_id]);
+    $owner_id = (int)$st_owner->fetchColumn();
+
     if ($st->fetch()) {
         db()->prepare('DELETE FROM likes WHERE local_id=? AND utilizador_id=?')->execute([$local_id, $user_id]);
+        if ($owner_id) add_pontos($owner_id, -PONTOS_LIKE);
         $liked = false;
     } else {
         db()->prepare('INSERT INTO likes (local_id,utilizador_id) VALUES (?,?)')->execute([$local_id, $user_id]);
-        add_pontos($user_id, PONTOS_LIKE);
+        if ($owner_id) add_pontos($owner_id, PONTOS_LIKE);
         $liked = true;
     }
     $st2 = db()->prepare('SELECT COUNT(*) FROM likes WHERE local_id=?');

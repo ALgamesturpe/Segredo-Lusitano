@@ -25,8 +25,8 @@ if (!defined('SITE_URL')) {
 
 define('UPLOAD_DIR', __DIR__ . '/../uploads/locais/');
 define('PONTOS_LOCAL',      20);
-define('PONTOS_COMENTARIO', 5);
-define('PONTOS_LIKE',       2);
+define('PONTOS_COMENTARIO', 1);
+define('PONTOS_LIKE',       5);
 
 // ============================================================
 // GOOGLE SIGN-IN
