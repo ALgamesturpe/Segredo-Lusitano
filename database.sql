@@ -253,12 +253,12 @@ INSERT INTO utilizadores (nome, username, email, password, pontos, role, verific
 -- Password de todos: "exemplo123" (hash bcrypt)
 -- ============================================================
 INSERT INTO utilizadores (id, nome, username, email, password, bio, pontos, role, ativo, verificado, criado_em) VALUES
-  (3, 'Ana Ribeiro',     'ana_aventureira',  'ana@exemplo.pt',     '$2y$12$8K4ZmJP1qXhRfYvT3.uW6e9LkW8aD/Hn7zVc1bJqGfMxNp2sR3oYS', 'Apaixonada por trilhos no norte de Portugal.',                145, 'user', 1, 1, NOW() - INTERVAL 90 DAY),
-  (4, 'Tiago Marques',   'tiago_explorer',   'tiago@exemplo.pt',   '$2y$12$8K4ZmJP1qXhRfYvT3.uW6e9LkW8aD/Hn7zVc1bJqGfMxNp2sR3oYS', 'Fotógrafo amador à procura dos cantos escondidos do país.',   210, 'user', 1, 1, NOW() - INTERVAL 80 DAY),
-  (5, 'Mariana Silva',   'mariana_viaja',    'mariana@exemplo.pt', '$2y$12$8K4ZmJP1qXhRfYvT3.uW6e9LkW8aD/Hn7zVc1bJqGfMxNp2sR3oYS', 'Adoro praias secretas e pôr-do-sol no Algarve.',              180, 'user', 1, 1, NOW() - INTERVAL 75 DAY),
-  (6, 'Pedro Costa',     'pedro_trilhos',    'pedro@exemplo.pt',   '$2y$12$8K4ZmJP1qXhRfYvT3.uW6e9LkW8aD/Hn7zVc1bJqGfMxNp2sR3oYS', 'Caminheiro e amante de aldeias históricas.',                   95, 'user', 1, 1, NOW() - INTERVAL 60 DAY),
-  (7, 'Sofia Mendes',    'sofia_natureza',   'sofia@exemplo.pt',   '$2y$12$8K4ZmJP1qXhRfYvT3.uW6e9LkW8aD/Hn7zVc1bJqGfMxNp2sR3oYS', 'Bióloga marinha. Sempre à descoberta da costa portuguesa.',   165, 'user', 1, 1, NOW() - INTERVAL 50 DAY),
-  (8, 'Rui Almeida',     'rui_descobre',     'rui@exemplo.pt',     '$2y$12$8K4ZmJP1qXhRfYvT3.uW6e9LkW8aD/Hn7zVc1bJqGfMxNp2sR3oYS', 'À procura do Portugal autêntico, longe das massas.',          130, 'user', 1, 1, NOW() - INTERVAL 40 DAY);
+  (3, 'Paulo Gouveia',   'username_paulo',  'paulo@exemplo.pt',     '$2y$12$8K4ZmJP1qXhRfYvT3.uW6e9LkW8aD/Hn7zVc1bJqGfMxNp2sR3oYS', 'Apaixonado por trilhos no norte de Portugal.',                145, 'user', 1, 1, NOW() - INTERVAL 90 DAY),
+  (4, 'Martí Díez',      'username_martí',   'tiago@exemplo.pt',   '$2y$12$8K4ZmJP1qXhRfYvT3.uW6e9LkW8aD/Hn7zVc1bJqGfMxNp2sR3oYS', 'Fotógrafo amador à procura dos cantos escondidos do país.',   210, 'user', 1, 1, NOW() - INTERVAL 80 DAY),
+  (5, 'Mariana Silva',   'username_mariana',    'mariana@exemplo.pt', '$2y$12$8K4ZmJP1qXhRfYvT3.uW6e9LkW8aD/Hn7zVc1bJqGfMxNp2sR3oYS', 'Adoro praias secretas e pôr-do-sol no Algarve.',              180, 'user', 1, 1, NOW() - INTERVAL 75 DAY),
+  (6, 'Pedro Costa',     'username_pedro',    'pedro@exemplo.pt',   '$2y$12$8K4ZmJP1qXhRfYvT3.uW6e9LkW8aD/Hn7zVc1bJqGfMxNp2sR3oYS', 'Caminheiro e amante de aldeias históricas.',                   95, 'user', 1, 1, NOW() - INTERVAL 60 DAY),
+  (7, 'Sofia Mendes',    'username_sofia',   'sofia@exemplo.pt',   '$2y$12$8K4ZmJP1qXhRfYvT3.uW6e9LkW8aD/Hn7zVc1bJqGfMxNp2sR3oYS', 'Bióloga marinha. Sempre à descoberta da costa portuguesa.',   165, 'user', 1, 1, NOW() - INTERVAL 50 DAY),
+  (8, 'Rui Almeida',     'username_rui',     'rui@exemplo.pt',     '$2y$12$8K4ZmJP1qXhRfYvT3.uW6e9LkW8aD/Hn7zVc1bJqGfMxNp2sR3oYS', 'À procura do Portugal autêntico, longe das massas.',          130, 'user', 1, 1, NOW() - INTERVAL 40 DAY);
 
 -- ============================================================
 -- LOCAIS (15) — distribuídos entre os 6 utilizadores
