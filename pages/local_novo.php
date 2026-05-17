@@ -47,8 +47,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if (!isset($tipos[$mime_real])) {
             $erros['foto'] = 'Formato inválido. Usa JPG, PNG ou WebP. (As fotos de iPhone em HEIC não são suportadas — muda para "Mais Compatível" nas definições da câmara.)';
-        } elseif ($f['size'] > 5 * 1024 * 1024) {
-            $erros['foto'] = 'Ficheiro demasiado grande (máx. 5MB).';
+        } elseif ($f['size'] > 15 * 1024 * 1024) {
+            $erros['foto'] = 'Ficheiro demasiado grande (máx. 15MB).';
         } else {
             // Usar a extensão correta com base no tipo real, não no nome do ficheiro
             $ext  = $tipos[$mime_real];
