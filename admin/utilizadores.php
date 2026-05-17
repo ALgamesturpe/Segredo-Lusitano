@@ -187,8 +187,9 @@ include dirname(__DIR__) . '/includes/header.php';
 
     <!-- ── TABELA DE BANIDOS ── -->
     <?php if ($filtro === 'banidos'): ?>
+    <div class="data-table-wrap"<?= count($banidos) > 20 ? ' style="max-height:560px;overflow-y:auto;"' : '' ?>>
     <table class="data-table">
-      <thead>
+      <thead style="position:sticky;top:0;z-index:2;">
         <tr>
           <th>Nome</th>
           <th>Username</th>
@@ -222,11 +223,13 @@ include dirname(__DIR__) . '/includes/header.php';
         <?php endif; ?>
       </tbody>
     </table>
+    </div>
 
     <!-- ── TABELA DE UTILIZADORES NORMAIS ── -->
     <?php else: ?>
+    <div class="data-table-wrap"<?= count($users) > 20 ? ' style="max-height:560px;overflow-y:auto;"' : '' ?>>
     <table class="data-table">
-      <thead>
+      <thead style="position:sticky;top:0;z-index:2;">
         <tr>
           <th>Nome</th>
           <th>Username</th>
@@ -286,6 +289,7 @@ include dirname(__DIR__) . '/includes/header.php';
         <?php endif; ?>
       </tbody>
     </table>
+    </div>
     <?php endif; ?>
 
   </main>

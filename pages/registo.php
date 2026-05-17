@@ -156,15 +156,15 @@ include dirname(__DIR__) . '/includes/header.php';
     <form method="POST" novalidate>
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
         <div class="form-group">
-          <label for="nome">Nome Completo</label>
+          <label for="nome">Nome</label>
           <input type="text" id="nome" name="nome" value="<?= h($_POST['nome'] ?? '') ?>"
-                 placeholder="Gonçalo Teixeira" required>
+                 placeholder="Nome e Apelido" required>
           <?php if (isset($erros['nome'])): ?><div class="form-error"><?= h($erros['nome']) ?></div><?php endif; ?>
         </div>
         <div class="form-group">
           <label for="username">Username</label>
           <input type="text" id="username" name="username" value="<?= h($_POST['username'] ?? '') ?>"
-                 placeholder="Gonçalo123" required>
+                 placeholder="nome_123" required>
           <?php if (isset($erros['username'])): ?><div class="form-error"><?= h($erros['username']) ?></div><?php endif; ?>
         </div>
       </div>

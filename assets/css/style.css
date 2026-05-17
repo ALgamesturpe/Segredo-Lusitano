@@ -604,6 +604,10 @@ main { flex: 1; }
   }
   .data-table th:nth-child(6), .data-table td:nth-child(6),
   .data-table th:nth-child(7), .data-table td:nth-child(7) { display: none; }
+  .data-table-wrap .data-table th:nth-child(6),
+  .data-table-wrap .data-table td:nth-child(6),
+  .data-table-wrap .data-table th:nth-child(7),
+  .data-table-wrap .data-table td:nth-child(7) { display: table-cell; }
   .ranking-table th:nth-child(4), .ranking-table td:nth-child(4) { display: none; }
 
   /* Filtros da página explorar */

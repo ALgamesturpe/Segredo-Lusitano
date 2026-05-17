@@ -30,19 +30,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!$data['latitude'] || !$data['longitude']) $erros['coords'] = 'Clica no mapa para definir a localização.';
     if (!in_array($data['dificuldade'], ['facil','medio','dificil'])) $data['dificuldade'] = 'medio';
 
-    // Upload foto capa
+     // Upload foto capa
     if (isset($_FILES['foto_capa']) && $_FILES['foto_capa']['error'] === 0) {
         $f = $_FILES['foto_capa'];
-        $allowed = ['image/jpeg','image/png','image/webp'];
-        if (!in_array($f['type'], $allowed)) {
-            $erros['foto'] = 'Formato inválido. Usa JPG, PNG ou WebP.';
+
+        // Detetar o tipo real da imagem pelo conteúdo (não confiar no browser)
+        $info = @getimagesize($f['tmp_name']);
+        $mime_real = $info['mime'] ?? '';
+
+        // Mapa de tipos aceites -> extensão a usar
+        $tipos = [
+            'image/jpeg' => 'jpg',
+            'image/png'  => 'png',
+            'image/webp' => 'webp',
+        ];
+
+        if (!isset($tipos[$mime_real])) {
+            $erros['foto'] = 'Formato inválido. Usa JPG, PNG ou WebP. (As fotos de iPhone em HEIC não são suportadas — muda para "Mais Compatível" nas definições da câmara.)';
         } elseif ($f['size'] > 5 * 1024 * 1024) {
             $erros['foto'] = 'Ficheiro demasiado grande (máx. 5MB).';
         } else {
-            $ext  = pathinfo($f['name'], PATHINFO_EXTENSION);
+            // Usar a extensão correta com base no tipo real, não no nome do ficheiro
+            $ext  = $tipos[$mime_real];
             $nome = uniqid('capa_') . '.' . $ext;
             if (move_uploaded_file($f['tmp_name'], UPLOAD_DIR . $nome)) {
                 $data['foto_capa'] = $nome;
+            } else {
+                $erros['foto'] = 'Não foi possível guardar a foto. Verifica as permissões da pasta.';
             }
         }
     }
@@ -169,16 +183,6 @@ include dirname(__DIR__) . '/includes/header.php';
             <?php if (isset($erros['descricao'])): ?><div class="form-error"><?= h($erros['descricao']) ?></div><?php endif; ?>
           </div>
 
-          <!-- Botões por baixo da descrição -->
-          <div style="display:flex;gap:1rem;margin-top:.5rem;">
-            <button type="submit" class="btn btn-primary" style="flex:1;justify-content:center;">
-              <i class="fas fa-paper-plane"></i> Submeter Local
-            </button>
-            <a href="<?= SITE_URL ?>/pages/explorar.php" class="btn" style="border:1px solid var(--creme-escuro);color:var(--texto-muted);">
-              Cancelar
-            </a>
-          </div>
-
         </div>
 
         <!-- ── COLUNA DIREITA: mapa (sticky) ── -->
@@ -199,6 +203,17 @@ include dirname(__DIR__) . '/includes/header.php';
         </div>
 
       </div>
+
+      <!-- Botões — sempre abaixo do mapa -->
+      <div style="display:flex;gap:1rem;margin-top:1.5rem;">
+        <button type="submit" class="btn btn-primary" style="flex:1;justify-content:center;">
+          <i class="fas fa-paper-plane"></i> Submeter Local
+        </button>
+        <a href="<?= SITE_URL ?>/pages/explorar.php" class="btn" style="border:1px solid var(--creme-escuro);color:var(--texto-muted);">
+          Cancelar
+        </a>
+      </div>
+
     </form>
   </div>
 </section>

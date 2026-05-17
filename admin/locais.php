@@ -282,8 +282,9 @@ include dirname(__DIR__) . '/includes/header.php';
       </div>
     </form>
 
+    <div class="data-table-wrap"<?= count($locais) > 20 ? ' style="max-height:560px;overflow-y:auto;"' : '' ?>>
     <table class="data-table">
-      <thead>
+      <thead style="position:sticky;top:0;z-index:2;">
         <tr>
           <th>Nome</th>
           <th>Utilizador</th>
@@ -363,6 +364,7 @@ include dirname(__DIR__) . '/includes/header.php';
         <?php endif; ?>
       </tbody>
     </table>
+    </div>
     <?php endif; ?>
 
   </main>
