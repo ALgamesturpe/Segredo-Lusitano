@@ -358,9 +358,7 @@ function verificarTermosParaSocial(url) {
       <p style="font-weight:700;margin:0 0 .3rem;">12. Lei Aplicável e Foro</p>
       <p style="margin:0 0 0;">Estes Termos são regidos pela lei portuguesa. Para a resolução de quaisquer litígios emergentes da interpretação ou execução dos presentes Termos, é competente o foro da comarca de Lisboa, com expressa renúncia a qualquer outro.</p>
 
-      <p style="font-weight:700;margin:0 0 .3rem;">Data da Última Atualização</p>
-      <p style="margin:0 0 0;">01/06/2026</p>
-
+      <p style="font-weight:700;margin:0 0 .3rem;">Data da Última Atualização: 01/05/2026</p>
     </div>
 
     <div style="padding:1rem 1.75rem;border-top:1px solid #e5e7eb;display:flex;justify-content:flex-end;gap:.75rem;flex-shrink:0;">
