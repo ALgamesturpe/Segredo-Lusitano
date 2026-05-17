@@ -335,16 +335,16 @@ function verificarTermosParaSocial(url) {
       <p style="margin:0 0 1rem;">O Segredo Lusitano não verifica a legalidade do acesso aos locais publicados. Muitos locais podem situar-se em propriedade privada ou de acesso condicionado. O utilizador é exclusivamente responsável por verificar e cumprir as disposições legais aplicáveis, nomeadamente o regime da violação de domicílio e perturbação da vida privada (art.os 190.º e 192.º do Código Penal) e as normas de acesso a reservas naturais e zonas protegidas. O Segredo Lusitano não incentiva, apoia, nem se responsabiliza por qualquer violação de propriedade privada ou de normas de acesso.</p>
 
       <p style="font-weight:700;margin:0 0 .3rem;">5. Riscos e Isenção de Responsabilidade por Segurança</p>
-      <p style="margin:0 0 1rem;">A prática de atividades ao ar livre e a visita a locais remotos ou de difícil acesso envolve riscos físicos inerentes, incluindo quedas, condições climatéricas adversas, afogamento e outros perigos. O utilizador assume esses riscos na totalidade. O Segredo Lusitano não se responsabiliza por acidentes, lesões, morte, danos materiais ou qualquer outra consequência resultante da visita a locais partilhados na plataforma. Recomendamos que informes alguém da tua localização, levas equipamento adequado e avalias as condições antes de qualquer visita.</p>
+      <p style="margin:0 0 1rem;">A prática de atividades ao ar livre e a visita a locais remotos ou de difícil acesso envolve riscos físicos inerentes, incluindo quedas, condições climatéricas adversas, afogamento e outros perigos. O utilizador assume esses riscos na totalidade. O Segredo Lusitano não se responsabiliza por acidentes, lesões, morte, danos materiais ou qualquer outra consequência resultante da visita a locais partilhados na plataforma. Recomendamos que informes alguém da tua localização, leves equipamento adequado e avalies as condições antes de qualquer visita.</p>
 
       <p style="font-weight:700;margin:0 0 .3rem;">6. Proteção de Dados Pessoais (RGPD)</p>
-      <p style="margin:0 0 1rem;">Os teus dados pessoais são tratados em conformidade com o Regulamento Geral sobre a Proteção de Dados (RGPD) e a Lei n.º 58/2019. Os dados recolhidos (nome, email, localização de publicações) destinam-se exclusivamente ao funcionamento da plataforma. Tens direito de acesso, retificação, apagamento, portabilidade e oposição ao tratamento. Para exerceres esses direitos, podes apagar a tua conta em Perfil → Zona de Perigo, ou contactar-nos através dos meios disponíveis na plataforma.</p>
+      <p style="margin:0 0 1rem;">Os teus dados pessoais são tratados em conformidade com o Regulamento Geral sobre a Proteção de Dados (RGPD) e a Lei n.º 58/2019. Os dados recolhidos (nome, email, localização de publicações) destinam-se exclusivamente ao funcionamento da plataforma. Tens direito de acesso, retificação, apagamento, portabilidade e oposição ao tratamento. Para exerceres esses direitos, podes apagar a tua conta em Perfil → Zona de Perigo.</p>
 
       <p style="font-weight:700;margin:0 0 .3rem;">7. Conduta Proibida</p>
       <p style="margin:0 0 1rem;">É estritamente proibido: (a) publicar conteúdo que incite à prática de crimes ou violência; (b) fazer-se passar por outra pessoa ou entidade; (c) tentar obter acesso não autorizado à plataforma; (d) usar meios automatizados (bots, scrapers) sem autorização; (e) assediar, ameaçar ou discriminar outros utilizadores. O incumprimento pode resultar na suspensão imediata da conta e, se aplicável, participação às autoridades competentes.</p>
 
       <p style="font-weight:700;margin:0 0 .3rem;">8. Limitação de Responsabilidade</p>
-      <p style="margin:0 0 1rem;">A plataforma é disponibilizada "tal como está". O Segredo Lusitano não garante a exatidão, integridade ou atualidade da informação publicada pelos utilizadores, e não se responsabiliza por danos diretos, indiretos, incidentais ou consequentes resultantes do uso da plataforma ou da visita a locais nela partilhados, na máxima extensão permitida pela lei portuguesa.</p>
+      <p style="margin:0 0 1rem;">A plataforma é disponibilizada "tal como está". O Segredo Lusitano não garante a exatidão, integridade ou atualidade da informação publicada pelos utilizadores, e não se responsabiliza por danos diretos, indiretos, acidentais ou  resultantes do uso da plataforma ou da visita a locais nela partilhados, na máxima extensão permitida pela lei portuguesa.</p>
 
       <p style="font-weight:700;margin:0 0 .3rem;">9. Propriedade Intelectual</p>
       <p style="margin:0 0 1rem;">O código, design, logótipo e demais elementos da plataforma são propriedade dos seus criadores e estão protegidos pela legislação de direitos de autor e propriedade intelectual. É proibida a reprodução total ou parcial sem autorização expressa.</p>
@@ -357,6 +357,9 @@ function verificarTermosParaSocial(url) {
 
       <p style="font-weight:700;margin:0 0 .3rem;">12. Lei Aplicável e Foro</p>
       <p style="margin:0 0 0;">Estes Termos são regidos pela lei portuguesa. Para a resolução de quaisquer litígios emergentes da interpretação ou execução dos presentes Termos, é competente o foro da comarca de Lisboa, com expressa renúncia a qualquer outro.</p>
+
+      <p style="font-weight:700;margin:0 0 .3rem;">Data da Última Atualização</p>
+      <p style="margin:0 0 0;">01/06/2026</p>
 
     </div>
 
