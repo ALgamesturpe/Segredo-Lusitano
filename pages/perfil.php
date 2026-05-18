@@ -205,9 +205,11 @@ include dirname(__DIR__) . '/includes/header.php';
                 <?php else: ?>
                   <div class="card-img-placeholder"><i class="<?= h($local['categoria_icone']) ?>"></i></div>
                 <?php endif; ?>
+                <?php if ($is_own): ?>
                 <div class="card-badges">
                   <span class="badge badge-<?= $local['estado'] ?>"><?= ucfirst($local['estado']) ?></span>
                 </div>
+                <?php endif; ?>
               </a>
               <div class="card-body">
                 <h3 class="card-title"><a href="<?= SITE_URL ?>/pages/local.php?id=<?= $local['id'] ?>"><?= h(local_nome_publico($local)) ?></a></h3>
