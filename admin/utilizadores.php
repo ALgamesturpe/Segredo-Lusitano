@@ -1,4 +1,4 @@
-﻿<?php
+﻿﻿<?php
 // ============================================================
 // SEGREDO LUSITANO — Admin: Gerir Utilizadores
 // Permite ao administrador ver, suspender, reativar e banir
@@ -276,9 +276,9 @@ include dirname(__DIR__) . '/includes/header.php';
                 <button onclick="abrirModalBan(<?= $u['id'] ?>, '<?= h($u['nome']) ?>')"
                         class="btn btn-sm"
                         title="Banir utilizador"
-                        style="background:#7d0000;color:#fff;display:inline-flex;align-items:center;justify-content:center;"
-                        onmouseover="this.style.background='#5a0000'"
-                        onmouseout="this.style.background='#7d0000'">
+                        style="background:#7d0000;color:#fff;display:inline-flex;align-items:center;justify-content:center;">
+
+
                   <i class="fas fa-user-alt-slash"></i>
                 </button>
               <?php endif; ?>
