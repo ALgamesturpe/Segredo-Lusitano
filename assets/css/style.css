@@ -225,8 +225,8 @@ main { flex: 1; }
    BOTÕES
    ============================================================ */
 .btn { display: inline-flex; align-items: center; gap: .5rem; padding: .75rem 1.75rem; border-radius: var(--radius); font-size: .95rem; font-weight: 600;}
-.btn-primary { background: var(--verde-claro); color: #fff; }
-.btn-primary:hover { background: var(--verde); }
+.btn-primary { background: var(--dourado); color: var(--verde-escuro); }
+.btn-primary:hover { background: var(--dourado-claro); }
 .btn-outline { border: 2px solid rgba(245,239,230,.5); color: var(--creme); }
 .btn-outline:hover { border-color: var(--dourado); color: var(--dourado); }
 .btn-verde { background: var(--verde); color: #fff; }
