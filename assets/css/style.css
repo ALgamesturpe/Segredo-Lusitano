@@ -391,7 +391,7 @@ main { flex: 1; }
 .rank-avatar img { width: 100%; height: 100%; object-fit: cover; object-position: center; }
 .rank-user-info { min-width: 0; max-width: 100%; }
 .rank-user-info > div, .rank-user-info > a { white-space: normal; overflow-wrap: anywhere; word-break: break-word; }
-.rank-pontos { font-family: 'Inter', sans-serif; font-size: 1.35rem; font-weight: 700; letter-spacing: -.02em; color: var(--dourado); }
+.rank-pontos { font-family: 'Inter', sans-serif; font-size: 1.25rem; font-weight: 700; letter-spacing: -.02em; color: var(--dourado); }
 .text-wrap-anywhere { max-width: 100%; white-space: normal; overflow-wrap: anywhere; word-break: break-all; }
 
 /* ============================================================

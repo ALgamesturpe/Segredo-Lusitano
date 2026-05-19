@@ -337,7 +337,7 @@ function render_top_user(?array $u, string $valor_label): string {
     <table class="data-table">
       <thead>
         <tr>
-          <th>Tipo</th><th>Ref.</th><th>Conteúdo</th><th>Motivo</th><th>Estado</th><th>Data</th><th>Ação Rápida</th>
+          <th>Tipo</th><th>Ref.</th><th>Conteúdo</th><th>Motivo</th><th>Denunciante</th><th>Data</th><th>Ação Rápida</th>
         </tr>
       </thead>
       <tbody>
@@ -368,11 +368,7 @@ function render_top_user(?array $u, string $valor_label): string {
             </button>
           </td>
           <td><?= h(motivo_denuncia_label((string)$den['motivo'])) ?></td>
-          <td>
-            <span class="badge <?= $bloqueado ? 'badge-rejeitado' : 'badge-aprovado' ?>">
-              <?= $bloqueado ? 'Bloqueado' : 'Permitido' ?>
-            </span>
-          </td>
+          <td style="color:var(--texto-muted);font-size:.88rem;">@<?= h($den['denunciante_username']) ?></td>
           <td><?= date('d/m/Y', strtotime($den['criado_em'])) ?></td>
           <td style="white-space:nowrap;">
             <form method="POST" style="display:inline;">
