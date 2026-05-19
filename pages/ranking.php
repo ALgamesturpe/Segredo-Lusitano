@@ -54,9 +54,9 @@ include dirname(__DIR__) . '/includes/header.php';
                 <tr>
                   <td>
                     <span class="rank-pos rank-<?= $i+1 <= 3 ? ($i+1) : '' ?>">
-                      <?php if ($i === 0): ?>🥇
-                      <?php elseif ($i === 1): ?>🥈
-                      <?php elseif ($i === 2): ?>🥉
+                      <?php if ($i === 0): ?>1º
+                      <?php elseif ($i === 1): ?>2º
+                      <?php elseif ($i === 2): ?>3º
                       <?php else: echo ($i+1) . 'º'; ?>
                       <?php endif; ?>
                     </span>
