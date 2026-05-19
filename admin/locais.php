@@ -289,7 +289,6 @@ include dirname(__DIR__) . '/includes/header.php';
           <th>Nome</th>
           <th>Utilizador</th>
           <th>Categoria</th>
-          <th>Estado</th>
           <th>Vistas</th>
           <th>Data</th>
           <th>Ações</th>
@@ -305,15 +304,6 @@ include dirname(__DIR__) . '/includes/header.php';
           </td>
           <td>@<?= h($l['username']) ?></td>
           <td><?= h($l['categoria_nome']) ?></td>
-          <td>
-            <?php if ((int)$l['bloqueado'] === 1): ?>
-              <span class="badge badge-rejeitado">Bloqueado</span>
-            <?php elseif ($l['estado'] === 'aprovado'): ?>
-              <span class="badge badge-aprovado">Ativo</span>
-            <?php else: ?>
-              <span class="badge badge-<?= $l['estado'] ?>"><?= ucfirst($l['estado']) ?></span>
-            <?php endif; ?>
-          </td>
           <td><?= number_format($l['vistas']) ?></td>
           <td><?= date('d/m/Y', strtotime($l['criado_em'])) ?></td>
           <td style="display:flex;gap:.5rem;flex-wrap:wrap;">
