@@ -368,7 +368,9 @@ function render_top_user(?array $u, string $valor_label): string {
             </button>
           </td>
           <td><?= h(motivo_denuncia_label((string)$den['motivo'])) ?></td>
-          <td style="color:var(--texto-muted);font-size:.88rem;">@<?= h($den['denunciante_username']) ?></td>
+          <td style="font-size:.88rem;">
+            <a href="<?= SITE_URL ?>/pages/perfil.php?id=<?= (int)$den['utilizador_id'] ?>" style="color:var(--verde);">@<?= h($den['denunciante_username']) ?></a>
+          </td>
           <td><?= date('d/m/Y', strtotime($den['criado_em'])) ?></td>
           <td style="white-space:nowrap;">
             <form method="POST" style="display:inline;">
