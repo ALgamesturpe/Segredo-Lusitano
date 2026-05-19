@@ -226,13 +226,13 @@ main { flex: 1; }
    ============================================================ */
 .btn { display: inline-flex; align-items: center; gap: .5rem; padding: .75rem 1.75rem; border-radius: var(--radius); font-size: .95rem; font-weight: 600;}
 .btn-primary { background: var(--verde-claro); color: #fff; }
-.btn-primary:hover { background: #6b7280; }
+.btn-primary:hover { background: var(--verde); }
 .btn-outline { border: 2px solid rgba(245,239,230,.5); color: var(--creme); }
 .btn-outline:hover { border-color: var(--dourado); color: var(--dourado); }
 .btn-verde { background: var(--verde); color: #fff; }
-.btn-verde:hover { background: #6b7280; }
+.btn-verde:hover { background: var(--verde-escuro); }
 .btn-danger { background: #c0392b; color: #fff; }
-.btn-danger:hover { background: #6b7280; }
+.btn-danger:hover { background: #922b21; }
 .btn-sm { padding: .45rem 1rem; font-size: .85rem; }
 
 /* ============================================================

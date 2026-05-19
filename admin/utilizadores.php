@@ -277,7 +277,7 @@ include dirname(__DIR__) . '/includes/header.php';
                         class="btn btn-sm"
                         title="Banir utilizador"
                         style="background:#7d0000;color:#fff;display:inline-flex;align-items:center;justify-content:center;"
-                        onmouseover="this.style.background='#6b7280'"
+                        onmouseover="this.style.background='#5a0000'"
                         onmouseout="this.style.background='#7d0000'">
                   <i class="fas fa-user-alt-slash"></i>
                 </button>
