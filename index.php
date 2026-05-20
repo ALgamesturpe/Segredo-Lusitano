@@ -1,4 +1,3 @@
-@ -1,110 +1,110 @@
 <?php
 // SEGREDO LUSITANO — Página Inicial
 require_once __DIR__ . '/includes/functions.php';
