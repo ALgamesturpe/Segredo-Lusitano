@@ -144,6 +144,7 @@ if (!$termos_em) {
 $st3 = db()->prepare('INSERT INTO utilizadores (nome, username, email, password, verificado, pontos, tipo_auth, termos_aceites_em) VALUES (?,?,?,?,1,0,"github",?)');
 $st3->execute([$nome, $username, $email, $password_hash, $termos_em]);
 $new_id = (int)db()->lastInsertId();
+guardar_localizacao_registo($new_id);
 
 $_SESSION['user_id'] = $new_id;
 flash('success', 'Conta criada com GitHub, bem-vindo à comunidade!');

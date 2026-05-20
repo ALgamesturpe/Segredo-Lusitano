@@ -3,6 +3,43 @@
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/auth.php';
 
+// ---------- GEOLOCALIZAÇÃO ----------
+function get_client_ip(): string {
+    $locais = ['127.0.0.1', '::1', 'localhost'];
+    foreach (['HTTP_X_FORWARDED_FOR', 'HTTP_X_REAL_IP', 'REMOTE_ADDR'] as $key) {
+        if (!empty($_SERVER[$key])) {
+            $ip = trim(explode(',', $_SERVER[$key])[0]);
+            if ($ip && !in_array($ip, $locais, true)) return $ip;
+        }
+    }
+    // Fallback para localhost: busca IP público do servidor (só em dev)
+    $ctx = stream_context_create(['http' => ['timeout' => 2]]);
+    $pub = @file_get_contents('https://api.ipify.org', false, $ctx);
+    return $pub ? trim($pub) : '';
+}
+
+function geolocate_ip(string $ip): array {
+    $vazio = ['pais' => null, 'regiao' => null, 'cidade' => null];
+    if (!$ip || in_array($ip, ['127.0.0.1', '::1'], true)) return $vazio;
+    try {
+        $ctx  = stream_context_create(['http' => ['timeout' => 3]]);
+        $json = @file_get_contents("http://ip-api.com/json/{$ip}?fields=status,country,regionName,city", false, $ctx);
+        if (!$json) return $vazio;
+        $d = json_decode($json, true);
+        if (!$d || ($d['status'] ?? '') !== 'success') return $vazio;
+        return ['pais' => $d['country'] ?? null, 'regiao' => $d['regionName'] ?? null, 'cidade' => $d['city'] ?? null];
+    } catch (\Throwable $e) { return $vazio; }
+}
+
+function guardar_localizacao_registo(int $user_id): void {
+    _migrar_localizacao();
+    $geo = geolocate_ip(get_client_ip());
+    if ($geo['pais']) {
+        db()->prepare('UPDATE utilizadores SET pais_registo=?, regiao_registo=?, cidade_registo=? WHERE id=?')
+           ->execute([$geo['pais'], $geo['regiao'], $geo['cidade'], $user_id]);
+    }
+}
+
 // ---------- DENUNCIAS / MODERACAO ----------
 function motivos_denuncia(): array {
     return [

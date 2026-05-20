@@ -93,7 +93,9 @@ function register(string $nome, string $username, string $email, string $passwor
     $password_hash = password_hash($password, PASSWORD_BCRYPT, ['cost' => 12]);
     $st = db()->prepare('INSERT INTO utilizadores (nome, username, email, password, verificado, pontos, termos_aceites_em) VALUES (?,?,?,?,0,0,?)');
     $st->execute([$nome, $username, $email, $password_hash, $termos_aceites_em]);
-    return ['ok' => true, 'id' => (int) db()->lastInsertId()];
+    $new_id = (int) db()->lastInsertId();
+    guardar_localizacao_registo($new_id);
+    return ['ok' => true, 'id' => $new_id];
 }
 
 function add_pontos(int $user_id, int $pontos): void {

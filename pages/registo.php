@@ -40,6 +40,7 @@ if ($github_pendente && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['g
         $st_ins = db()->prepare('INSERT INTO utilizadores (nome, username, email, password, verificado, pontos, tipo_auth, termos_aceites_em) VALUES (?,?,?,?,1,0,"github",?)');
         $st_ins->execute([$github_pendente['nome'], $gh_user, $github_pendente['email'], $github_pendente['password_hash'], $termos_em]);
         $new_id = (int)db()->lastInsertId();
+        guardar_localizacao_registo($new_id);
         unset($_SESSION['github_pendente']);
         $_SESSION['user_id'] = $new_id;
         flash('success', 'Conta criada com GitHub, bem-vindo à comunidade!');

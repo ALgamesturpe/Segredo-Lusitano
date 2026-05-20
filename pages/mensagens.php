@@ -69,6 +69,43 @@ $tem_conversa_ativa = ($conversa_id > 0 && $outro_user !== null);
 $page_title = 'Mensagens';
 include dirname(__DIR__) . '/includes/header.php';
 ?>
+<style>
+.msg-bubble {
+  max-width: 70%;
+  padding: .65rem 1rem;
+  font-size: .92rem;
+  line-height: 1.5;
+  word-break: break-word;
+  position: relative;
+}
+.msg-bubble-own {
+  background: var(--verde);
+  color: #fff;
+  border-radius: 12px 12px 0 12px;
+}
+.msg-bubble-own::after {
+  content: '';
+  position: absolute;
+  bottom: 0; right: -8px;
+  width: 0; height: 0;
+  border-top: 8px solid transparent;
+  border-left: 8px solid var(--verde);
+}
+.msg-bubble-other {
+  background: #fff;
+  color: var(--texto);
+  border-radius: 12px 12px 12px 0;
+  box-shadow: 0 1px 2px rgba(0,0,0,.08);
+}
+.msg-bubble-other::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: -8px;
+  width: 0; height: 0;
+  border-top: 8px solid transparent;
+  border-right: 8px solid #fff;
+}
+</style>
 <div class="page-content">
 <div style="display:flex;height:calc(100vh - var(--nav-h));overflow:hidden;-webkit-overflow-scrolling:touch;" id="chat-layout">
 
@@ -150,9 +187,7 @@ include dirname(__DIR__) . '/includes/header.php';
             </div>
             <?php endif; ?>
 
-            <div style="max-width:70%;background:<?= $propria ? 'var(--verde)' : 'var(--branco)' ?>;color:<?= $propria ? '#fff' : 'var(--texto)' ?>;
-                        padding:.65rem 1rem;border-radius:0;
-                        font-size:.92rem;line-height:1.5;word-break:break-word;">
+            <div class="msg-bubble <?= $propria ? 'msg-bubble-own' : 'msg-bubble-other' ?>">
               <?php if ($isImg): ?>
                 <img src="<?= SITE_URL ?>/uploads/mensagens/<?= h($msg['ficheiro']) ?>"
                      style="max-width:220px;border-radius:0;display:block;cursor:pointer;"
@@ -233,6 +268,17 @@ include dirname(__DIR__) . '/includes/header.php';
 </div>
 </div>
 
+<!-- Overlay de confirmação de eliminar (substitui confirm() bloqueado no iOS) -->
+<div id="overlay-eliminar" style="display:none;position:fixed;inset:0;z-index:7000;background:rgba(0,0,0,.4);" onclick="cancelarEliminar()">
+  <div onclick="event.stopPropagation()" style="position:absolute;bottom:0;left:0;right:0;background:#fff;border-radius:16px 16px 0 0;padding:1.25rem 1.5rem;box-shadow:0 -4px 24px rgba(0,0,0,.15);">
+    <p style="margin:0 0 1rem;font-size:.95rem;text-align:center;color:var(--texto);">Eliminar esta mensagem?</p>
+    <div style="display:flex;gap:.75rem;">
+      <button onclick="cancelarEliminar()" style="flex:1;padding:.75rem;border:1.5px solid var(--creme-escuro);border-radius:8px;background:#fff;font-size:.95rem;cursor:pointer;">Cancelar</button>
+      <button onclick="confirmarEliminar()" style="flex:1;padding:.75rem;border:none;border-radius:8px;background:#c0392b;color:#fff;font-size:.95rem;font-weight:600;cursor:pointer;">Eliminar</button>
+    </div>
+  </div>
+</div>
+
 <!-- Modal de ampliação de foto -->
 <div id="modal-foto-msg" onclick="fecharFotoMsg()"
      style="display:none;position:fixed;inset:0;z-index:6000;background:rgba(0,0,0,.92);
@@ -309,7 +355,8 @@ function toggleMenu(btnEl, msgId) {
   btnEliminar.addEventListener('mouseout',  () => btnEliminar.style.background = 'none');
   btnEliminar.addEventListener('click', (e) => {
     e.stopPropagation();
-    eliminarMensagem(msgId);
+    document.querySelectorAll('.msg-menu').forEach(m => m.remove());
+    mostrarConfirmEliminar(msgId);
   });
   menu.appendChild(btnEliminar);
   btnEl.parentElement.appendChild(menu);
@@ -321,6 +368,22 @@ document.addEventListener('click', (e) => {
     document.querySelectorAll('.msg-menu').forEach(m => m.remove());
   }
 });
+
+// ── Overlay de confirmação ────────────────────────────────
+let _msgIdParaEliminar = null;
+function mostrarConfirmEliminar(msgId) {
+  _msgIdParaEliminar = msgId;
+  document.getElementById('overlay-eliminar').style.display = 'block';
+}
+function cancelarEliminar() {
+  _msgIdParaEliminar = null;
+  document.getElementById('overlay-eliminar').style.display = 'none';
+}
+async function confirmarEliminar() {
+  document.getElementById('overlay-eliminar').style.display = 'none';
+  if (_msgIdParaEliminar) await eliminarMensagem(_msgIdParaEliminar);
+  _msgIdParaEliminar = null;
+}
 
 // ── Eliminar mensagem ─────────────────────────────────────
 async function eliminarMensagem(msgId) {
@@ -372,14 +435,13 @@ document.querySelectorAll('[data-msg-id]').forEach(wrapper => {
   });
 
   const bubble = wrapper.querySelector('div:not(.msg-opts-wrap)');
-  let pressTimer, tocando = false;
+  let pressTimer;
   if (bubble) {
     bubble.addEventListener('touchstart', () => {
-      tocando = true;
-      pressTimer = setTimeout(() => { btn.style.display = 'flex'; }, 2000);
+      pressTimer = setTimeout(() => mostrarConfirmEliminar(msgId), 600);
     }, { passive: true });
-    bubble.addEventListener('touchend',  () => { tocando = false; clearTimeout(pressTimer); });
-    bubble.addEventListener('touchmove', () => { tocando = false; clearTimeout(pressTimer); });
+    bubble.addEventListener('touchend',  () => clearTimeout(pressTimer));
+    bubble.addEventListener('touchmove', () => clearTimeout(pressTimer));
   }
 });
 
@@ -404,10 +466,7 @@ function criarWrapper(msgId, propria, innerHtml) {
   optsWrap.appendChild(btnOpts);
 
   const bubble = document.createElement('div');
-  bubble.style.cssText = `max-width:70%;background:${propria ? 'var(--verde)' : 'var(--branco)'};
-      color:${propria ? '#fff' : 'var(--texto)'};padding:.65rem 1rem;
-      border-radius:0;
-      font-size:.92rem;line-height:1.5;word-break:break-word;`;
+  bubble.className = `msg-bubble ${propria ? 'msg-bubble-own' : 'msg-bubble-other'}`;
   bubble.innerHTML = innerHtml;
 
   wrapper.addEventListener('mouseenter', () => btnOpts.style.display = 'flex');
@@ -415,13 +474,14 @@ function criarWrapper(msgId, propria, innerHtml) {
     if (!wrapper.contains(e.relatedTarget)) btnOpts.style.display = 'none';
   });
 
-  let pressTimer, tocando = false;
+  let pressTimer;
   bubble.addEventListener('touchstart', () => {
-    tocando = true;
-    pressTimer = setTimeout(() => { btnOpts.style.display = 'flex'; }, 2000);
+    pressTimer = setTimeout(() => {
+      if (confirm('Eliminar esta mensagem?')) eliminarMensagem(msgId);
+    }, 600);
   }, { passive: true });
-  bubble.addEventListener('touchend',  () => { tocando = false; clearTimeout(pressTimer); });
-  bubble.addEventListener('touchmove', () => { tocando = false; clearTimeout(pressTimer); });
+  bubble.addEventListener('touchend',  () => clearTimeout(pressTimer));
+  bubble.addEventListener('touchmove', () => clearTimeout(pressTimer));
 
   if (propria) { wrapper.appendChild(optsWrap); wrapper.appendChild(bubble); }
   else         { wrapper.appendChild(bubble);   wrapper.appendChild(optsWrap); }
