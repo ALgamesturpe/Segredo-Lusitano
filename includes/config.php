@@ -59,6 +59,17 @@ define('TWILIO_ACCOUNT_SID',    'ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'); // ← Se
 define('TWILIO_AUTH_TOKEN',     '0a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p'); // ← Seu Token
 define('TWILIO_PHONE',          '+12345678901');     // ← Seu número Twilio
 
+// Migração: adicionar colunas de localização de registo
+function _migrar_localizacao(): void {
+    static $done = false;
+    if ($done) return;
+    $done = true;
+    $cols = ['pais_registo VARCHAR(100)', 'regiao_registo VARCHAR(100)', 'cidade_registo VARCHAR(100)'];
+    foreach ($cols as $col) {
+        try { db()->exec("ALTER TABLE utilizadores ADD COLUMN $col NULL"); } catch (\Exception $e) {}
+    }
+}
+
 function db(): PDO {
     static $pdo = null;
     if ($pdo === null) {

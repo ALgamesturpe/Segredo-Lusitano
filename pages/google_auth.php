@@ -151,6 +151,7 @@ try {
         $st->execute([$google_nome, $username, $google_email, $password_hash, $termos_em]);
 
         $novo_id = (int)db()->lastInsertId();
+        guardar_localizacao_registo($novo_id);
         $_SESSION['user_id'] = $novo_id;
         echo json_encode(['ok' => true, 'redirect' => SITE_URL . '/index.php', 'novo' => true, 'nome' => $google_nome]);
     }

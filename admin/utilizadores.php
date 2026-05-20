@@ -265,6 +265,22 @@ include dirname(__DIR__) . '/includes/header.php';
                  class="btn btn-sm btn-verde" title="Ver perfil">
                 <i class="fas fa-eye"></i>
               </a>
+              <!-- Ver informações do utilizador -->
+              <button class="btn btn-sm btn-info-user" title="Ver informações"
+                      style="background:#2563eb;color:#fff;display:inline-flex;align-items:center;justify-content:center;"
+                      onmouseover="this.style.background='#1d4ed8'" onmouseout="this.style.background='#2563eb'"
+                      data-nome="<?= h($u['nome']) ?>"
+                      data-username="<?= h($u['username']) ?>"
+                      data-email="<?= h($u['email']) ?>"
+                      data-data="<?= date('d/m/Y', strtotime($u['criado_em'])) ?>"
+                      data-pontos="<?= (int)$u['pontos'] ?>"
+                      data-locais="<?= (int)$u['total_locais'] ?>"
+                      data-estado="<?= $u['ativo'] ? 'Ativo' : 'Suspenso' ?>"
+                      data-cidade="<?= h($u['cidade_registo'] ?? '') ?>"
+                      data-regiao="<?= h($u['regiao_registo'] ?? '') ?>"
+                      data-pais="<?= h($u['pais_registo'] ?? '') ?>">
+                <i class="fas fa-info-circle"></i>
+              </button>
               <?php if ($u['role'] !== 'admin'): ?>
                 <!-- Suspender (se ativo) ou Reativar (se suspenso) conta -->
                 <a href="?toggle=<?= $u['id'] ?>&filtro=<?= h($filtro) ?><?= $pesquisa ? '&q=' . urlencode($pesquisa) : '' ?>"
@@ -296,6 +312,46 @@ include dirname(__DIR__) . '/includes/header.php';
 
   </main>
 </div>
+</div>
+
+<!-- ── MODAL DE INFORMAÇÕES ── -->
+<div id="modal-info" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:5000;align-items:center;justify-content:center;padding:1rem;">
+  <div style="background:#fff;border-radius:var(--radius-lg);padding:1.5rem;max-width:380px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,.2);">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;">
+      <h3 style="margin:0;font-size:1rem;"><i class="fas fa-info-circle" style="color:#2563eb;margin-right:.4rem;"></i> Informações</h3>
+      <button onclick="document.getElementById('modal-info').style.display='none'" style="background:none;border:none;font-size:1.1rem;cursor:pointer;color:var(--texto-muted);"><i class="fas fa-times"></i></button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:.65rem;font-size:.9rem;">
+      <div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--creme-escuro);padding-bottom:.5rem;">
+        <span style="color:var(--texto-muted);">Nome</span><span id="info-nome" style="font-weight:600;"></span>
+      </div>
+      <div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--creme-escuro);padding-bottom:.5rem;">
+        <span style="color:var(--texto-muted);">Username</span><span id="info-username" style="color:var(--verde);font-weight:600;"></span>
+      </div>
+      <div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--creme-escuro);padding-bottom:.5rem;">
+        <span style="color:var(--texto-muted);">Email</span><span id="info-email" style="word-break:break-all;"></span>
+      </div>
+      <div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--creme-escuro);padding-bottom:.5rem;">
+        <span style="color:var(--texto-muted);">Registo</span><span id="info-data"></span>
+      </div>
+      <div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--creme-escuro);padding-bottom:.5rem;">
+        <span style="color:var(--texto-muted);">Pontos</span><span id="info-pontos" style="font-weight:700;"></span>
+      </div>
+      <div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--creme-escuro);padding-bottom:.5rem;">
+        <span style="color:var(--texto-muted);">Locais aprovados</span><span id="info-locais" style="font-weight:600;"></span>
+      </div>
+      <div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--creme-escuro);padding-bottom:.5rem;">
+        <span style="color:var(--texto-muted);">Estado</span><span id="info-estado" style="font-weight:600;"></span>
+      </div>
+      <div style="display:flex;justify-content:space-between;">
+        <span style="color:var(--texto-muted);">Registado</span><span id="info-localizacao" style="text-align:right;max-width:60%;"></span>
+      </div>
+      <a id="btn-ver-mapa" href="#" target="_blank" rel="noopener"
+         style="display:none;align-items:center;justify-content:center;gap:.5rem;padding:.65rem;background:#2563eb;color:#fff;border-radius:8px;font-size:.9rem;text-decoration:none;font-weight:600;">
+        <i class="fas fa-map-marker-alt"></i> Ver no mapa
+      </a>
+    </div>
+  </div>
 </div>
 
 <!-- ── MODAL DE BAN ── -->
@@ -350,6 +406,37 @@ include dirname(__DIR__) . '/includes/header.php';
 
 <script>
 // Preenche e abre o modal de ban com os dados do utilizador selecionado
+document.addEventListener('click', function(e) {
+  const btn = e.target.closest('.btn-info-user');
+  if (!btn) return;
+  const d = btn.dataset;
+  document.getElementById('info-nome').textContent     = d.nome;
+  document.getElementById('info-username').textContent = '@' + d.username;
+  document.getElementById('info-email').textContent    = d.email;
+  document.getElementById('info-data').textContent     = d.data;
+  document.getElementById('info-pontos').textContent   = parseInt(d.pontos).toLocaleString('pt-PT');
+  document.getElementById('info-locais').textContent   = d.locais;
+  document.getElementById('info-estado').textContent   = d.estado;
+  document.getElementById('info-estado').style.color   = d.estado === 'Ativo' ? '#27ae60' : '#e74c3c';
+  const localParts = [d.cidade, d.pais].filter(x => x && x.trim());
+  document.getElementById('info-localizacao').textContent = localParts.length ? localParts.join(', ') : 'Desconhecido';
+  const partes = [d.cidade, d.regiao, d.pais].filter(x => x && x.trim());
+  const btnMapa = document.getElementById('btn-ver-mapa');
+  if (partes.length) {
+    btnMapa.href = 'https://www.google.com/maps/search/' + encodeURIComponent(partes.join(', '));
+    btnMapa.innerHTML = '<i class="fas fa-map-marker-alt"></i> Ver no mapa';
+    btnMapa.style.pointerEvents = 'auto';
+    btnMapa.style.opacity = '1';
+  } else {
+    btnMapa.href = '#';
+    btnMapa.innerHTML = '<i class="fas fa-map-marker-alt"></i> Sem localização';
+    btnMapa.style.pointerEvents = 'none';
+    btnMapa.style.opacity = '.6';
+  }
+  btnMapa.style.display = 'flex';
+  document.getElementById('modal-info').style.display = 'flex';
+});
+
 function abrirModalBan(id, nome) {
   document.getElementById('modal-ban-id').value = id;
   document.getElementById('modal-ban-nome').textContent =
