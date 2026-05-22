@@ -269,8 +269,8 @@ include dirname(__DIR__) . '/includes/header.php';
 </div>
 
 <!-- Overlay de confirmação de eliminar (substitui confirm() bloqueado no iOS) -->
-<div id="overlay-eliminar" style="display:none;position:fixed;inset:0;z-index:7000;background:rgba(0,0,0,.4);" onclick="cancelarEliminar()">
-  <div onclick="event.stopPropagation()" style="position:absolute;bottom:0;left:0;right:0;background:#fff;border-radius:16px 16px 0 0;padding:1.25rem 1.5rem;box-shadow:0 -4px 24px rgba(0,0,0,.15);">
+<div id="overlay-eliminar" style="display:none;position:fixed;top:0;right:0;bottom:0;left:0;z-index:7000;background:rgba(0,0,0,.4);align-items:flex-end;" onclick="cancelarEliminar()">
+  <div onclick="event.stopPropagation()" style="width:100%;background:#fff;border-radius:16px 16px 0 0;padding:1.25rem 1.5rem;padding-bottom:calc(1.25rem + env(safe-area-inset-bottom));box-shadow:0 -4px 24px rgba(0,0,0,.15);">
     <p style="margin:0 0 1rem;font-size:.95rem;text-align:center;color:var(--texto);">Eliminar esta mensagem?</p>
     <div style="display:flex;gap:.75rem;">
       <button onclick="cancelarEliminar()" style="flex:1;padding:.75rem;border:1.5px solid var(--creme-escuro);border-radius:8px;background:#fff;font-size:.95rem;cursor:pointer;">Cancelar</button>
@@ -373,7 +373,7 @@ document.addEventListener('click', (e) => {
 let _msgIdParaEliminar = null;
 function mostrarConfirmEliminar(msgId) {
   _msgIdParaEliminar = msgId;
-  document.getElementById('overlay-eliminar').style.display = 'block';
+  document.getElementById('overlay-eliminar').style.display = 'flex';
 }
 function cancelarEliminar() {
   _msgIdParaEliminar = null;

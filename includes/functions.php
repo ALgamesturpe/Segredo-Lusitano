@@ -155,6 +155,11 @@ function ensure_moderacao_schema(): void {
             db()->exec('ALTER TABLE utilizadores ADD COLUMN termos_aceites_em DATETIME DEFAULT NULL');
         }
 
+        $colF = db()->query("SHOW COLUMNS FROM mensagens LIKE 'ficheiro'")->fetch();
+        if (!$colF) {
+            db()->exec('ALTER TABLE mensagens ADD COLUMN ficheiro VARCHAR(255) NULL DEFAULT NULL');
+        }
+
         // Migrar regiões para as 5 pretendidas: Norte, Centro, Sul, Açores, Madeira
         $sul = db()->query("SELECT id FROM regioes WHERE nome = 'Sul'")->fetch();
         if (!$sul) {
