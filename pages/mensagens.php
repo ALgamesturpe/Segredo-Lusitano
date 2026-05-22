@@ -48,9 +48,14 @@ if ($conversa_id) {
         $outro_user = $stU->fetch() ?: null;
 
         $stM = db()->prepare(
-            'SELECT m.*, u.username AS remetente_username, u.avatar AS remetente_avatar
+            'SELECT m.*, u.username AS remetente_username, u.avatar AS remetente_avatar,
+                    l.nome AS local_nome, l.foto_capa AS local_foto,
+                    r.nome AS local_regiao, c.nome AS local_categoria
              FROM mensagens m
              JOIN utilizadores u ON u.id = m.remetente_id
+             LEFT JOIN locais l ON l.id = m.local_id
+             LEFT JOIN regioes r ON r.id = l.regiao_id
+             LEFT JOIN categorias c ON c.id = l.categoria_id
              WHERE (m.remetente_id = ? AND m.destinatario_id = ?)
                 OR (m.remetente_id = ? AND m.destinatario_id = ?)
              ORDER BY m.criado_em ASC'
@@ -174,6 +179,7 @@ include dirname(__DIR__) . '/includes/header.php';
           <?php $propria = ((int)$msg['remetente_id'] === $uid); ?>
           <?php $isImg  = !empty($msg['ficheiro']) && preg_match('/\.(jpg|jpeg|png|webp|gif)$/i', $msg['ficheiro']); ?>
           <?php $isFich = !empty($msg['ficheiro']) && !$isImg; ?>
+          <?php $isLocal = !empty($msg['local_id']); ?>
           <div style="display:flex;justify-content:<?= $propria ? 'flex-end' : 'flex-start' ?>;position:relative;align-items:center;gap:6px;" data-msg-id="<?= $msg['id'] ?>">
 
             <?php if ($propria): ?>
@@ -187,23 +193,66 @@ include dirname(__DIR__) . '/includes/header.php';
             </div>
             <?php endif; ?>
 
-            <div class="msg-bubble <?= $propria ? 'msg-bubble-own' : 'msg-bubble-other' ?>">
-              <?php if ($isImg): ?>
+            <div class="msg-bubble <?= $propria ? 'msg-bubble-own' : 'msg-bubble-other' ?>" <?= $isLocal ? 'style="padding:.5rem;background:transparent;box-shadow:none;"' : '' ?>>
+              <?php if ($isLocal): ?>
+                <?php
+                  $bubble_bg   = $propria ? 'var(--verde-escuro)' : '#fff';
+                  $bubble_text = $propria ? '#fff' : 'var(--texto)';
+                  $bubble_muted= $propria ? 'rgba(255,255,255,.7)' : 'var(--texto-muted)';
+                  $bubble_border = $propria ? 'rgba(255,255,255,.2)' : 'var(--creme-escuro)';
+                ?>
+                <a href="<?= SITE_URL ?>/pages/local.php?id=<?= (int)$msg['local_id'] ?>"
+                   style="display:block;text-decoration:none;border:1.5px solid <?= $bubble_border ?>;border-radius:var(--radius);overflow:hidden;background:<?= $bubble_bg ?>;min-width:200px;max-width:240px;">
+                  <?php if (!empty($msg['local_foto'])): ?>
+                    <img src="<?= SITE_URL ?>/uploads/locais/<?= h($msg['local_foto']) ?>"
+                         style="width:100%;height:120px;object-fit:cover;display:block;">
+                  <?php else: ?>
+                    <div style="width:100%;height:80px;background:var(--verde);display:flex;align-items:center;justify-content:center;">
+                      <i class="fas fa-map-marker-alt" style="color:#fff;font-size:2rem;"></i>
+                    </div>
+                  <?php endif; ?>
+                  <div style="padding:.65rem .85rem;">
+                    <div style="font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:<?= $bubble_muted ?>;margin-bottom:.25rem;">
+                      <i class="fas fa-map-marker-alt"></i> Local recomendado
+                    </div>
+                    <div style="font-weight:700;font-size:.9rem;color:<?= $bubble_text ?>;line-height:1.3;margin-bottom:.25rem;"><?= h($msg['local_nome'] ?? 'Local') ?></div>
+                    <div style="font-size:.78rem;color:<?= $bubble_muted ?>;"><?= h($msg['local_regiao'] ?? '') ?> &bull; <?= h($msg['local_categoria'] ?? '') ?></div>
+                    <?php if (!empty($msg['texto'])): ?>
+                      <div style="margin-top:.5rem;padding-top:.5rem;border-top:1px solid <?= $bubble_border ?>;font-size:.85rem;color:<?= $bubble_text ?>;"><?= nl2br(h($msg['texto'])) ?></div>
+                    <?php endif; ?>
+                    <div style="margin-top:.5rem;font-size:.75rem;color:<?= $bubble_muted ?>;display:flex;align-items:center;gap:.25rem;">
+                      <i class="fas fa-external-link-alt"></i> Ver local
+                    </div>
+                  </div>
+                </a>
+                <div style="font-size:.72rem;opacity:.65;text-align:right;margin-top:.3rem;color:<?= $propria ? '#fff' : 'var(--texto-muted)' ?>;">
+                  <?= date('H:i', strtotime($msg['criado_em'])) ?>
+                  <?php if ($propria && $msg['lida']): ?><i class="fas fa-check-double" style="margin-left:.3rem;"></i><?php endif; ?>
+                </div>
+              <?php elseif ($isImg): ?>
                 <img src="<?= SITE_URL ?>/uploads/mensagens/<?= h($msg['ficheiro']) ?>"
                      style="max-width:220px;border-radius:0;display:block;cursor:pointer;"
                      onclick="abrirFotoMsg('<?= SITE_URL ?>/uploads/mensagens/<?= h($msg['ficheiro']) ?>')">
+                <div style="font-size:.72rem;opacity:.65;text-align:right;margin-top:.3rem;">
+                  <?= date('H:i', strtotime($msg['criado_em'])) ?>
+                  <?php if ($propria && $msg['lida']): ?><i class="fas fa-check-double" style="margin-left:.3rem;"></i><?php endif; ?>
+                </div>
               <?php elseif ($isFich): ?>
                 <a href="<?= SITE_URL ?>/uploads/mensagens/<?= h($msg['ficheiro']) ?>" target="_blank"
                    style="color:inherit;display:flex;align-items:center;gap:.5rem;">
                   <i class="fas fa-file"></i> <?= h($msg['ficheiro']) ?>
                 </a>
+                <div style="font-size:.72rem;opacity:.65;text-align:right;margin-top:.3rem;">
+                  <?= date('H:i', strtotime($msg['criado_em'])) ?>
+                  <?php if ($propria && $msg['lida']): ?><i class="fas fa-check-double" style="margin-left:.3rem;"></i><?php endif; ?>
+                </div>
               <?php else: ?>
                 <?= nl2br(h($msg['texto'])) ?>
+                <div style="font-size:.72rem;opacity:.65;text-align:right;margin-top:.3rem;">
+                  <?= date('H:i', strtotime($msg['criado_em'])) ?>
+                  <?php if ($propria && $msg['lida']): ?><i class="fas fa-check-double" style="margin-left:.3rem;"></i><?php endif; ?>
+                </div>
               <?php endif; ?>
-              <div style="font-size:.72rem;opacity:.65;text-align:right;margin-top:.3rem;">
-                <?= date('H:i', strtotime($msg['criado_em'])) ?>
-                <?php if ($propria && $msg['lida']): ?><i class="fas fa-check-double" style="margin-left:.3rem;"></i><?php endif; ?>
-              </div>
             </div>
 
             <?php if (!$propria): ?>
@@ -446,7 +495,7 @@ document.querySelectorAll('[data-msg-id]').forEach(wrapper => {
 });
 
 // ── Criar wrapper JS ──────────────────────────────────────
-function criarWrapper(msgId, propria, innerHtml) {
+function criarWrapper(msgId, propria, innerHtml, semBubble = false) {
   const wrapper = document.createElement('div');
   wrapper.style.cssText = `display:flex;justify-content:${propria ? 'flex-end' : 'flex-start'};position:relative;align-items:center;gap:6px;`;
   wrapper.dataset.msgId = msgId;
@@ -466,7 +515,11 @@ function criarWrapper(msgId, propria, innerHtml) {
   optsWrap.appendChild(btnOpts);
 
   const bubble = document.createElement('div');
-  bubble.className = `msg-bubble ${propria ? 'msg-bubble-own' : 'msg-bubble-other'}`;
+  if (semBubble) {
+    bubble.style.cssText = 'padding:.5rem;background:transparent;box-shadow:none;position:relative;';
+  } else {
+    bubble.className = `msg-bubble ${propria ? 'msg-bubble-own' : 'msg-bubble-other'}`;
+  }
   bubble.innerHTML = innerHtml;
 
   wrapper.addEventListener('mouseenter', () => btnOpts.style.display = 'flex');
@@ -493,10 +546,43 @@ function adicionarMensagem(msg, propria) {
   const vazio = chat.querySelector('.chat-vazio');
   if (vazio) vazio.remove();
   const hora  = new Date(msg.criado_em).toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' });
+
+  if (msg.local_id) {
+    chat.appendChild(criarWrapper(msg.id, propria, construirCardLocal(msg, propria, hora), true));
+    return;
+  }
+
   const texto = msg.texto.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
   chat.appendChild(criarWrapper(msg.id, propria,
     `${texto}<div style="font-size:.72rem;opacity:.65;text-align:right;margin-top:.3rem;">${hora}</div>`
   ));
+}
+
+function construirCardLocal(msg, propria, hora) {
+  const bg      = propria ? 'var(--verde-escuro)' : '#fff';
+  const cor     = propria ? '#fff' : 'var(--texto)';
+  const muted   = propria ? 'rgba(255,255,255,.7)' : 'var(--texto-muted)';
+  const border  = propria ? 'rgba(255,255,255,.2)' : 'var(--creme-escuro)';
+  const fotoHtml = msg.local_foto
+    ? `<img src="${SITE_URL_JS}/uploads/locais/${msg.local_foto}" style="width:100%;height:120px;object-fit:cover;display:block;">`
+    : `<div style="width:100%;height:80px;background:var(--verde);display:flex;align-items:center;justify-content:center;"><i class="fas fa-map-marker-alt" style="color:#fff;font-size:2rem;"></i></div>`;
+  const textoExtra = msg.texto
+    ? `<div style="margin-top:.5rem;padding-top:.5rem;border-top:1px solid ${border};font-size:.85rem;color:${cor};">${msg.texto.replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>')}</div>`
+    : '';
+  const checkDouble = propria && msg.lida ? '<i class="fas fa-check-double" style="margin-left:.3rem;"></i>' : '';
+  return `
+    <a href="${SITE_URL_JS}/pages/local.php?id=${msg.local_id}"
+       style="display:block;text-decoration:none;border:1.5px solid ${border};border-radius:var(--radius);overflow:hidden;background:${bg};min-width:200px;max-width:240px;">
+      ${fotoHtml}
+      <div style="padding:.65rem .85rem;">
+        <div style="font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:${muted};margin-bottom:.25rem;"><i class="fas fa-map-marker-alt"></i> Local recomendado</div>
+        <div style="font-weight:700;font-size:.9rem;color:${cor};line-height:1.3;margin-bottom:.25rem;">${(msg.local_nome||'Local').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+        <div style="font-size:.78rem;color:${muted};">${(msg.local_regiao||'').replace(/</g,'&lt;')} &bull; ${(msg.local_categoria||'').replace(/</g,'&lt;')}</div>
+        ${textoExtra}
+        <div style="margin-top:.5rem;font-size:.75rem;color:${muted};display:flex;align-items:center;gap:.25rem;"><i class="fas fa-external-link-alt"></i> Ver local</div>
+      </div>
+    </a>
+    <div style="font-size:.72rem;opacity:.65;text-align:right;margin-top:.3rem;color:${propria?'#fff':'var(--texto-muted)'};">${hora}${checkDouble}</div>`;
 }
 
 function adicionarMensagemFicheiro(msg, propria) {

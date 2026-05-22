@@ -16,6 +16,7 @@ DROP TABLE IF EXISTS categorias;
 DROP TABLE IF EXISTS utilizadores;
 DROP TABLE IF EXISTS seguidores;
 DROP TABLE IF EXISTS mensagens;
+DROP TABLE IF EXISTS favoritos;
 DROP TABLE IF EXISTS codigos_verificacao;
 DROP TABLE IF EXISTS app_meta;
 SET FOREIGN_KEY_CHECKS = 1;
@@ -197,12 +198,29 @@ CREATE TABLE mensagens (
     remetente_id    INT NOT NULL,
     destinatario_id INT NOT NULL,
     texto           TEXT NOT NULL,
+    ficheiro        VARCHAR(255) DEFAULT NULL,
+    local_id        INT DEFAULT NULL,
     lida            TINYINT(1) DEFAULT 0,
     criado_em       DATETIME DEFAULT CURRENT_TIMESTAMP,
     KEY idx_conversa (remetente_id, destinatario_id),
     KEY idx_nao_lidas (destinatario_id, lida),
     FOREIGN KEY (remetente_id)    REFERENCES utilizadores(id) ON DELETE CASCADE,
-    FOREIGN KEY (destinatario_id) REFERENCES utilizadores(id) ON DELETE CASCADE
+    FOREIGN KEY (destinatario_id) REFERENCES utilizadores(id) ON DELETE CASCADE,
+    FOREIGN KEY (local_id)        REFERENCES locais(id) ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+-- ============================================================
+-- TABELA: favoritos
+-- Locais guardados/bookmarked por cada utilizador (privados)
+-- ============================================================
+CREATE TABLE favoritos (
+    id            INT AUTO_INCREMENT PRIMARY KEY,
+    utilizador_id INT NOT NULL,
+    local_id      INT NOT NULL,
+    criado_em     DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY unique_fav (utilizador_id, local_id),
+    FOREIGN KEY (utilizador_id) REFERENCES utilizadores(id) ON DELETE CASCADE,
+    FOREIGN KEY (local_id)      REFERENCES locais(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 -- ============================================================

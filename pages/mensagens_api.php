@@ -12,6 +12,70 @@ $user = auth_user();
 $uid  = $user['id'];
 $acao = $_GET['acao'] ?? $_POST['acao'] ?? '';
 
+// ── Listar follows mútuos (para modal de recomendação) ────
+if ($acao === 'follows_mutuos') {
+    $st = db()->prepare(
+        'SELECT u.id, u.nome, u.username, u.avatar
+         FROM utilizadores u
+         JOIN seguidores s1 ON s1.seguidor_id = ? AND s1.seguido_id = u.id
+         JOIN seguidores s2 ON s2.seguidor_id = u.id AND s2.seguido_id = ?
+         WHERE u.ativo = 1 AND u.role != "[deleted]"
+         ORDER BY u.nome ASC'
+    );
+    $st->execute([$uid, $uid]);
+    echo json_encode(['ok' => true, 'utilizadores' => $st->fetchAll()]);
+    exit;
+}
+
+// ── Recomendar local por mensagem ────────────────────────
+if ($acao === 'recomendar') {
+    $dest_id  = (int)($_POST['destinatario_id'] ?? 0);
+    $local_id = (int)($_POST['local_id'] ?? 0);
+    $texto    = trim($_POST['texto'] ?? '');
+
+    if (!$dest_id || !$local_id) { echo json_encode(['ok'=>false,'erro'=>'Dados inválidos']); exit; }
+
+    // Verificar acesso: seguimento mútuo OU mensagem prévia
+    $stChk = db()->prepare(
+        'SELECT (
+            SELECT COUNT(*) FROM seguidores s1
+            JOIN seguidores s2 ON s2.seguidor_id=? AND s2.seguido_id=?
+            WHERE s1.seguidor_id=? AND s1.seguido_id=?
+        ) + (
+            SELECT COUNT(*) FROM mensagens
+            WHERE (remetente_id=? AND destinatario_id=?)
+               OR (remetente_id=? AND destinatario_id=?)
+            LIMIT 1
+        ) AS total'
+    );
+    $stChk->execute([$dest_id, $uid, $uid, $dest_id, $uid, $dest_id, $dest_id, $uid]);
+    if ((int)$stChk->fetchColumn() < 1) {
+        echo json_encode(['ok'=>false,'erro'=>'Não se seguem mutuamente']); exit;
+    }
+
+    // Verificar que o local existe e está aprovado
+    $stL = db()->prepare('SELECT id FROM locais WHERE id = ? AND estado = "aprovado" AND apagado_em IS NULL');
+    $stL->execute([$local_id]);
+    if (!$stL->fetch()) { echo json_encode(['ok'=>false,'erro'=>'Local inválido']); exit; }
+
+    $st = db()->prepare('INSERT INTO mensagens (remetente_id, destinatario_id, texto, local_id) VALUES (?,?,?,?)');
+    $st->execute([$uid, $dest_id, $texto, $local_id]);
+    $id = (int)db()->lastInsertId();
+
+    $stMsg = db()->prepare(
+        'SELECT m.*, l.nome AS local_nome, l.foto_capa AS local_foto,
+                r.nome AS local_regiao, c.nome AS local_categoria
+         FROM mensagens m
+         LEFT JOIN locais l ON l.id = m.local_id
+         LEFT JOIN regioes r ON r.id = l.regiao_id
+         LEFT JOIN categorias c ON c.id = l.categoria_id
+         WHERE m.id = ?'
+    );
+    $stMsg->execute([$id]);
+    echo json_encode(['ok'=>true, 'mensagem'=>$stMsg->fetch()]);
+    exit;
+}
+
 // ── Enviar mensagem ───────────────────────────────────────
 if ($acao === 'enviar') {
     $dest_id = (int)($_POST['destinatario_id'] ?? 0);
@@ -58,9 +122,14 @@ if ($acao === 'novas') {
     if (!$com) { echo json_encode(['mensagens'=>[]]); exit; }
 
     $st = db()->prepare(
-        'SELECT m.*, u.username AS remetente_username, u.avatar AS remetente_avatar
+        'SELECT m.*, u.username AS remetente_username, u.avatar AS remetente_avatar,
+                l.nome AS local_nome, l.foto_capa AS local_foto,
+                r.nome AS local_regiao, c.nome AS local_categoria
          FROM mensagens m
          JOIN utilizadores u ON u.id = m.remetente_id
+         LEFT JOIN locais l ON l.id = m.local_id
+         LEFT JOIN regioes r ON r.id = l.regiao_id
+         LEFT JOIN categorias c ON c.id = l.categoria_id
          WHERE ((m.remetente_id=? AND m.destinatario_id=?)
              OR (m.remetente_id=? AND m.destinatario_id=?))
            AND m.criado_em > ?
