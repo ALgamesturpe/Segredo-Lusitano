@@ -13,7 +13,7 @@ set_error_handler(function($errno, $errstr, $errfile, $errline) {
 });
 
 try {
-    require_once dirname(__DIR__) . '/includes/auth.php';
+    require_once dirname(__DIR__) . '/includes/functions.php';
 } catch (Exception $e) {
     echo json_encode(['ok' => false, 'msg' => 'Erro ao carregar configuração.', 'debug' => $e->getMessage()]);
     exit;
