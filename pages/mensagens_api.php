@@ -133,9 +133,10 @@ if ($acao === 'novas') {
          WHERE ((m.remetente_id=? AND m.destinatario_id=?)
              OR (m.remetente_id=? AND m.destinatario_id=?))
            AND m.criado_em > ?
+           AND NOT (m.destinatario_id=? AND m.apagada_por_receptor=1)
          ORDER BY m.criado_em ASC'
     );
-    $st->execute([$uid, $com, $com, $uid, $desde]);
+    $st->execute([$uid, $com, $com, $uid, $desde, $uid]);
     $msgs = $st->fetchAll();
 
     // Marcar como lidas
@@ -203,23 +204,39 @@ if ($acao === 'ficheiro') {
 // ── Eliminar mensagem ─────────────────────────────────────
 if ($acao === 'eliminar') {
     $msg_id = (int)($_POST['msg_id'] ?? 0);
+    $tipo   = $_POST['tipo'] ?? 'mim'; // 'todos' ou 'mim'
     if (!$msg_id) { echo json_encode(['ok'=>false]); exit; }
 
-    $st = db()->prepare(
-        'SELECT id, ficheiro FROM mensagens
-         WHERE id = ? AND (remetente_id = ? OR destinatario_id = ?)'
-    );
-    $st->execute([$msg_id, $uid, $uid]);
+    $st = db()->prepare('SELECT * FROM mensagens WHERE id = ?');
+    $st->execute([$msg_id]);
     $msg = $st->fetch();
-    if (!$msg) { echo json_encode(['ok'=>false,'erro'=>'Sem permissão']); exit; }
+    if (!$msg) { echo json_encode(['ok'=>false,'erro'=>'Mensagem não encontrada']); exit; }
 
-    if (!empty($msg['ficheiro'])) {
-        $path = dirname(__DIR__) . '/uploads/mensagens/' . $msg['ficheiro'];
-        if (is_file($path)) @unlink($path);
+    $e_remetente    = ((int)$msg['remetente_id']    === $uid);
+    $e_destinatario = ((int)$msg['destinatario_id'] === $uid);
+
+    if (!$e_remetente && !$e_destinatario) {
+        echo json_encode(['ok'=>false,'erro'=>'Sem permissão']); exit;
     }
 
-    db()->prepare('DELETE FROM mensagens WHERE id = ?')->execute([$msg_id]);
-    echo json_encode(['ok'=>true]);
+    if ($tipo === 'todos') {
+        // Só o remetente pode apagar para todos
+        if (!$e_remetente) { echo json_encode(['ok'=>false,'erro'=>'Só o remetente pode apagar para todos']); exit; }
+        // Apagar ficheiro do disco (conteúdo removido)
+        if (!empty($msg['ficheiro'])) {
+            $path = dirname(__DIR__) . '/uploads/mensagens/' . $msg['ficheiro'];
+            if (is_file($path)) @unlink($path);
+        }
+        db()->prepare('UPDATE mensagens SET apagada_para_todos=1, texto="", ficheiro=NULL, local_id=NULL WHERE id=?')
+            ->execute([$msg_id]);
+        echo json_encode(['ok'=>true, 'tipo'=>'todos']);
+    } else {
+        // Apagar só para mim — só o destinatário pode apagar do seu lado
+        if (!$e_destinatario) { echo json_encode(['ok'=>false,'erro'=>'Só o destinatário pode apagar para si']); exit; }
+        db()->prepare('UPDATE mensagens SET apagada_por_receptor=1 WHERE id=?')
+            ->execute([$msg_id]);
+        echo json_encode(['ok'=>true, 'tipo'=>'mim']);
+    }
     exit;
 }
 

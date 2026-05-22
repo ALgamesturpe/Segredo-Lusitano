@@ -56,11 +56,12 @@ if ($conversa_id) {
              LEFT JOIN locais l ON l.id = m.local_id
              LEFT JOIN regioes r ON r.id = l.regiao_id
              LEFT JOIN categorias c ON c.id = l.categoria_id
-             WHERE (m.remetente_id = ? AND m.destinatario_id = ?)
-                OR (m.remetente_id = ? AND m.destinatario_id = ?)
+             WHERE ((m.remetente_id = ? AND m.destinatario_id = ?)
+                OR  (m.remetente_id = ? AND m.destinatario_id = ?))
+               AND NOT (m.destinatario_id = ? AND m.apagada_por_receptor = 1)
              ORDER BY m.criado_em ASC'
         );
-        $stM->execute([$uid, $conversa_id, $conversa_id, $uid]);
+        $stM->execute([$uid, $conversa_id, $conversa_id, $uid, $uid]);
         $mensagens = $stM->fetchAll();
 
         db()->prepare(
@@ -199,14 +200,25 @@ html, body     { overflow: hidden; }
 
       <div id="chat-mensagens" style="flex:1;overflow-y:auto;padding:1.25rem;display:flex;flex-direction:column;gap:.75rem;">
         <?php foreach ($mensagens as $msg): ?>
-          <?php $propria = ((int)$msg['remetente_id'] === $uid); ?>
-          <?php $isImg  = !empty($msg['ficheiro']) && preg_match('/\.(jpg|jpeg|png|webp|gif)$/i', $msg['ficheiro']); ?>
-          <?php $isFich = !empty($msg['ficheiro']) && !$isImg; ?>
-          <?php $isLocal = !empty($msg['local_id']); ?>
-          <div style="display:flex;justify-content:<?= $propria ? 'flex-end' : 'flex-start' ?>;position:relative;align-items:center;gap:6px;" data-msg-id="<?= $msg['id'] ?>">
+          <?php $propria   = ((int)$msg['remetente_id'] === $uid); ?>
+          <?php $apagada   = !empty($msg['apagada_para_todos']); ?>
+          <?php $isImg     = !$apagada && !empty($msg['ficheiro']) && preg_match('/\.(jpg|jpeg|png|webp|gif)$/i', $msg['ficheiro']); ?>
+          <?php $isFich    = !$apagada && !empty($msg['ficheiro']) && !$isImg; ?>
+          <?php $isLocal   = !$apagada && !empty($msg['local_id']); ?>
+          <div style="display:flex;justify-content:<?= $propria ? 'flex-end' : 'flex-start' ?>;position:relative;align-items:center;gap:6px;"
+               data-msg-id="<?= $msg['id'] ?>" data-propria="<?= $propria ? '1' : '0' ?>" data-apagada="<?= $apagada ? '1' : '0' ?>">
 
-            <?php if ($propria): ?>
+            <?php if ($propria && !$apagada): ?>
             <div class="msg-opts-wrap" style="position:relative;order:-1;">
+              <button class="btn-msg-opts"
+                      style="display:none;background:var(--branco);color:var(--texto-muted);border:1px solid var(--creme-escuro);
+                             border-radius:0;width:26px;height:26px;cursor:pointer;font-size:.72rem;
+                             align-items:center;justify-content:center;">
+                <i class="fas fa-ellipsis-v"></i>
+              </button>
+            </div>
+            <?php elseif (!$propria && !$apagada): ?>
+            <div class="msg-opts-wrap" style="position:relative;order:1;">
               <button class="btn-msg-opts"
                       style="display:none;background:var(--branco);color:var(--texto-muted);border:1px solid var(--creme-escuro);
                              border-radius:0;width:26px;height:26px;cursor:pointer;font-size:.72rem;
@@ -216,8 +228,17 @@ html, body     { overflow: hidden; }
             </div>
             <?php endif; ?>
 
-            <div class="msg-bubble <?= $propria ? 'msg-bubble-own' : 'msg-bubble-other' ?>" <?= $isLocal ? 'style="padding:.5rem;background:transparent;box-shadow:none;"' : '' ?>>
-              <?php if ($isLocal): ?>
+            <div class="msg-bubble <?= $propria ? 'msg-bubble-own' : 'msg-bubble-other' ?>"
+                 <?= $isLocal ? 'style="padding:.5rem;background:transparent;box-shadow:none;"' : '' ?>
+                 <?= $apagada ? 'style="opacity:.6;"' : '' ?>>
+              <?php if ($apagada): ?>
+                <span style="font-style:italic;display:flex;align-items:center;gap:.4rem;font-size:.88rem;">
+                  <i class="fas fa-ban" style="font-size:.8rem;"></i> Mensagem apagada
+                </span>
+                <div style="font-size:.72rem;opacity:.65;text-align:right;margin-top:.3rem;">
+                  <?= date('H:i', strtotime($msg['criado_em'])) ?>
+                </div>
+              <?php elseif ($isLocal): ?>
                 <?php
                   $bubble_bg   = $propria ? 'var(--verde-escuro)' : '#fff';
                   $bubble_text = $propria ? '#fff' : 'var(--texto)';
@@ -277,17 +298,6 @@ html, body     { overflow: hidden; }
                 </div>
               <?php endif; ?>
             </div>
-
-            <?php if (!$propria): ?>
-            <div class="msg-opts-wrap" style="position:relative;">
-              <button class="btn-msg-opts"
-                      style="display:none;background:var(--branco);color:var(--texto-muted);border:1px solid var(--creme-escuro);
-                             border-radius:0;width:26px;height:26px;cursor:pointer;font-size:.72rem;
-                             align-items:center;justify-content:center;">
-                <i class="fas fa-ellipsis-v"></i>
-              </button>
-            </div>
-            <?php endif; ?>
 
           </div>
         <?php endforeach; ?>
@@ -417,7 +427,7 @@ function fecharFotoMsg() {
 document.addEventListener('keydown', e => { if (e.key === 'Escape') fecharFotoMsg(); });
 
 // ── Menu 3 pontos ─────────────────────────────────────────
-function toggleMenu(btnEl, msgId) {
+function toggleMenu(btnEl, msgId, propria) {
   const existente = btnEl.parentElement.querySelector('.msg-menu');
   document.querySelectorAll('.msg-menu').forEach(m => m.remove());
   if (existente) return;
@@ -426,18 +436,20 @@ function toggleMenu(btnEl, msgId) {
   menu.className = 'msg-menu';
   menu.style.cssText = `position:absolute;bottom:calc(100% + 4px);left:50%;transform:translateX(-50%);
       background:var(--branco);border:1px solid var(--creme-escuro);border-radius:0;
-      box-shadow:var(--sombra-md);z-index:500;min-width:140px;overflow:hidden;white-space:nowrap;`;
+      box-shadow:var(--sombra-md);z-index:500;min-width:180px;overflow:hidden;white-space:nowrap;`;
 
   const btnEliminar = document.createElement('button');
   btnEliminar.style.cssText = `display:flex;align-items:center;gap:.6rem;width:100%;padding:.75rem 1rem;
       border:none;background:none;cursor:pointer;font-size:.88rem;color:#e74c3c;font-family:inherit;`;
-  btnEliminar.innerHTML = '<i class="fas fa-trash" style="width:14px;"></i> Eliminar';
+  btnEliminar.innerHTML = propria
+    ? '<i class="fas fa-trash" style="width:14px;"></i> Apagar para todos'
+    : '<i class="fas fa-eye-slash" style="width:14px;"></i> Apagar para mim';
   btnEliminar.addEventListener('mouseover', () => btnEliminar.style.background = 'var(--creme)');
   btnEliminar.addEventListener('mouseout',  () => btnEliminar.style.background = 'none');
   btnEliminar.addEventListener('click', (e) => {
     e.stopPropagation();
     document.querySelectorAll('.msg-menu').forEach(m => m.remove());
-    mostrarConfirmEliminar(msgId);
+    mostrarConfirmEliminar(msgId, propria ? 'todos' : 'mim');
   });
   menu.appendChild(btnEliminar);
   btnEl.parentElement.appendChild(menu);
@@ -452,8 +464,17 @@ document.addEventListener('click', (e) => {
 
 // ── Overlay de confirmação ────────────────────────────────
 let _msgIdParaEliminar = null;
-function mostrarConfirmEliminar(msgId) {
+let _tipoEliminar = 'mim';
+
+function mostrarConfirmEliminar(msgId, tipo) {
   _msgIdParaEliminar = msgId;
+  _tipoEliminar = tipo;
+  const p = document.querySelector('#overlay-eliminar p');
+  if (p) p.textContent = tipo === 'todos'
+    ? 'Apagar para todos? Esta ação não pode ser desfeita.'
+    : 'Apagar para ti? O outro utilizador continua a ver a mensagem.';
+  const btnConf = document.querySelector('#overlay-eliminar button:last-child');
+  if (btnConf) btnConf.textContent = tipo === 'todos' ? 'Apagar para todos' : 'Apagar para mim';
   document.getElementById('overlay-eliminar').style.display = 'flex';
 }
 function cancelarEliminar() {
@@ -462,26 +483,39 @@ function cancelarEliminar() {
 }
 async function confirmarEliminar() {
   document.getElementById('overlay-eliminar').style.display = 'none';
-  if (_msgIdParaEliminar) await eliminarMensagem(_msgIdParaEliminar);
+  if (_msgIdParaEliminar) await eliminarMensagem(_msgIdParaEliminar, _tipoEliminar);
   _msgIdParaEliminar = null;
 }
 
 // ── Eliminar mensagem ─────────────────────────────────────
-async function eliminarMensagem(msgId) {
+async function eliminarMensagem(msgId, tipo) {
   document.querySelectorAll('.msg-menu').forEach(m => m.remove());
   const wrapper = document.querySelector(`[data-msg-id="${msgId}"]`);
   try {
     const res = await fetch(SITE_URL_JS + '/pages/mensagens_api.php', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: `acao=eliminar&msg_id=${msgId}`
+      body: `acao=eliminar&msg_id=${msgId}&tipo=${tipo}`
     });
-    if (!res.ok) { console.error('HTTP erro:', res.status); return; }
-    const text = await res.text();
-    console.log('Resposta raw:', text);
-    const data = JSON.parse(text);
-    if (data.ok && wrapper) wrapper.remove();
-    else console.error('Erro ao eliminar:', data);
+    if (!res.ok) return;
+    const data = await res.json();
+    if (!data.ok) return;
+    if (tipo === 'todos') {
+      // Substitui conteúdo pelo placeholder "apagada"
+      if (wrapper) {
+        const bubble = wrapper.querySelector('.msg-bubble');
+        if (bubble) {
+          bubble.style.opacity = '.6';
+          bubble.innerHTML = `<span style="font-style:italic;display:flex;align-items:center;gap:.4rem;font-size:.88rem;"><i class="fas fa-ban" style="font-size:.8rem;"></i> Mensagem apagada</span>`;
+        }
+        // Remove o botão de opções
+        wrapper.querySelectorAll('.msg-opts-wrap').forEach(el => el.remove());
+        wrapper.dataset.apagada = '1';
+      }
+    } else {
+      // Apagar para mim — remove da vista
+      if (wrapper) wrapper.remove();
+    }
   } catch(err) {
     console.error('Fetch error:', err);
   }
@@ -501,13 +535,16 @@ scrollFundo();
 
 // Hover + long press nas mensagens PHP
 document.querySelectorAll('[data-msg-id]').forEach(wrapper => {
+  if (wrapper.dataset.apagada === '1') return; // não adicionar menu a mensagens apagadas
   const btn   = wrapper.querySelector('.btn-msg-opts');
   if (!btn) return;
-  const msgId = wrapper.dataset.msgId;
+  const msgId  = wrapper.dataset.msgId;
+  const propria = wrapper.dataset.propria === '1';
+  const tipo    = propria ? 'todos' : 'mim';
 
   btn.addEventListener('click', (e) => {
     e.stopPropagation();
-    toggleMenu(btn, msgId);
+    toggleMenu(btn, msgId, propria);
   });
 
   wrapper.addEventListener('mouseenter', () => btn.style.display = 'flex');
@@ -515,11 +552,11 @@ document.querySelectorAll('[data-msg-id]').forEach(wrapper => {
     if (!wrapper.contains(e.relatedTarget)) btn.style.display = 'none';
   });
 
-  const bubble = wrapper.querySelector('div:not(.msg-opts-wrap)');
+  const bubble = wrapper.querySelector('.msg-bubble');
   let pressTimer;
   if (bubble) {
     bubble.addEventListener('touchstart', () => {
-      pressTimer = setTimeout(() => mostrarConfirmEliminar(msgId), 600);
+      pressTimer = setTimeout(() => mostrarConfirmEliminar(msgId, tipo), 600);
     }, { passive: true });
     bubble.addEventListener('touchend',  () => clearTimeout(pressTimer));
     bubble.addEventListener('touchmove', () => clearTimeout(pressTimer));
@@ -528,9 +565,11 @@ document.querySelectorAll('[data-msg-id]').forEach(wrapper => {
 
 // ── Criar wrapper JS ──────────────────────────────────────
 function criarWrapper(msgId, propria, innerHtml, semBubble = false) {
+  const tipo = propria ? 'todos' : 'mim';
   const wrapper = document.createElement('div');
   wrapper.style.cssText = `display:flex;justify-content:${propria ? 'flex-end' : 'flex-start'};position:relative;align-items:center;gap:6px;`;
-  wrapper.dataset.msgId = msgId;
+  wrapper.dataset.msgId  = msgId;
+  wrapper.dataset.propria = propria ? '1' : '0';
 
   const optsWrap = document.createElement('div');
   optsWrap.className = 'msg-opts-wrap';
@@ -543,7 +582,7 @@ function criarWrapper(msgId, propria, innerHtml, semBubble = false) {
   btnOpts.style.cssText = `display:none;background:var(--branco);color:var(--texto-muted);
       border:1px solid var(--creme-escuro);border-radius:0;width:26px;height:26px;
       cursor:pointer;font-size:.72rem;align-items:center;justify-content:center;`;
-  btnOpts.addEventListener('click', (e) => { e.stopPropagation(); toggleMenu(btnOpts, msgId); });
+  btnOpts.addEventListener('click', (e) => { e.stopPropagation(); toggleMenu(btnOpts, msgId, propria); });
   optsWrap.appendChild(btnOpts);
 
   const bubble = document.createElement('div');
@@ -561,9 +600,7 @@ function criarWrapper(msgId, propria, innerHtml, semBubble = false) {
 
   let pressTimer;
   bubble.addEventListener('touchstart', () => {
-    pressTimer = setTimeout(() => {
-      if (confirm('Eliminar esta mensagem?')) eliminarMensagem(msgId);
-    }, 600);
+    pressTimer = setTimeout(() => mostrarConfirmEliminar(msgId, tipo), 600);
   }, { passive: true });
   bubble.addEventListener('touchend',  () => clearTimeout(pressTimer));
   bubble.addEventListener('touchmove', () => clearTimeout(pressTimer));
