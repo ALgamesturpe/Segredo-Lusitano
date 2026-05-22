@@ -75,6 +75,29 @@ $page_title = 'Mensagens';
 include dirname(__DIR__) . '/includes/header.php';
 ?>
 <style>
+/* Chat: sem padding extra, sem footer, sem scroll na página */
+.page-content { padding-top: 0 !important; }
+.site-footer   { display: none !important; }
+html, body     { overflow: hidden; }
+
+/* Chat cola à navbar em cima e ao fundo do ecrã em baixo */
+#chat-layout {
+  position: fixed;
+  top: var(--nav-h);
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: row;
+  overflow: hidden;
+}
+
+/* Barra de input: segura acima do indicador home no iPhone X+ */
+#chat-input-bar {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  flex-shrink: 0;
+}
+
 .msg-bubble {
   max-width: 70%;
   padding: .65rem 1rem;
@@ -112,7 +135,7 @@ include dirname(__DIR__) . '/includes/header.php';
 }
 </style>
 <div class="page-content">
-<div style="display:flex;height:calc(100vh - var(--nav-h));overflow:hidden;-webkit-overflow-scrolling:touch;" id="chat-layout">
+<div id="chat-layout" style="-webkit-overflow-scrolling:touch;">
 
   <!-- ── LISTA DE CONVERSAS ── -->
   <div id="painel-lista" style="width:320px;flex-shrink:0;background:var(--branco);border-right:1px solid var(--creme-escuro);display:flex;flex-direction:column;overflow:hidden;">
@@ -276,7 +299,7 @@ include dirname(__DIR__) . '/includes/header.php';
         <?php endif; ?>
       </div>
 
-      <div style="padding:1rem 1.25rem;background:var(--branco);border-top:1px solid var(--creme-escuro);">
+      <div id="chat-input-bar" style="padding:1rem 1.25rem;background:var(--branco);border-top:1px solid var(--creme-escuro);">
         <div id="preview-ficheiro" style="display:none;margin-bottom:.75rem;position:relative;width:fit-content;">
           <img id="preview-img" src="" style="max-height:120px;max-width:200px;border-radius:0;display:block;">
           <div id="preview-nome" style="font-size:.8rem;color:var(--texto-muted);margin-top:.25rem;"></div>
@@ -340,6 +363,15 @@ include dirname(__DIR__) . '/includes/header.php';
 <script>
 const TEM_CONVERSA = <?= $tem_conversa_ativa ? 'true' : 'false' ?>;
 const SITE_URL_JS  = '<?= SITE_URL ?>';
+// iOS Safari: quando o teclado abre, ajusta o bottom do chat para não ficar tapado
+if (window.visualViewport) {
+  function ajustarTecladoIOS() {
+    const diff = window.innerHeight - window.visualViewport.height - window.visualViewport.offsetTop;
+    document.getElementById('chat-layout').style.bottom = Math.max(0, diff) + 'px';
+  }
+  window.visualViewport.addEventListener('resize', ajustarTecladoIOS);
+  window.visualViewport.addEventListener('scroll', ajustarTecladoIOS);
+}
 
 function isMobile() { return window.innerWidth <= 768; }
 
