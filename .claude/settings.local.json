@@ -16,7 +16,8 @@
       "Read(//c/wamp64/www/**)",
       "Bash(Get-ChildItem -Path \"c:\\\\wamp64\\\\www\\\\Segredo-Lusitano\" -Recurse -Force)",
       "Bash(Select-Object FullName)",
-      "Bash(php -r ' *)"
+      "Bash(php -r ' *)",
+      "PowerShell(Get-Process -Name \"mysqld\" -ErrorAction SilentlyContinue)"
     ]
   }
 }
