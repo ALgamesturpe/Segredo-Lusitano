@@ -329,7 +329,7 @@ html, body     { overflow: hidden; }
                  style="display:none;" onchange="selecionarFicheiro(this)">
           <textarea id="msg-input" placeholder="Escreve uma mensagem..." rows="1"
                     style="flex:1;border:1.5px solid var(--creme-escuro);border-radius:0;padding:.65rem 1.1rem;
-                           resize:none;font-size:.95rem;font-family:inherit;background:var(--creme);outline:none;
+                           resize:none;font-size:.95rem;font-family:inherit;background:var(--creme);color:var(--texto);outline:none;
                            max-height:120px;overflow-y:auto;"
                     onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();enviarMensagem();}"></textarea>
           <button onclick="enviarMensagem()" style="width:44px;height:44px;border-radius:0;background:var(--verde);
