@@ -98,14 +98,6 @@ if ($is_own) {
     $locais_guardados = $stFavs->fetchAll();
 }
 
-// Apagar conta (só o próprio utilizador pode apagar a sua conta)
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['apagar_conta']) && $user_auth && $user_auth['id'] == $id) {
-    db()->prepare('UPDATE locais SET utilizador_id = 1 WHERE utilizador_id = ?')->execute([$id]);
-    db()->prepare('UPDATE comentarios SET utilizador_id = 1 WHERE utilizador_id = ?')->execute([$id]);
-    db()->prepare('UPDATE fotos SET utilizador_id = 1 WHERE utilizador_id = ?')->execute([$id]);
-    db()->prepare('DELETE FROM utilizadores WHERE id = ?')->execute([$id]);
-    logout();
-}
 
 $page_title = $perfil['nome'];
 $extra_head = '<style>
@@ -302,17 +294,6 @@ include dirname(__DIR__) . '/includes/header.php';
     </div>
     <?php endif; ?>
 
-    <!-- Zona de perigo — apagar conta (só o próprio) -->
-    <?php if ($is_own): ?>
-    <div style="margin-top:4rem; padding:1.5rem; border:1.5px solid #e74c3c; border-radius:var(--radius); max-width:300px;">
-      <h3 style="color:#c0392b; margin-bottom:.5rem;">Zona de Perigo</h3>
-      <p style="font-size:.9rem; color:var(--texto-muted); margin-bottom:1rem;">Todos os teus dados serão apagados</p>
-      <form method="POST" onsubmit="return confirm('Tens a certeza?');">
-        <input type="hidden" name="apagar_conta" value="1">
-        <button type="submit" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i> Apagar a Minha Conta</button>
-      </form>
-    </div>
-    <?php endif; ?>
   </div>
 </section>
 </div>

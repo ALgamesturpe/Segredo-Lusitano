@@ -107,6 +107,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['guardar_perfil'])) {
     }
 }
 
+// ── POST: Eliminar conta ──────────────────────────────────────────
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['eliminar_conta'])) {
+    // Reatribuir locais ao utilizador fantasma [deleted] para não os perder
+    db()->prepare('UPDATE locais SET utilizador_id = 1 WHERE utilizador_id = ?')->execute([$user['id']]);
+    // Apagar avatar se existir
+    if ($avatar_atual) apagar_upload_local($avatar_atual);
+    // Eliminar a conta (CASCADE trata de comentários, likes, seguidores, etc.)
+    db()->prepare('DELETE FROM utilizadores WHERE id = ?')->execute([$user['id']]);
+    session_destroy();
+    header('Location: ' . SITE_URL . '/index.php');
+    exit;
+}
+
 // ── POST: Alterar password (apenas para contas com email/password) ──
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['alterar_password'])) {
     $pass_atual = $_POST['pass_atual'] ?? '';
@@ -204,6 +217,16 @@ include dirname(__DIR__) . '/includes/header.php';
           </div>
         </form>
 
+        <!-- Botão eliminar conta -->
+        <div style="margin-top:1.25rem;padding-top:1.25rem;border-top:1.5px solid var(--creme-escuro);">
+          <button type="button"
+                  onclick="document.getElementById('modal-eliminar').style.display='flex'"
+                  class="btn btn-sm"
+                  style="color:#c0392b;border:1.5px solid #c0392b;width:100%;justify-content:center;">
+            <i class="fas fa-trash-alt"></i> Eliminar Conta
+          </button>
+        </div>
+
         <!-- ── ALTERAR PASSWORD (só para contas com email/password) ── -->
         <?php if (($user['tipo_auth'] ?? 'email') === 'email'): ?>
         <div style="margin-top:2.5rem; padding-top:2rem; border-top:1.5px solid var(--creme-escuro);">
@@ -246,6 +269,35 @@ include dirname(__DIR__) . '/includes/header.php';
       </div>
     </div>
   </section>
+</div>
+
+<!-- MODAL: Confirmar eliminação de conta -->
+<div id="modal-eliminar"
+     style="display:none;position:fixed;inset:0;z-index:5000;background:rgba(0,0,0,.5);align-items:center;justify-content:center;padding:1rem;">
+  <div style="background:#fff;border-radius:var(--radius-lg);padding:2rem;max-width:420px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,.2);">
+    <h3 style="margin:0 0 .75rem;color:#c0392b;">
+      <i class="fas fa-exclamation-triangle"></i> Eliminar Conta
+    </h3>
+    <p style="margin-bottom:1.5rem;color:var(--texto);line-height:1.6;">
+      Tens a certeza que queres eliminar a tua conta? Esta ação é <strong>irreversível</strong> —
+      os teus comentários e likes serão apagados. Os teus locais ficam na plataforma como anónimos.
+    </p>
+    <div style="display:flex;gap:.75rem;">
+      <form method="POST" style="flex:1;">
+        <input type="hidden" name="eliminar_conta" value="1">
+        <button type="submit" class="btn"
+                style="width:100%;justify-content:center;background:#c0392b;color:#fff;border:none;">
+          <i class="fas fa-trash-alt"></i> Sim, eliminar
+        </button>
+      </form>
+      <button type="button"
+              onclick="document.getElementById('modal-eliminar').style.display='none'"
+              class="btn btn-sm"
+              style="flex:1;justify-content:center;border:1px solid var(--creme-escuro);color:var(--texto-muted);">
+        Cancelar
+      </button>
+    </div>
+  </div>
 </div>
 
 <script>
