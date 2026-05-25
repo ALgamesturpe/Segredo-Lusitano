@@ -274,7 +274,7 @@ include dirname(__DIR__) . '/includes/header.php';
 <!-- MODAL: Confirmar eliminação de conta -->
 <div id="modal-eliminar"
      style="display:none;position:fixed;inset:0;z-index:5000;background:rgba(0,0,0,.5);align-items:center;justify-content:center;padding:1rem;">
-  <div style="background:#fff;border-radius:var(--radius-lg);padding:2rem;max-width:420px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,.2);">
+  <div style="background:#fff;border-radius:var(--radius-lg);padding:2rem;max-width:444px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,.2);">
     <h3 style="margin:0 0 .75rem;color:#c0392b;">
       <i class="fas fa-exclamation-triangle"></i> Eliminar Conta
     </h3>
