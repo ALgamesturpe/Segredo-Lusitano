@@ -99,7 +99,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['foto_admin']) && iss
 }
 
 // ── Filtros ───────────────────────────────────────────────
-$filtro    = $_GET['filtro']    ?? '';
+$filtro    = $_GET['filtro']    ?? 'aprovado';
 $bloqueado = isset($_GET['bloqueado']) && $_GET['bloqueado'] === '1';
 $apagado   = isset($_GET['apagado'])   && $_GET['apagado']   === '1';
 $gerir_id  = isset($_GET['gerir']) ? (int)$_GET['gerir'] : 0;
@@ -253,8 +253,8 @@ include dirname(__DIR__) . '/includes/header.php';
       <h1 class="admin-title" style="margin:0;"><i class="fa-solid fa-location-dot"></i> Locais</h1>
       <!-- Separadores de filtro -->
       <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
-        <a href="?filtro=aprovado" class="btn btn-sm <?= $filtro==='aprovado' ? 'btn-verde' : '' ?>"
-           style="<?= $filtro!=='aprovado' ? 'border:1px solid var(--creme-escuro);color:var(--texto-muted);' : '' ?>">Ativos</a>
+        <a href="?filtro=aprovado" class="btn btn-sm <?= ($filtro==='aprovado' && !$apagado) ? 'btn-verde' : '' ?>"
+           style="<?= (!($filtro==='aprovado' && !$apagado)) ? 'border:1px solid var(--creme-escuro);color:var(--texto-muted);' : '' ?>">Ativos</a>
         <a href="?apagado=1" class="btn btn-sm"
            style="<?= $apagado ? 'background:#7f8c8d;color:#fff;border:none;' : 'border:1px solid var(--creme-escuro);color:var(--texto-muted);' ?>">Apagados</a>
       </div>

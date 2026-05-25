@@ -71,7 +71,7 @@ if (isset($_GET['desbanir'])) {
 }
 
 // ── Filtro e pesquisa ─────────────────────────────────────
-$filtro   = $_GET['filtro'] ?? 'todos';
+$filtro   = $_GET['filtro'] ?? 'ativos';
 $pesquisa = trim($_GET['q'] ?? '');
 
 // ── Buscar utilizadores conforme o filtro ────────────────
@@ -90,8 +90,10 @@ if ($filtro === 'banidos') {
 } else {
     $banidos = [];
 
-    // Filtrar por estado: suspensos ou todos os utilizadores normais
-    if ($filtro === 'suspensos') {
+    // Filtrar por estado: ativos, suspensos ou todos os utilizadores normais
+    if ($filtro === 'ativos') {
+        $where = 'WHERE u.ativo = 1 AND u.role = "user"';
+    } elseif ($filtro === 'suspensos') {
         $where = 'WHERE u.ativo = 0 AND u.role = "user"';
     } else {
         $where = 'WHERE u.role = "user"';
@@ -150,11 +152,15 @@ include dirname(__DIR__) . '/includes/header.php';
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:1rem;">
       <h1 class="admin-title" style="margin:0;"><i class="fas fa-users"></i>  Utilizadores</h1>
 
-      <!-- Botões de filtro: Todos / Suspensos / Banidos -->
+      <!-- Botões de filtro: Todos / Ativos / Suspensos / Banidos -->
       <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
-        <a href="?" class="btn btn-sm <?= $filtro === 'todos' ? 'btn-verde' : '' ?>"
+        <a href="?filtro=todos" class="btn btn-sm <?= $filtro === 'todos' ? 'btn-verde' : '' ?>"
            style="<?= $filtro !== 'todos' ? 'border:1px solid var(--creme-escuro);color:var(--texto-muted);' : '' ?>">
           Todos
+        </a>
+        <a href="?filtro=ativos" class="btn btn-sm <?= $filtro === 'ativos' ? 'btn-verde' : '' ?>"
+           style="<?= $filtro !== 'ativos' ? 'border:1px solid var(--creme-escuro);color:var(--texto-muted);' : '' ?>">
+          Ativos
         </a>
         <a href="?filtro=suspensos" class="btn btn-sm"
            style="<?= $filtro === 'suspensos' ? 'background:#e67e22;color:#fff;border:none;' : 'border:1px solid var(--creme-escuro);color:var(--texto-muted);' ?>">
