@@ -57,6 +57,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } elseif (!empty($res['verificar'])) {
                 // A conta existe mas o email ainda não foi verificado
 
+                // Se já há uma sessão de verificação ativa para este utilizador, não reenviar email
+                if (!empty($_SESSION['verificar_id']) && (int)$_SESSION['verificar_id'] === $res['id']) {
+                    $_SESSION['verificar_tipo'] = 'login';
+                    header('Location: ' . SITE_URL . '/pages/verificar.php');
+                    exit;
+                }
+
                 if (!class_exists('PHPMailer\PHPMailer\PHPMailer')) {
                     // PHPMailer não instalado — verificar automaticamente
                     db()->prepare('UPDATE utilizadores SET verificado = 1 WHERE id = ?')->execute([$res['id']]);
