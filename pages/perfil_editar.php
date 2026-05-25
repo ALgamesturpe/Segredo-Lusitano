@@ -278,7 +278,7 @@ include dirname(__DIR__) . '/includes/header.php';
     <h3 style="margin:0 0 .75rem;color:#c0392b;">
       <i class="fas fa-exclamation-triangle"></i> Eliminar Conta
     </h3>
-    <p style="margin-bottom:1.5rem;color:var(--texto);line-height:1.6;">
+    <p style="margin-bottom:1.5rem;color:var(--texto);line-height:1.6;text-align:justify;">
       Tens a certeza que queres eliminar a tua conta? Esta ação é <strong>irreversível</strong> —
       os teus comentários e likes serão apagados. Os teus locais ficam na plataforma como anónimos.
     </p>
