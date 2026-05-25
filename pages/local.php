@@ -209,7 +209,7 @@ include dirname(__DIR__) . '/includes/header.php';
         <!-- Descrição -->
         <div style="margin-bottom:1.5rem;border:1.5px solid var(--creme-escuro);border-radius:var(--radius);padding:1.25rem;background:var(--branco);">
           <h3 style="font-size:.95rem;margin-bottom:.75rem;color:var(--verde-escuro);"><i class="fas fa-align-left"></i> Descrição</h3>
-          <p class="text-wrap-anywhere" style="line-height:1.8;color:var(--texto);margin:0;text-align:justify;"><?= nl2br(h(local_descricao_publica($local))) ?></p>
+          <p style="line-height:1.8;color:var(--texto);margin:0;text-align:justify;overflow-wrap:break-word;word-break:normal;"><?= nl2br(h(local_descricao_publica($local))) ?></p>
         </div>
 
         <!-- Upload compacto + Galeria -->
