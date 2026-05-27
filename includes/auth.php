@@ -26,7 +26,6 @@ function auth_user(): ?array {
     } catch (\Exception $e) {
         // app_meta pode não existir em bases de dados antigas
     }
-
     static $cache = null;
     if ($cache) return $cache;
     $st = db()->prepare('SELECT * FROM utilizadores WHERE id = ? AND ativo = 1');
