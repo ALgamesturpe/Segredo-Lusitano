@@ -133,6 +133,15 @@ function ensure_moderacao_schema(): void {
     static $checked = false;
     if ($checked) return;
     $checked = true;
+    $colAR = db()->query("SHOW COLUMNS FROM mensagens LIKE 'apagada_por_receptor'")->fetch();
+        if (!$colAR) {
+            db()->exec('ALTER TABLE mensagens ADD COLUMN apagada_por_receptor TINYINT(1) DEFAULT 0');
+        }
+
+        $colAT = db()->query("SHOW COLUMNS FROM mensagens LIKE 'apagada_para_todos'")->fetch();
+        if (!$colAT) {
+            db()->exec('ALTER TABLE mensagens ADD COLUMN apagada_para_todos TINYINT(1) DEFAULT 0');
+        }
 
     try {
         $col = db()->query("SHOW COLUMNS FROM locais LIKE 'bloqueado'")->fetch();
