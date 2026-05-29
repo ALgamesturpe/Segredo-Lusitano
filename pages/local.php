@@ -131,6 +131,47 @@ if (isset($_GET['apagar_comentario']) && is_admin()) {
     header('Location: ' . SITE_URL . '/pages/local.php?id=' . $id . '#comentarios'); exit;
 }
 
+// --- GET: Apagar foto de um comentário (autor ou admin) ---
+if (isset($_GET['apagar_foto_comentario']) && $user) {
+    $cid = (int)$_GET['apagar_foto_comentario'];
+    $st  = db()->prepare('SELECT utilizador_id, ficheiro FROM comentarios WHERE id = ?');
+    $st->execute([$cid]);
+    $com = $st->fetch();
+    if ($com && (is_admin() || (int)$com['utilizador_id'] === (int)$user['id'])) {
+        if ($com['ficheiro']) apagar_upload_local($com['ficheiro']);
+        db()->prepare('UPDATE comentarios SET ficheiro = NULL WHERE id = ?')->execute([$cid]);
+        flash('success', 'Foto do comentário removida.');
+    }
+    header('Location: ' . SITE_URL . '/pages/local.php?id=' . $id . '#comentarios'); exit;
+}
+
+// --- POST: Substituir foto de um comentário (autor ou admin) ---
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['substituir_foto_comentario']) && $user) {
+    $cid = (int)$_POST['comentario_id_foto'];
+    $st  = db()->prepare('SELECT utilizador_id, ficheiro FROM comentarios WHERE id = ?');
+    $st->execute([$cid]);
+    $com = $st->fetch();
+    if ($com && (is_admin() || (int)$com['utilizador_id'] === (int)$user['id'])) {
+        if (isset($_FILES['nova_foto_comentario']) && $_FILES['nova_foto_comentario']['error'] === 0) {
+            $fc   = $_FILES['nova_foto_comentario'];
+            $info = @getimagesize($fc['tmp_name']);
+            $mime = $info['mime'] ?? '';
+            $tipos_c = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'];
+            if (isset($tipos_c[$mime]) && $fc['size'] <= 10 * 1024 * 1024) {
+                $nome_novo = uniqid('com_') . '.' . $tipos_c[$mime];
+                if (move_uploaded_file($fc['tmp_name'], UPLOAD_DIR . $nome_novo)) {
+                    if ($com['ficheiro']) apagar_upload_local($com['ficheiro']);
+                    db()->prepare('UPDATE comentarios SET ficheiro = ? WHERE id = ?')->execute([$nome_novo, $cid]);
+                    flash('success', 'Foto substituída com sucesso.');
+                }
+            } else {
+                flash('error', 'Formato inválido ou ficheiro demasiado grande (máx. 10MB).');
+            }
+        }
+    }
+    header('Location: ' . SITE_URL . '/pages/local.php?id=' . $id . '#comentarios'); exit;
+}
+
 // --- POST: Denúncia ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['denunciar'])) {
     if (!$user) { header('Location: ' . SITE_URL . '/pages/login.php'); exit; }
@@ -483,11 +524,33 @@ include dirname(__DIR__) . '/includes/header.php';
                     <div class="comentario-texto"><?= nl2br(h(comentario_texto_publico($com))) ?></div>
                     <?php endif; ?>
                     <?php if (!$comentario_bloqueado && !empty($com['ficheiro'])): ?>
-                    <div style="margin-top:.5rem;">
+                    <div style="margin-top:.5rem;display:inline-block;position:relative;">
                       <img src="<?= SITE_URL ?>/uploads/locais/<?= h($com['ficheiro']) ?>"
                            alt="Foto do comentário"
                            onclick="abrirFoto('<?= SITE_URL ?>/uploads/locais/<?= h($com['ficheiro']) ?>')"
-                           style="max-width:280px;max-height:220px;object-fit:cover;border-radius:var(--radius);cursor:zoom-in;border:1.5px solid var(--creme-escuro);">
+                           style="max-width:280px;max-height:220px;object-fit:cover;border-radius:var(--radius);cursor:zoom-in;border:1.5px solid var(--creme-escuro);display:block;">
+                      <?php if ($user && ((int)$user['id'] === (int)$com['utilizador_id'] || is_admin())): ?>
+                      <div style="display:flex;gap:.35rem;margin-top:.35rem;">
+                        <!-- Substituir foto -->
+                        <label title="Substituir foto" style="cursor:pointer;">
+                          <form method="POST" enctype="multipart/form-data" id="form-subst-<?= (int)$com['id'] ?>">
+                            <input type="hidden" name="substituir_foto_comentario" value="1">
+                            <input type="hidden" name="comentario_id_foto" value="<?= (int)$com['id'] ?>">
+                            <input type="file" name="nova_foto_comentario" accept="image/*" style="display:none;"
+                                   onchange="document.getElementById('form-subst-<?= (int)$com['id'] ?>').submit()">
+                          </form>
+                          <span style="display:inline-flex;align-items:center;gap:.3rem;padding:.25rem .6rem;border:1px solid var(--creme-escuro);border-radius:var(--radius);background:var(--branco);font-size:.75rem;color:var(--texto-muted);">
+                            <i class="fas fa-camera"></i> Substituir
+                          </span>
+                        </label>
+                        <!-- Apagar foto -->
+                        <a href="<?= SITE_URL ?>/pages/local.php?id=<?= $id ?>&apagar_foto_comentario=<?= (int)$com['id'] ?>"
+                           onclick="return confirm('Remover a foto deste comentário?')"
+                           style="display:inline-flex;align-items:center;gap:.3rem;padding:.25rem .6rem;border:1px solid #c0392b;border-radius:var(--radius);background:var(--branco);font-size:.75rem;color:#c0392b;text-decoration:none;">
+                          <i class="fas fa-trash"></i> Apagar foto
+                        </a>
+                      </div>
+                      <?php endif; ?>
                     </div>
                     <?php endif; ?>
                   </div>
