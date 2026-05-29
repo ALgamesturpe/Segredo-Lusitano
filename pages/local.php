@@ -139,8 +139,13 @@ if (isset($_GET['apagar_foto_comentario']) && $user) {
     $com = $st->fetch();
     if ($com && (is_admin() || (int)$com['utilizador_id'] === (int)$user['id'])) {
         if ($com['ficheiro']) apagar_upload_local($com['ficheiro']);
-        db()->prepare('UPDATE comentarios SET ficheiro = NULL WHERE id = ?')->execute([$cid]);
-        flash('success', 'Foto do comentário removida.');
+        if (trim((string)$com['texto']) === '') {
+            db()->prepare('DELETE FROM comentarios WHERE id = ?')->execute([$cid]);
+            flash('success', 'Comentário eliminado.');
+        } else {
+            db()->prepare('UPDATE comentarios SET ficheiro = NULL WHERE id = ?')->execute([$cid]);
+            flash('success', 'Foto do comentário removida.');
+        }
     }
     header('Location: ' . SITE_URL . '/pages/local.php?id=' . $id . '#comentarios'); exit;
 }
