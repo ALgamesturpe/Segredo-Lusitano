@@ -63,6 +63,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['fotos'])) {
         flash('error', 'Este post esta bloqueado e nao aceita novas imagens.');
         header('Location: ' . SITE_URL . '/pages/local.php?id=' . $id); exit;
     }
+    if ((int)$user['id'] !== (int)$local['utilizador_id'] && !is_admin()) {
+        flash('error', 'Só o criador do local pode adicionar fotos à galeria.');
+        header('Location: ' . SITE_URL . '/pages/local.php?id=' . $id); exit;
+    }
     $files = $_FILES['fotos'];
     $count = count($files['name']);
     $enviadas = 0;
@@ -230,7 +234,7 @@ include dirname(__DIR__) . '/includes/header.php';
 
           <div style="display:flex;align-items:stretch;gap:1rem;margin-bottom:1rem;">
 
-            <?php if ($user && !$local_bloqueado): ?>
+            <?php if ($user && !$local_bloqueado && ((int)$user['id'] === (int)$local['utilizador_id'] || is_admin())): ?>
             <!-- Upload compacto quadrado -->
             <div style="flex-shrink:0;width:130px;">
               <form method="POST" enctype="multipart/form-data"
