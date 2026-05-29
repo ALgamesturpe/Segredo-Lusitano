@@ -14,7 +14,7 @@ include __DIR__ . '/includes/header.php';
 
 <main>
   <!-- HERO -->
-  <section class="hero" style="background: url('<?= SITE_URL ?>/assets/images/imagem_fundo.jpg?v=15') center/cover no-repeat;">
+  <section class="hero" style="background: url('<?= SITE_URL ?>/assets/images/fundo_site.jpeg?v=1') center/cover no-repeat;">
     <div class="hero-content">
       <div class="hero-logo-wrap">
         <img src="<?= SITE_URL ?>/assets/images/logo_icon.png" alt="Segredo Lusitano" class="hero-logo-img" style="height:180px;width:180px;max-width:180px;object-fit:contain;display:block;margin:0 auto;">
