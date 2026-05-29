@@ -71,7 +71,7 @@ if (isset($_GET['desbanir'])) {
 }
 
 // ── Filtro e pesquisa ─────────────────────────────────────
-$filtro   = $_GET['filtro'] ?? 'ativos';
+$filtro   = $_GET['filtro'] ?? 'todos';
 $pesquisa = trim($_GET['q'] ?? '');
 
 // ── Buscar utilizadores conforme o filtro ────────────────
