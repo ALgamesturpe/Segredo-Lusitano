@@ -26,8 +26,7 @@ include __DIR__ . '/includes/header.php';
         </div>
       </div>
       <!-- Seta de scroll -->
-      <a href="#destaque" class="hero-scroll-arrow" style="position:absolute;bottom:4rem;left:50%;transform:translateX(-50%);
-        color:#c9a84c;font-size:2.5rem;animation:bounce 2s infinite;text-decoration:none;">
+      <a href="#destaque" class="hero-scroll-arrow">
         <i class="fas fa-chevron-down"></i>
       </a>
   </section>
