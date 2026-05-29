@@ -64,6 +64,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!$erros) {
         $local_id = save_local($data);
         add_pontos($user['id'], PONTOS_LOCAL);
+
+        // Upload fotos da galeria
+        if (!empty($_FILES['fotos_galeria']['name'][0])) {
+            $files = $_FILES['fotos_galeria'];
+            $count = count($files['name']);
+            for ($i = 0; $i < $count; $i++) {
+                $fg = [
+                    'name'     => $files['name'][$i],
+                    'type'     => $files['type'][$i],
+                    'tmp_name' => $files['tmp_name'][$i],
+                    'error'    => $files['error'][$i],
+                    'size'     => $files['size'][$i],
+                ];
+                if ($fg['error'] === 0) upload_foto($fg, $local_id, $user['id']);
+            }
+        }
+
         flash('success', 'Local publicado com sucesso! Ganhaste ' . PONTOS_LOCAL . ' pontos!');
         header('Location: ' . SITE_URL . '/pages/local.php?id=' . $local_id);
         exit;
@@ -123,8 +140,8 @@ include dirname(__DIR__) . '/includes/header.php';
             <?php if (isset($erros['nome'])): ?><div class="form-error"><?= h($erros['nome']) ?></div><?php endif; ?>
           </div>
 
-          <!-- Região + Categoria -->
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+          <!-- Região + Categoria + Dificuldade -->
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;">
             <div class="form-group">
               <label for="regiao_id">Região</label>
               <select id="regiao_id" name="regiao_id" required>
@@ -149,16 +166,14 @@ include dirname(__DIR__) . '/includes/header.php';
               </select>
               <?php if (isset($erros['categoria_id'])): ?><div class="form-error"><?= h($erros['categoria_id']) ?></div><?php endif; ?>
             </div>
-          </div>
-
-          <!-- Dificuldade -->
-          <div class="form-group">
-            <label for="dificuldade">Dificuldade</label>
-            <select id="dificuldade" name="dificuldade">
-              <option value="facil"   <?= ($_POST['dificuldade'] ?? '') === 'facil'   ? 'selected' : '' ?>>Fácil</option>
-              <option value="medio"   <?= ($_POST['dificuldade'] ?? 'medio') === 'medio' ? 'selected' : '' ?>>Médio</option>
-              <option value="dificil" <?= ($_POST['dificuldade'] ?? '') === 'dificil' ? 'selected' : '' ?>>Difícil</option>
-            </select>
+            <div class="form-group">
+              <label for="dificuldade">Dificuldade</label>
+              <select id="dificuldade" name="dificuldade">
+                <option value="facil"   <?= ($_POST['dificuldade'] ?? '') === 'facil'   ? 'selected' : '' ?>>Fácil</option>
+                <option value="medio"   <?= ($_POST['dificuldade'] ?? 'medio') === 'medio' ? 'selected' : '' ?>>Médio</option>
+                <option value="dificil" <?= ($_POST['dificuldade'] ?? '') === 'dificil' ? 'selected' : '' ?>>Difícil</option>
+              </select>
+            </div>
           </div>
 
           <!-- Foto de Capa -->
@@ -171,6 +186,34 @@ include dirname(__DIR__) . '/includes/header.php';
             </div>
             <input type="file" id="foto_capa" name="foto_capa" accept="image/*" style="display:none;">
             <?php if (isset($erros['foto'])): ?><div class="form-error"><?= h($erros['foto']) ?></div><?php endif; ?>
+          </div>
+
+          <!-- Fotos da Galeria -->
+          <div class="form-group">
+            <label>Fotos da Galeria <span style="font-weight:400;color:var(--texto-muted);font-size:.82rem;">(opcional)</span></label>
+            <div class="upload-area" data-input-id="fotos_galeria" style="padding:1.25rem;">
+              <i class="fas fa-images upload-icon" style="font-size:2rem;color:var(--verde-claro);margin-bottom:.5rem;display:block;"></i>
+              <p class="upload-label" style="font-weight:500;margin:0 0 .2rem;">Clica ou arrasta as fotos aqui</p>
+              <small style="color:var(--texto-muted);">JPG, PNG ou WebP &middot; Várias fotos permitidas &middot; Máx. 10MB cada</small>
+            </div>
+            <input type="file" id="fotos_galeria" name="fotos_galeria[]" accept="image/*" multiple style="display:none;">
+            <div id="galeria-preview" style="display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.5rem;"></div>
+            <script>
+            document.getElementById('fotos_galeria').addEventListener('change', function() {
+              const preview = document.getElementById('galeria-preview');
+              preview.innerHTML = '';
+              Array.from(this.files).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = e => {
+                  const img = document.createElement('img');
+                  img.src = e.target.result;
+                  img.style.cssText = 'width:80px;height:80px;object-fit:cover;border-radius:var(--radius);border:1.5px solid var(--creme-escuro);';
+                  preview.appendChild(img);
+                };
+                reader.readAsDataURL(file);
+              });
+            });
+            </script>
           </div>
 
           <!-- Descrição -->
