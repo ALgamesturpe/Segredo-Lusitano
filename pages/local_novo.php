@@ -121,7 +121,7 @@ include dirname(__DIR__) . '/includes/header.php';
       <p style="color:var(--texto-muted);margin:0;">Cada submissão dá +20 pontos. Cada gosto e comentário recebido também conta.</p>
     </div>
 
-    <form method="POST" enctype="multipart/form-data" novalidate>
+    <form method="POST" enctype="multipart/form-data" novalidate id="form-novo-local">
 
       <!-- Coordenadas hidden — preenchidas pelo JS do mapa -->
       <input type="hidden" id="latitude"  name="latitude"  value="<?= h($_POST['latitude']  ?? '') ?>">
@@ -249,7 +249,7 @@ include dirname(__DIR__) . '/includes/header.php';
 
       <!-- Botões — sempre abaixo do mapa -->
       <div style="display:flex;gap:1rem;margin-top:1.5rem;">
-        <button type="submit" class="btn btn-primary" style="flex:1;justify-content:center;">
+        <button type="submit" class="btn btn-primary">
           <i class="fas fa-paper-plane"></i> Submeter Local
         </button>
         <a href="<?= SITE_URL ?>/pages/explorar.php" class="btn" style="border:1px solid var(--creme-escuro);color:var(--texto-muted);">
@@ -261,5 +261,61 @@ include dirname(__DIR__) . '/includes/header.php';
   </div>
 </section>
 </div>
+
+<script>
+function mostrarErroJS(campo, msg) {
+  let el = document.getElementById('js-erro-' + campo);
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'js-erro-' + campo;
+    el.className = 'form-error';
+    const ref = document.getElementById(campo) || document.querySelector('[name="' + campo + '"]');
+    if (ref) ref.closest('.form-group, div').appendChild(el);
+  }
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+function limparErrosJS() {
+  document.querySelectorAll('[id^="js-erro-"]').forEach(el => el.remove());
+}
+
+document.getElementById('form-novo-local').addEventListener('submit', function(e) {
+  limparErrosJS();
+  let temErro = false;
+
+  const nome = document.getElementById('nome').value.trim();
+  if (nome.length < 3) { mostrarErroJS('nome', 'Nome demasiado curto (mínimo 3 caracteres).'); temErro = true; }
+
+  const regiao = document.getElementById('regiao_id').value;
+  if (!regiao) { mostrarErroJS('regiao_id', 'Seleciona uma região.'); temErro = true; }
+
+  const categoria = document.getElementById('categoria_id').value;
+  if (!categoria) { mostrarErroJS('categoria_id', 'Seleciona uma categoria.'); temErro = true; }
+
+  const lat = document.getElementById('latitude').value;
+  const lng = document.getElementById('longitude').value;
+  if (!lat || !lng || parseFloat(lat) === 0) {
+    mostrarErroJS('coords', 'Clica no mapa para definir a localização.');
+    const coordsRef = document.getElementById('mini-map');
+    let el = document.getElementById('js-erro-coords');
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'js-erro-coords';
+      el.className = 'form-error';
+      coordsRef.before(el);
+    }
+    el.textContent = 'Clica no mapa para definir a localização.';
+    temErro = true;
+  }
+
+  const descricao = document.getElementById('descricao').value.trim();
+  if (descricao.length < 20) { mostrarErroJS('descricao', 'Descrição muito curta (mínimo 20 caracteres).'); temErro = true; }
+
+  if (temErro) {
+    e.preventDefault();
+    document.querySelector('[id^="js-erro-"]').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+});
+</script>
 
 <?php include dirname(__DIR__) . '/includes/footer.php'; ?>

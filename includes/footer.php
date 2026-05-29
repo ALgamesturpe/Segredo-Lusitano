@@ -15,6 +15,7 @@
       <a href="<?= SITE_URL ?>/pages/explorar.php">Explorar</a>
       <a href="<?= SITE_URL ?>/pages/mapa.php">Mapa</a>
       <a href="<?= SITE_URL ?>/pages/ranking.php">Ranking</a>
+      <a href="<?= SITE_URL ?>/pages/sobre.php">Sobre</a>
     </nav>
     <p class="footer-copy">&copy; <?= date('Y') ?> Segredo Lusitano &mdash; Projeto PAP &mdash; Gonçalo Teixeira</p>
   </div>
