@@ -672,3 +672,8 @@ main { flex: 1; }
 a:has(.admin-stat-card) { display: block; border-radius: inherit; }
 .admin-stat-card { transition: transform .18s ease, box-shadow .18s ease; }
 a:has(.admin-stat-card):hover .admin-stat-card { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,.1); }
+
+/* Seta de scroll da hero — responsividade */
+@media (max-height: 600px) { .hero-scroll-arrow { display: none; } }
+@media (max-width: 1024px) { .hero-scroll-arrow { bottom: 1.25rem; font-size: 1.8rem; } }
+@media (max-width: 640px) { .hero-scroll-arrow { display: none; } }
