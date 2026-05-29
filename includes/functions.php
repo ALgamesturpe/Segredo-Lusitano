@@ -169,6 +169,11 @@ function ensure_moderacao_schema(): void {
             db()->exec('ALTER TABLE mensagens ADD COLUMN ficheiro VARCHAR(255) NULL DEFAULT NULL');
         }
 
+        $colCF = db()->query("SHOW COLUMNS FROM comentarios LIKE 'ficheiro'")->fetch();
+        if (!$colCF) {
+            db()->exec('ALTER TABLE comentarios ADD COLUMN ficheiro VARCHAR(255) NULL DEFAULT NULL');
+        }
+
         // Migrar regiões para as 5 pretendidas: Norte, Centro, Sul, Açores, Madeira
         $sul = db()->query("SELECT id FROM regioes WHERE nome = 'Sul'")->fetch();
         if (!$sul) {
@@ -325,12 +330,12 @@ function get_comentarios(int $local_id): array {
     return $st->fetchAll();
 }
 
-function add_comentario(int $local_id, int $user_id, string $texto): int {
+function add_comentario(int $local_id, int $user_id, string $texto, ?string $ficheiro = null): int {
     if (local_bloqueado($local_id)) {
         return 0;
     }
-    $st = db()->prepare('INSERT INTO comentarios (local_id,utilizador_id,texto) VALUES (?,?,?)');
-    $st->execute([$local_id, $user_id, $texto]);
+    $st = db()->prepare('INSERT INTO comentarios (local_id,utilizador_id,texto,ficheiro) VALUES (?,?,?,?)');
+    $st->execute([$local_id, $user_id, $texto, $ficheiro]);
     add_pontos($user_id, PONTOS_COMENTARIO);
     return (int)db()->lastInsertId();
 }

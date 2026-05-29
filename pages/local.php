@@ -46,12 +46,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['comentario'])) {
         header('Location: ' . SITE_URL . '/pages/local.php?id=' . $id . '#comentarios'); exit;
     }
     $texto = trim($_POST['comentario']);
-    if (strlen($texto) < 3) {
-        $erro_com = 'O comentário é muito curto.';
-    } else {
-        add_comentario($id, $user['id'], $texto);
-        flash('success', 'Comentário publicado!');
-        header('Location: ' . SITE_URL . '/pages/local.php?id=' . $id . '#comentarios'); exit;
+    $ficheiro_com = null;
+
+    if (isset($_FILES['foto_comentario']) && $_FILES['foto_comentario']['error'] === 0) {
+        $fc   = $_FILES['foto_comentario'];
+        $info = @getimagesize($fc['tmp_name']);
+        $mime = $info['mime'] ?? '';
+        $tipos_com = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'];
+        if (!isset($tipos_com[$mime])) {
+            $erro_com = 'Formato inválido. Usa JPG, PNG ou WebP.';
+        } elseif ($fc['size'] > 10 * 1024 * 1024) {
+            $erro_com = 'Foto demasiado grande (máx. 10MB).';
+        } else {
+            $nome_com = uniqid('com_') . '.' . $tipos_com[$mime];
+            if (!move_uploaded_file($fc['tmp_name'], UPLOAD_DIR . $nome_com)) {
+                $erro_com = 'Não foi possível guardar a foto.';
+            } else {
+                $ficheiro_com = $nome_com;
+            }
+        }
+    }
+
+    if (!$erro_com) {
+        if ($texto === '' && !$ficheiro_com) {
+            $erro_com = 'Escreve um comentário ou anexa uma foto.';
+        } elseif ($texto !== '' && strlen($texto) < 3) {
+            $erro_com = 'O comentário é muito curto (mínimo 3 caracteres).';
+        } else {
+            add_comentario($id, $user['id'], $texto, $ficheiro_com);
+            flash('success', 'Comentário publicado!');
+            header('Location: ' . SITE_URL . '/pages/local.php?id=' . $id . '#comentarios'); exit;
+        }
     }
 }
 
@@ -263,7 +288,8 @@ include dirname(__DIR__) . '/includes/header.php';
             <!-- Galeria -->
             <div style="flex:1;min-width:0;">
               <?php if (!$fotos): ?>
-              <div style="border:1.5px solid #6b7280;border-radius:var(--radius);background:var(--creme);height:100%;
+              <div style="border:1.5px solid #6b7280;border-radius:var(--radius);background:var(--creme);
+                          min-height:160px;height:100%;
                           display:flex;align-items:center;justify-content:center;">
                 <div style="text-align:center;color:var(--texto-muted);">
                   <i class="fas fa-images" style="font-size:2rem;margin-bottom:.5rem;display:block;opacity:.35;"></i>
@@ -370,8 +396,25 @@ include dirname(__DIR__) . '/includes/header.php';
           <?php if ($local_bloqueado): ?>
             <p style="margin-bottom:1.5rem;color:var(--texto-muted);font-size:.9rem;">Este post esta bloqueado. Novos comentarios estao desativados.</p>
           <?php elseif ($user): ?>
-            <form method="POST" style="margin-bottom:1.5rem;">
-              <div style="display:flex;gap:.75rem;align-items:flex-start;">
+            <form method="POST" enctype="multipart/form-data" style="margin-bottom:1.5rem;">
+              <!-- Preview da foto selecionada -->
+              <div id="com-foto-preview" style="display:none;margin-bottom:.5rem;position:relative;width:fit-content;">
+                <img id="com-foto-preview-img" src="" alt="" style="max-height:120px;max-width:100%;border-radius:var(--radius);border:1.5px solid var(--creme-escuro);">
+                <button type="button" onclick="removerFotoComentario()"
+                        style="position:absolute;top:-.4rem;right:-.4rem;background:#c0392b;color:#fff;border:none;border-radius:50%;width:1.3rem;height:1.3rem;font-size:.7rem;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+              <div style="display:flex;gap:.5rem;align-items:flex-start;">
+                <!-- Botão câmara -->
+                <label for="foto_comentario" title="Anexar foto"
+                       style="flex-shrink:0;width:2.3rem;height:2.3rem;display:flex;align-items:center;justify-content:center;border:1.5px solid var(--creme-escuro);border-radius:var(--radius);background:var(--branco);cursor:pointer;color:var(--texto-muted);transition:all .15s;margin-top:.15rem;"
+                       onmouseover="this.style.borderColor='var(--verde)';this.style.color='var(--verde)'"
+                       onmouseout="this.style.borderColor='var(--creme-escuro)';this.style.color='var(--texto-muted)'">
+                  <i class="fas fa-camera" style="font-size:.9rem;"></i>
+                </label>
+                <input type="file" id="foto_comentario" name="foto_comentario" accept="image/*" style="display:none;"
+                       onchange="previewFotoComentario(this)">
                 <input type="text" id="comentario-local" name="comentario" placeholder="Deixa um comentário..."
                        value="<?= h($_POST['comentario'] ?? '') ?>"
                        style="flex:1;padding:.65rem 1rem;border:1.5px solid var(--creme-escuro);border-radius:var(--radius);background:var(--branco);font-size:.93rem;color:var(--texto);">
@@ -381,6 +424,22 @@ include dirname(__DIR__) . '/includes/header.php';
               </div>
               <?php if ($erro_com): ?><div class="form-error" style="margin-top:.4rem;"><?= h($erro_com) ?></div><?php endif ?>
             </form>
+            <script>
+            function previewFotoComentario(input) {
+              const preview = document.getElementById('com-foto-preview');
+              const img     = document.getElementById('com-foto-preview-img');
+              if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = e => { img.src = e.target.result; preview.style.display = 'block'; };
+                reader.readAsDataURL(input.files[0]);
+              }
+            }
+            function removerFotoComentario() {
+              document.getElementById('foto_comentario').value = '';
+              document.getElementById('com-foto-preview').style.display = 'none';
+              document.getElementById('com-foto-preview-img').src = '';
+            }
+            </script>
           <?php else: ?>
             <p style="margin-bottom:1.5rem;">
               <a href="<?= SITE_URL ?>/pages/login.php" class="form-link">Inicia sessão</a>
@@ -420,7 +479,17 @@ include dirname(__DIR__) . '/includes/header.php';
                         </button>
                       <?php endif; ?>
                     </div>
+                    <?php if (!$comentario_bloqueado && !empty($com['texto'])): ?>
                     <div class="comentario-texto"><?= nl2br(h(comentario_texto_publico($com))) ?></div>
+                    <?php endif; ?>
+                    <?php if (!$comentario_bloqueado && !empty($com['ficheiro'])): ?>
+                    <div style="margin-top:.5rem;">
+                      <img src="<?= SITE_URL ?>/uploads/locais/<?= h($com['ficheiro']) ?>"
+                           alt="Foto do comentário"
+                           onclick="abrirFoto('<?= SITE_URL ?>/uploads/locais/<?= h($com['ficheiro']) ?>')"
+                           style="max-width:280px;max-height:220px;object-fit:cover;border-radius:var(--radius);cursor:zoom-in;border:1.5px solid var(--creme-escuro);">
+                    </div>
+                    <?php endif; ?>
                   </div>
                 </div>
               <?php endforeach; ?>
