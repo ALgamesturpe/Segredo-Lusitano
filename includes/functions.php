@@ -359,7 +359,7 @@ function get_ranking(int $limite = 10): array {
     $st = db()->prepare(
         'SELECT u.id, u.username, u.nome, u.avatar, u.pontos,
                 (SELECT COUNT(*) FROM locais WHERE utilizador_id = u.id AND estado = "aprovado") AS total_locais,
-                (SELECT COUNT(*) FROM comentarios WHERE utilizador_id = u.id) AS total_comentarios
+                (SELECT COUNT(*) FROM comentarios c JOIN locais l ON c.local_id = l.id WHERE l.utilizador_id = u.id) AS total_comentarios
          FROM utilizadores u WHERE u.ativo = 1 AND u.role = "user" AND u.pontos > 0
          ORDER BY u.pontos DESC LIMIT ?'
     );

@@ -45,7 +45,7 @@ include dirname(__DIR__) . '/includes/header.php';
                   <th>#</th>
                   <th>Explorador</th>
                   <th>Locais</th>
-                  <th>Comentários</th>
+                  <th>Coment. Recebidos</th>
                   <th>Pontos</th>
                 </tr>
               </thead>
