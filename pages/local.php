@@ -51,19 +51,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['comentario'])) {
     if (isset($_FILES['foto_comentario']) && $_FILES['foto_comentario']['error'] === 0) {
         $fc   = $_FILES['foto_comentario'];
         $info = @getimagesize($fc['tmp_name']);
-        $mime = $info['mime'] ?? '';
-        $tipos_com = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'];
-        if (!isset($tipos_com[$mime])) {
-            $erro_com = 'Formato inválido. Usa JPG, PNG ou WebP.';
-        } elseif ($fc['size'] > 10 * 1024 * 1024) {
-            $erro_com = 'Foto demasiado grande (máx. 10MB).';
-        } else {
-            $nome_com = uniqid('com_') . '.' . $tipos_com[$mime];
-            if (!move_uploaded_file($fc['tmp_name'], UPLOAD_DIR . $nome_com)) {
-                $erro_com = 'Não foi possível guardar a foto.';
-            } else {
-                $ficheiro_com = $nome_com;
+        $mime = $info ? ($info['mime'] ?? '') : '';
+        $tipos_c = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'];
+        if (isset($tipos_c[$mime]) && $fc['size'] <= 10 * 1024 * 1024) {
+            $nome_fc = uniqid('com_') . '.' . $tipos_c[$mime];
+            if (move_uploaded_file($fc['tmp_name'], UPLOAD_DIR . $nome_fc)) {
+                $ficheiro_com = $nome_fc;
             }
+        } else {
+            $erro_com = 'Foto inválida. Usa JPG, PNG ou WebP (máx. 10MB).';
         }
     }
 
@@ -134,7 +130,7 @@ if (isset($_GET['apagar_comentario']) && is_admin()) {
 // --- GET: Apagar foto de um comentário (autor ou admin) ---
 if (isset($_GET['apagar_foto_comentario']) && $user) {
     $cid = (int)$_GET['apagar_foto_comentario'];
-    $st  = db()->prepare('SELECT utilizador_id, ficheiro FROM comentarios WHERE id = ?');
+    $st  = db()->prepare('SELECT utilizador_id, ficheiro, texto FROM comentarios WHERE id = ?');
     $st->execute([$cid]);
     $com = $st->fetch();
     if ($com && (is_admin() || (int)$com['utilizador_id'] === (int)$user['id'])) {
@@ -160,7 +156,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['substituir_foto_comen
         if (isset($_FILES['nova_foto_comentario']) && $_FILES['nova_foto_comentario']['error'] === 0) {
             $fc   = $_FILES['nova_foto_comentario'];
             $info = @getimagesize($fc['tmp_name']);
-            $mime = $info['mime'] ?? '';
+            $mime = $info ? ($info['mime'] ?? '') : '';
             $tipos_c = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'];
             if (isset($tipos_c[$mime]) && $fc['size'] <= 10 * 1024 * 1024) {
                 $nome_novo = uniqid('com_') . '.' . $tipos_c[$mime];

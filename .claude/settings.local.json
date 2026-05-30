@@ -19,7 +19,9 @@
       "Bash(php -r ' *)",
       "PowerShell(Get-Process -Name \"mysqld\" -ErrorAction SilentlyContinue)",
       "PowerShell(Get-ChildItem -Path \"C:\\\\wamp64\" -Depth 1 2>$null | ForEach-Object { $_.FullName })",
-      "PowerShell(cmd /c \"dir C:\\\\wamp64\\\\bin\\\\mysql 2>&1\")"
+      "PowerShell(cmd /c \"dir C:\\\\wamp64\\\\bin\\\\mysql 2>&1\")",
+      "Bash(Get-ChildItem \"C:\\\\wamp64\\\\logs\" -ErrorAction SilentlyContinue)",
+      "Bash(Select-Object Name, LastWriteTime)"
     ]
   }
 }
