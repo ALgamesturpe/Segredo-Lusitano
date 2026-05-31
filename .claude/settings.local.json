@@ -21,7 +21,8 @@
       "PowerShell(Get-ChildItem -Path \"C:\\\\wamp64\" -Depth 1 2>$null | ForEach-Object { $_.FullName })",
       "PowerShell(cmd /c \"dir C:\\\\wamp64\\\\bin\\\\mysql 2>&1\")",
       "Bash(Get-ChildItem \"C:\\\\wamp64\\\\logs\" -ErrorAction SilentlyContinue)",
-      "Bash(Select-Object Name, LastWriteTime)"
+      "Bash(Select-Object Name, LastWriteTime)",
+      "PowerShell(Get-ChildItem -Path \"c:\\\\wamp64\\\\www\\\\Segredo-Lusitano\" -Recurse -Force | Where-Object { $_.PSIsContainer -eq $true } | Select-Object FullName | Sort-Object FullName)"
     ]
   }
 }
