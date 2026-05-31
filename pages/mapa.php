@@ -34,7 +34,10 @@ $locais_json = json_encode(array_map(fn($l) => [
 
 $tem_filtros = $filtro_regiao || $filtro_categoria || $filtro_dificuldade;
 
-$extra_head = '<style>
+$extra_head = '
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+<style>
 body { overflow: hidden; margin:0; padding:0; }
 .page-content { height: calc(100vh - var(--nav-h)); display:flex; flex-direction:column; margin:0; padding:0; background:var(--verde-escuro); }
 footer, .site-footer { display:none !important; height:0 !important; }
@@ -57,10 +60,41 @@ footer, .site-footer { display:none !important; height:0 !important; }
 .mapa-filtros-bar { background: var(--verde-escuro); border-bottom: 2px solid var(--dourado); padding: .45rem 1.25rem .55rem; flex-shrink: 0; }
 .mapa-filtros-top { display: flex; align-items: center; justify-content: space-between; gap: .75rem; margin-bottom: .35rem; }
 #form-filtro-mapa { display: flex; align-items: flex-end; gap: .5rem; }
+.btn-map-mode {
+  background: rgba(255,255,255,.08);
+  color: var(--creme);
+  border: 1px solid rgba(201,168,76,.25);
+  border-radius: 0;
+  padding: .2rem .55rem;
+  font-size: .75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .2s;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+}
+.btn-map-mode.active, .btn-map-mode:hover {
+  background: var(--dourado);
+  color: var(--verde-escuro);
+  border-color: var(--dourado);
+}
+/* Clusters com cores do site */
+.marker-cluster-small, .marker-cluster-medium, .marker-cluster-large {
+  background-color: rgba(26,58,42,.65) !important;
+}
+.marker-cluster-small div, .marker-cluster-medium div, .marker-cluster-large div {
+  background-color: rgba(26,58,42,.9) !important;
+  color: #c9a84c !important;
+  font-weight: 700 !important;
+  font-size: .8rem !important;
+}
 @media (max-width: 600px) {
   .mapa-filtros-bar { padding: .4rem .75rem .45rem; }
   #form-filtro-mapa { overflow-x: auto; gap: .35rem; padding-bottom: .1rem; }
   .mapa-select { min-width: 82px; font-size: .76rem; padding: .22rem .3rem; }
+  .btn-map-mode { font-size: .7rem; padding: .18rem .4rem; }
 }
 </style>';
 include dirname(__DIR__) . '/includes/header.php';
@@ -71,7 +105,7 @@ include dirname(__DIR__) . '/includes/header.php';
   <!-- Barra de filtros -->
   <div class="mapa-filtros-bar">
 
-    <!-- Linha 1: Título + Ver em Lista -->
+    <!-- Linha 1: Título + Toggles + Ver em Lista -->
     <div class="mapa-filtros-top">
       <div style="display:flex;align-items:center;gap:.5rem;">
         <span style="color:var(--dourado);font-family:'Playfair Display',serif;font-weight:700;font-size:.95rem;line-height:1;">
@@ -79,9 +113,17 @@ include dirname(__DIR__) . '/includes/header.php';
         </span>
         <span id="mapa-count" style="color:rgba(245,239,230,.5);font-size:.75rem;"><?= count($locais) ?> locais</span>
       </div>
-      <a href="<?= SITE_URL ?>/pages/explorar.php" class="btn btn-sm btn-primary">
-        <i class="fas fa-list"></i> Ver em Lista
-      </a>
+      <div style="display:flex;align-items:center;gap:.4rem;">
+        <button id="btn-mode-clusters" class="btn-map-mode active" onclick="window._mapSetMode('clusters')" title="Modo clusters">
+          <i class="fas fa-circle-nodes"></i> <span class="d-none d-sm-inline">Clusters</span>
+        </button>
+        <button id="btn-mode-heatmap" class="btn-map-mode" onclick="window._mapSetMode('heatmap')" title="Mapa de calor">
+          <i class="fas fa-fire"></i> <span class="d-none d-sm-inline">Heatmap</span>
+        </button>
+        <a href="<?= SITE_URL ?>/pages/explorar.php" class="btn btn-sm btn-primary" style="margin-left:.3rem;">
+          <i class="fas fa-list"></i> <span class="d-none d-sm-inline">Ver em Lista</span>
+        </a>
+      </div>
     </div>
 
     <!-- Linha 2: Filtros -->
@@ -138,6 +180,8 @@ include dirname(__DIR__) . '/includes/header.php';
 
 <!-- Scripts sem footer visual -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
 <script src="<?= SITE_URL ?>/assets/js/main.js"></script>
 <script>
 initMainMap(<?= $locais_json ?>);

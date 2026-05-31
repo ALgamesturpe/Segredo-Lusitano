@@ -562,6 +562,39 @@ function get_regioes(): array {
     return $st->fetchAll();
 }
 
+// ---------- CHECK-INS ----------
+function _migrar_checkins(): void {
+    static $done = false;
+    if ($done) return;
+    $done = true;
+    db()->exec('
+        CREATE TABLE IF NOT EXISTS checkins (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            utilizador_id INT NOT NULL,
+            local_id INT NOT NULL,
+            criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE KEY uk_checkin (utilizador_id, local_id),
+            FOREIGN KEY (utilizador_id) REFERENCES utilizadores(id) ON DELETE CASCADE,
+            FOREIGN KEY (local_id) REFERENCES locais(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    ');
+}
+
+function user_fez_checkin(int $local_id, int $user_id): bool {
+    _migrar_checkins();
+    $st = db()->prepare('SELECT id FROM checkins WHERE local_id = ? AND utilizador_id = ?');
+    $st->execute([$local_id, $user_id]);
+    return (bool)$st->fetch();
+}
+
+function get_total_checkins(int $user_id): int {
+    _migrar_checkins();
+    $st = db()->prepare('SELECT COUNT(*) FROM checkins WHERE utilizador_id = ?');
+    $st->execute([$user_id]);
+    return (int)$st->fetchColumn();
+}
+
+// ---------- LISTAS ----------
 function count_locais(array $filtros = []): int {
     $where = ['l.estado = "aprovado"'];
     $params = [];

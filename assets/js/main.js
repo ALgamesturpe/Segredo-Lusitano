@@ -267,33 +267,27 @@ function initMiniMap() {
 }
 
 // ============================================================
-// Mapa principal (mapa.php)
+// Mapa principal (mapa.php) — com clusters e heatmap
 // ============================================================
 function initMainMap(locais) {
   const urlParams = new URLSearchParams(window.location.search);
   const abrirId = urlParams.get('abrir') ? parseInt(urlParams.get('abrir')) : null;
 
   let localAbrir = null;
-  if (abrirId) {
-    localAbrir = locais.find(l => l.id === abrirId) || null;
-  }
+  if (abrirId) localAbrir = locais.find(l => l.id === abrirId) || null;
 
   const viewInicial = localAbrir
     ? [parseFloat(localAbrir.latitude), parseFloat(localAbrir.longitude)]
     : [39.5, -8.0];
   const zoomInicial = localAbrir ? 14 : 7;
 
-  // maxBounds impede o scroll infinito horizontal e vertical
   const bounds = L.latLngBounds(L.latLng(-85, -180), L.latLng(85, 180));
-  const map = L.map('map', {
-    maxBounds: bounds,
-    maxBoundsViscosity: 1.0,
-  }).setView(viewInicial, zoomInicial);
+  const map = L.map('map', { maxBounds: bounds, maxBoundsViscosity: 1.0 })
+    .setView(viewInicial, zoomInicial);
 
   L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
     attribution: '© <a href="https://openstreetmap.org">OpenStreetMap</a> © <a href="https://carto.com">CARTO</a>',
-    maxZoom: 18,
-    noWrap: true,
+    maxZoom: 18, noWrap: true,
   }).addTo(map);
 
   const makeIcon = (cat) => L.divIcon({
@@ -302,14 +296,22 @@ function initMainMap(locais) {
     iconSize: [32,32], iconAnchor: [16,32], popupAnchor: [0,-34]
   });
 
-  // Guardar referência a todos os markers para filtragem client-side
-  // onMap rastreia o estado real para evitar chamadas redundantes ao Leaflet
-  const allMarkers = [];
+  const clusterGroup = L.markerClusterGroup({
+    chunkedLoading: true,
+    showCoverageOnHover: false,
+    maxClusterRadius: 60,
+  });
+
+  const allMarkers  = [];
+  const allHeatPts  = [];
 
   locais.forEach(l => {
-    const m = L.marker([parseFloat(l.latitude), parseFloat(l.longitude)], { icon: makeIcon(l.icone) });
-    m.addTo(map);
-    let img = l.foto_capa ? `<img src="${SITE_URL}/uploads/locais/${l.foto_capa}" alt="" style="width:100%;height:90px;object-fit:cover;border-radius:4px;margin-bottom:.5rem;">` : '';
+    const lat = parseFloat(l.latitude);
+    const lng = parseFloat(l.longitude);
+    const m = L.marker([lat, lng], { icon: makeIcon(l.icone) });
+    const img = l.foto_capa
+      ? `<img src="${SITE_URL}/uploads/locais/${l.foto_capa}" alt="" style="width:100%;height:90px;object-fit:cover;border-radius:4px;margin-bottom:.5rem;">`
+      : '';
     m.bindPopup(`
       <div style="min-width:200px;font-family:'Outfit',sans-serif;">
         ${img}
@@ -320,33 +322,61 @@ function initMainMap(locais) {
         </a>
       </div>
     `);
+    clusterGroup.addLayer(m);
+    allHeatPts.push([lat, lng, 1]);
     allMarkers.push({ marker: m, local: l, onMap: true });
 
     if (abrirId && l.id === abrirId) {
-      m.openPopup();
+      setTimeout(() => clusterGroup.zoomToShowLayer(m, () => m.openPopup()), 400);
     }
   });
 
-  // Filtragem client-side — chamada pelo form de filtros em mapa.php
+  map.addLayer(clusterGroup);
+
+  const heatLayer = L.heatLayer(allHeatPts, {
+    radius: 25, blur: 20, maxZoom: 17,
+    gradient: { 0.2: '#2d6a4f', 0.5: '#c9a84c', 0.8: '#e07b3a', 1.0: '#d62828' }
+  });
+
+  let currentMode = 'clusters';
+
+  window._mapSetMode = function(mode) {
+    if (mode === currentMode) return;
+    currentMode = mode;
+    if (mode === 'heatmap') {
+      map.removeLayer(clusterGroup);
+      map.addLayer(heatLayer);
+    } else {
+      map.removeLayer(heatLayer);
+      map.addLayer(clusterGroup);
+    }
+    const btnC = document.getElementById('btn-mode-clusters');
+    const btnH = document.getElementById('btn-mode-heatmap');
+    if (btnC) btnC.classList.toggle('active', mode === 'clusters');
+    if (btnH) btnH.classList.toggle('active', mode === 'heatmap');
+  };
+
   window._mapFilterLocais = function(filtros) {
     let visiveis = 0;
+    const heatPts = [];
     allMarkers.forEach(function(entry) {
       const ok =
         (!filtros.categoria   || String(entry.local.categoria_id) === String(filtros.categoria)) &&
         (!filtros.regiao      || String(entry.local.regiao_id)    === String(filtros.regiao)) &&
         (!filtros.dificuldade || entry.local.dificuldade          === filtros.dificuldade);
       if (ok) {
-        if (!entry.onMap) { entry.marker.addTo(map); entry.onMap = true; }
+        if (!entry.onMap) { clusterGroup.addLayer(entry.marker); entry.onMap = true; }
+        heatPts.push([parseFloat(entry.local.latitude), parseFloat(entry.local.longitude), 1]);
         visiveis++;
       } else {
-        if (entry.onMap) { entry.marker.remove(); entry.onMap = false; }
+        if (entry.onMap) { clusterGroup.removeLayer(entry.marker); entry.onMap = false; }
       }
     });
+    heatLayer.setLatLngs(heatPts);
     const countEl = document.getElementById('mapa-count');
     if (countEl) countEl.textContent = visiveis + ' locais';
   };
 
-  // Aplicar filtros iniciais da URL (quando a página é carregada com ?regiao=... etc.)
   const filtrosIniciais = {
     categoria:   urlParams.get('categoria')   || '',
     regiao:      urlParams.get('regiao')      || '',

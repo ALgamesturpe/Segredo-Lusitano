@@ -26,6 +26,8 @@ if ($user) {
     $guardado = (bool)$stFav->fetch();
 }
 
+$ja_checkin = $user ? user_fez_checkin($id, $user['id']) : false;
+
 // Verificar se há fotos de outros utilizadores (para mostrar botão de denúncia)
 $tem_fotos_alheias  = false;
 $tem_fotos_proprias = false;
@@ -276,6 +278,30 @@ include dirname(__DIR__) . '/includes/header.php';
               <i class="fas fa-share-alt"></i> Recomendar
             </button>
           <?php endif; ?>
+
+          <!-- Check-in GPS -->
+          <?php if ($user): ?>
+            <button id="btn-checkin"
+                    onclick="iniciarCheckin()"
+                    data-lat="<?= h($local['latitude']) ?>"
+                    data-lng="<?= h($local['longitude']) ?>"
+                    data-local="<?= $id ?>"
+                    class="btn btn-sm"
+                    <?= $ja_checkin ? 'disabled' : '' ?>
+                    style="<?= $ja_checkin
+                      ? 'background:var(--verde-claro);color:var(--verde-escuro);border:none;font-weight:700;cursor:default;'
+                      : 'background:var(--verde);color:#fff;border:none;font-weight:600;' ?>">
+              <i class="fas <?= $ja_checkin ? 'fa-check-circle' : 'fa-location-dot' ?>"></i>
+              <?= $ja_checkin ? 'Visitei' : 'Estive Aqui' ?>
+            </button>
+          <?php else: ?>
+            <button onclick="mostrarAvisoLogin('Precisas de iniciar sessão para registar a tua visita.', '<?= SITE_URL ?>/pages/login.php')"
+                    class="btn btn-sm"
+                    style="background:var(--verde);color:#fff;border:none;font-weight:600;">
+              <i class="fas fa-location-dot"></i> Estive Aqui
+            </button>
+          <?php endif; ?>
+
           <?php if ($user && ($user['id'] == $local['utilizador_id'] || is_admin())): ?>
             <a href="<?= SITE_URL ?>/pages/local_editar.php?id=<?= $id ?>" class="btn btn-sm btn-outline" style="color:var(--texto-muted);border-color:var(--creme-escuro);">
               <i class="fas fa-edit"></i> Editar
@@ -1106,6 +1132,60 @@ document.addEventListener('DOMContentLoaded', () => {
       .catch(() => { mapFS.fitBounds([[uLat,uLng],[destLat,destLng]], { padding:[40,40] }); });
   }
 });
+
+// ── Check-in GPS ─────────────────────────────────────────
+function haversineMetros(lat1, lng1, lat2, lng2) {
+  const R = 6371000;
+  const toRad = x => x * Math.PI / 180;
+  const dLat = toRad(lat2 - lat1), dLng = toRad(lng2 - lng1);
+  const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLng/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+window.iniciarCheckin = function() {
+  const btn = document.getElementById('btn-checkin');
+  if (!btn) return;
+  if (!navigator.geolocation) { alert('O teu browser não suporta geolocalização.'); return; }
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> A verificar...';
+  navigator.geolocation.getCurrentPosition(pos => {
+    const dist = haversineMetros(pos.coords.latitude, pos.coords.longitude,
+                                 parseFloat(btn.dataset.lat), parseFloat(btn.dataset.lng));
+    if (dist > 500) {
+      const km = (dist / 1000).toFixed(1);
+      alert(`Estás a ${km} km deste local. Tens de estar a menos de 500 m para fazer check-in.`);
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-location-dot"></i> Estive Aqui';
+      return;
+    }
+    fetch(`${SITE_URL}/pages/checkin.php`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: `local_id=${btn.dataset.local}`
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.ok || data.ja_fez) {
+        btn.disabled = true;
+        btn.style.cssText = 'background:var(--verde-claro);color:var(--verde-escuro);border:none;font-weight:700;cursor:default;';
+        btn.innerHTML = '<i class="fas fa-check-circle"></i> Visitei';
+      } else {
+        alert(data.erro || 'Erro ao registar o check-in.');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-location-dot"></i> Estive Aqui';
+      }
+    })
+    .catch(() => {
+      alert('Erro de ligação. Tenta novamente.');
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-location-dot"></i> Estive Aqui';
+    });
+  }, () => {
+    alert('Ativa o GPS e tenta novamente.');
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-location-dot"></i> Estive Aqui';
+  }, { enableHighAccuracy: true, timeout: 15000 });
+};
 
 // ── Ver mais / menos comentários ─────────────────────────
 document.addEventListener('DOMContentLoaded', function() {
