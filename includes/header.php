@@ -64,7 +64,6 @@ if ($user) {
       <li><a href="<?= SITE_URL ?>/pages/local_novo.php"><i class="fas fa-plus-circle"></i> Partilhar Local</a></li>
       <li><a href="<?= SITE_URL ?>/pages/mapa.php"><i class="fas fa-map"></i> Mapa</a></li>
       <li><a href="<?= SITE_URL ?>/pages/ranking.php"><i class="fas fa-trophy"></i> Ranking</a></li>
-      <li><a href="<?= $user ? SITE_URL . '/pages/feed.php' : SITE_URL . '/pages/login.php' ?>"><i class="fas fa-users"></i> Amigos</a></li>
       <li>
         <a href="<?= $user ? SITE_URL . '/pages/mensagens.php' : SITE_URL . '/pages/login.php' ?>" style="position:relative;">
           <i class="fas fa-comments"></i> Mensagens

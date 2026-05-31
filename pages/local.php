@@ -19,12 +19,6 @@ $liked           = $user ? user_liked($id, $user['id']) : false;
 $motivos_denuncia = motivos_denuncia();
 $local_bloqueado  = ((int)($local['bloqueado'] ?? 0) === 1);
 
-$guardado = false;
-if ($user) {
-    $stFav = db()->prepare('SELECT id FROM favoritos WHERE utilizador_id = ? AND local_id = ?');
-    $stFav->execute([$user['id'], $id]);
-    $guardado = (bool)$stFav->fetch();
-}
 
 // Verificar se há fotos de outros utilizadores (para mostrar botão de denúncia)
 $tem_fotos_alheias  = false;
@@ -258,20 +252,10 @@ include dirname(__DIR__) . '/includes/header.php';
             </a>
           <?php endif; ?>
           <?php if ($user): ?>
-            <button id="btn-guardar" onclick="toggleGuardar()"
-                    class="btn btn-sm btn-outline"
-                    style="color:<?= $guardado ? 'var(--dourado)' : 'var(--texto-muted)' ?>;border-color:<?= $guardado ? 'var(--dourado)' : 'var(--creme-escuro)' ?>;"
-                    title="<?= $guardado ? 'Remover dos guardados' : 'Guardar local' ?>">
-              <i class="<?= $guardado ? 'fas' : 'far' ?> fa-bookmark"></i>
-              <span id="btn-guardar-texto"><?= $guardado ? 'Guardado' : 'Guardar' ?></span>
-            </button>
             <button onclick="abrirModalRecomendar()" class="btn btn-sm btn-outline" style="color:var(--verde);border-color:var(--verde);">
               <i class="fas fa-share-alt"></i> Recomendar
             </button>
           <?php else: ?>
-            <button onclick="mostrarAvisoLogin('Precisas de iniciar sessão para guardar este local.', '<?= SITE_URL ?>/pages/login.php')" class="btn btn-sm btn-outline" style="color:var(--texto-muted);border-color:var(--creme-escuro);">
-              <i class="far fa-bookmark"></i> Guardar
-            </button>
             <button onclick="mostrarAvisoLogin('Precisas de iniciar sessão para recomendar este local.', '<?= SITE_URL ?>/pages/login.php')" class="btn btn-sm btn-outline" style="color:var(--verde);border-color:var(--verde);">
               <i class="fas fa-share-alt"></i> Recomendar
             </button>
@@ -814,39 +798,7 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape') fecharModalRecomendar();
 });
 
-// ── Guardar / bookmark ────────────────────────────────────
-let _guardando = false;
-async function toggleGuardar() {
-  if (_guardando) return;
-  _guardando = true;
-  const btn     = document.getElementById('btn-guardar');
-  const icone   = btn.querySelector('i');
-  const texto   = document.getElementById('btn-guardar-texto');
-  try {
-    const res  = await fetch(SITE_URL_RECOMENDAR + '/pages/favoritos_api.php', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: `acao=toggle&local_id=${LOCAL_ID_RECOMENDAR}`
-    });
-    const data = await res.json();
-    if (data.ok) {
-      if (data.guardado) {
-        icone.className = 'fas fa-bookmark';
-        texto.textContent = 'Guardado';
-        btn.style.color       = 'var(--dourado)';
-        btn.style.borderColor = 'var(--dourado)';
-        btn.title = 'Remover dos guardados';
-      } else {
-        icone.className = 'far fa-bookmark';
-        texto.textContent = 'Guardar';
-        btn.style.color       = 'var(--texto-muted)';
-        btn.style.borderColor = 'var(--creme-escuro)';
-        btn.title = 'Guardar local';
-      }
-    }
-  } catch(e) { console.error(e); }
-  finally { _guardando = false; }
-}
+
 </script>
 <?php endif; ?>
 
