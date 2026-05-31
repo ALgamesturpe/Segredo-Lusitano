@@ -336,7 +336,12 @@ function add_comentario(int $local_id, int $user_id, string $texto, ?string $fic
     }
     $st = db()->prepare('INSERT INTO comentarios (local_id,utilizador_id,texto,ficheiro) VALUES (?,?,?,?)');
     $st->execute([$local_id, $user_id, $texto, $ficheiro]);
-    add_pontos($user_id, PONTOS_COMENTARIO);
+    $stDono = db()->prepare('SELECT utilizador_id FROM locais WHERE id = ?');
+    $stDono->execute([$local_id]);
+    $dono_id = (int)$stDono->fetchColumn();
+    if ($dono_id && $dono_id !== (int)$user_id) {
+        add_pontos($dono_id, PONTOS_COMENTARIO);
+    }
     return (int)db()->lastInsertId();
 }
 

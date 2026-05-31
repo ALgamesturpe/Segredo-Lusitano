@@ -122,7 +122,17 @@ if (isset($_GET['apagar_foto']) && $user) {
 
 // --- GET: Apagar comentário pelo admin ---
 if (isset($_GET['apagar_comentario']) && is_admin()) {
-    db()->prepare('DELETE FROM comentarios WHERE id = ?')->execute([(int)$_GET['apagar_comentario']]);
+    $cid = (int)$_GET['apagar_comentario'];
+    $stC = db()->prepare('SELECT utilizador_id FROM comentarios WHERE id = ?');
+    $stC->execute([$cid]);
+    $rowC = $stC->fetch();
+    if ($rowC) {
+        $dono_id = (int)$local['utilizador_id'];
+        if ($dono_id && $dono_id !== (int)$rowC['utilizador_id']) {
+            add_pontos($dono_id, -PONTOS_COMENTARIO);
+        }
+    }
+    db()->prepare('DELETE FROM comentarios WHERE id = ?')->execute([$cid]);
     flash('success', 'Comentário eliminado.');
     header('Location: ' . SITE_URL . '/pages/local.php?id=' . $id . '#comentarios'); exit;
 }
@@ -136,6 +146,10 @@ if (isset($_GET['apagar_foto_comentario']) && $user) {
     if ($com && (is_admin() || (int)$com['utilizador_id'] === (int)$user['id'])) {
         if ($com['ficheiro']) apagar_upload_local($com['ficheiro']);
         if (trim((string)$com['texto']) === '') {
+            $dono_id = (int)$local['utilizador_id'];
+            if ($dono_id && $dono_id !== (int)$com['utilizador_id']) {
+                add_pontos($dono_id, -PONTOS_COMENTARIO);
+            }
             db()->prepare('DELETE FROM comentarios WHERE id = ?')->execute([$cid]);
             flash('success', 'Comentário eliminado.');
         } else {
