@@ -301,12 +301,18 @@ include dirname(__DIR__) . '/includes/header.php';
               <i class="<?= $guardado ? 'fas' : 'far' ?> fa-bookmark"></i>
               <span id="btn-guardar-texto"><?= $guardado ? 'Guardado' : 'Guardar' ?></span>
             </button>
+            <button onclick="abrirModalRecomendar()" class="btn btn-sm btn-outline" style="color:var(--verde);border-color:var(--verde);">
+              <i class="fas fa-paper-plane"></i> Recomendar
+            </button>
             <button onclick="partilharLocal()" class="btn btn-sm btn-outline" style="color:var(--verde);border-color:var(--verde);">
               <i class="fas fa-share-alt"></i> Partilhar
             </button>
           <?php else: ?>
             <button onclick="mostrarAvisoLogin('Precisas de iniciar sessão para guardar este local.', '<?= SITE_URL ?>/pages/login.php')" class="btn btn-sm btn-outline" style="color:var(--texto-muted);border-color:var(--creme-escuro);">
               <i class="far fa-bookmark"></i> Guardar
+            </button>
+            <button onclick="mostrarAvisoLogin('Precisas de iniciar sessão para recomendar este local.', '<?= SITE_URL ?>/pages/login.php')" class="btn btn-sm btn-outline" style="color:var(--verde);border-color:var(--verde);">
+              <i class="fas fa-paper-plane"></i> Recomendar
             </button>
             <button onclick="partilharLocal()" class="btn btn-sm btn-outline" style="color:var(--verde);border-color:var(--verde);">
               <i class="fas fa-share-alt"></i> Partilhar
