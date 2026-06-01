@@ -209,11 +209,13 @@ include dirname(__DIR__) . '/includes/header.php';
         <i class="fas fa-map-marker-alt"></i> Locais
       </a>
       <a href="<?= SITE_URL ?>/pages/explorar.php?tipo=utilizadores"
-         class="explorar-tab <?= $tipo === 'utilizadores' ? 'active' : '' ?>">
+         class="explorar-tab <?= $tipo === 'utilizadores' ? 'active' : '' ?>"
+         <?= !$auth_user ? 'onclick="mostrarAvisoLogin(\'Inicia sessão para explorares a comunidade.\', \'' . SITE_URL . '/pages/login.php\'); return false;"' : '' ?>>
         <i class="fas fa-users"></i> Utilizadores
       </a>
       <a href="<?= SITE_URL ?>/pages/explorar.php?tipo=stories"
-         class="explorar-tab <?= $tipo === 'stories' ? 'active' : '' ?>">
+         class="explorar-tab <?= $tipo === 'stories' ? 'active' : '' ?>"
+         <?= !$auth_user ? 'onclick="mostrarAvisoLogin(\'Inicia sessão para veres os stories da comunidade.\', \'' . SITE_URL . '/pages/login.php\'); return false;"' : '' ?>>
         <i class="fas fa-camera"></i> Stories
       </a>
     </div>

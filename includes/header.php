@@ -57,7 +57,7 @@ if ($user) {
 <link rel="stylesheet" href="<?= SITE_URL ?>/assets/css/style.css?v=<?= filemtime(dirname(__DIR__).'/assets/css/style.css') ?>">
 
 <?= $extra_head ?? '' ?>
-<script>const SITE_URL = "<?= SITE_URL ?>";</script>
+<script>const SITE_URL = "<?= SITE_URL ?>"; const IS_LOGGED_IN = <?= $user ? 'true' : 'false' ?>;</script>
 </head>
 <body>
 
@@ -78,9 +78,19 @@ if ($user) {
       <li><a href="<?= SITE_URL ?>/pages/local_novo.php"><i class="fas fa-plus-circle"></i> Partilhar Local</a></li>
       <li><a href="<?= SITE_URL ?>/pages/mapa.php"><i class="fas fa-map"></i> Mapa</a></li>
       <li><a href="<?= SITE_URL ?>/pages/ranking.php"><i class="fas fa-trophy"></i> Ranking</a></li>
-      <li><a href="<?= $user ? SITE_URL . '/pages/feed.php' : SITE_URL . '/pages/login.php' ?>"><i class="fas fa-users"></i> Amigos</a></li>
       <li>
-        <a href="<?= $user ? SITE_URL . '/pages/mensagens.php' : SITE_URL . '/pages/login.php' ?>" style="position:relative;">
+        <?php if ($user): ?>
+          <a href="<?= SITE_URL ?>/pages/feed.php"><i class="fas fa-users"></i> Amigos</a>
+        <?php else: ?>
+          <a href="#" onclick="mostrarAvisoLogin('Inicia sessão para veres os teus amigos e o teu feed.', '<?= SITE_URL ?>/pages/login.php'); return false;">
+            <i class="fas fa-users"></i> Amigos
+          </a>
+        <?php endif; ?>
+      </li>
+      <li>
+        <a href="<?= $user ? SITE_URL . '/pages/mensagens.php' : '#' ?>"
+           <?= !$user ? 'onclick="mostrarAvisoLogin(\'Inicia sessão para acederes às tuas mensagens.\', \'' . SITE_URL . '/pages/login.php\'); return false;"' : '' ?>
+           style="position:relative;">
           <i class="fas fa-comments"></i> Mensagens
           <?php if ($nao_lidas_msg > 0): ?>
             <span id="msg-badge" style="position:absolute;top:-6px;right:-8px;background:#e74c3c;color:#fff;

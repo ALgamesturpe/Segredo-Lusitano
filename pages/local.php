@@ -301,15 +301,15 @@ include dirname(__DIR__) . '/includes/header.php';
               <i class="<?= $guardado ? 'fas' : 'far' ?> fa-bookmark"></i>
               <span id="btn-guardar-texto"><?= $guardado ? 'Guardado' : 'Guardar' ?></span>
             </button>
-            <button onclick="abrirModalRecomendar()" class="btn btn-sm btn-outline" style="color:var(--verde);border-color:var(--verde);">
-              <i class="fas fa-share-alt"></i> Recomendar
+            <button onclick="partilharLocal()" class="btn btn-sm btn-outline" style="color:var(--verde);border-color:var(--verde);">
+              <i class="fas fa-share-alt"></i> Partilhar
             </button>
           <?php else: ?>
             <button onclick="mostrarAvisoLogin('Precisas de iniciar sessão para guardar este local.', '<?= SITE_URL ?>/pages/login.php')" class="btn btn-sm btn-outline" style="color:var(--texto-muted);border-color:var(--creme-escuro);">
               <i class="far fa-bookmark"></i> Guardar
             </button>
-            <button onclick="mostrarAvisoLogin('Precisas de iniciar sessão para recomendar este local.', '<?= SITE_URL ?>/pages/login.php')" class="btn btn-sm btn-outline" style="color:var(--verde);border-color:var(--verde);">
-              <i class="fas fa-share-alt"></i> Recomendar
+            <button onclick="partilharLocal()" class="btn btn-sm btn-outline" style="color:var(--verde);border-color:var(--verde);">
+              <i class="fas fa-share-alt"></i> Partilhar
             </button>
           <?php endif; ?>
 
@@ -822,6 +822,27 @@ const SITE_URL_RECOMENDAR = '<?= SITE_URL ?>';
 
 let _followsMutuos = [];
 let _followsCarregados = false;
+
+function partilharLocal() {
+  const url  = '<?= SITE_URL ?>/pages/local.php?id=<?= $id ?>';
+  const nome = <?= json_encode(local_nome_publico($local)) ?>;
+  if (navigator.share) {
+    navigator.share({
+      title: nome + ' — Segredo Lusitano',
+      text:  'Descobre este local incrível em Portugal!',
+      url:   url
+    }).catch(() => {});
+  } else {
+    navigator.clipboard.writeText(url).then(() => {
+      const btn = event.currentTarget;
+      const orig = btn.innerHTML;
+      btn.innerHTML = '<i class="fas fa-check"></i> Link copiado!';
+      setTimeout(() => { btn.innerHTML = orig; }, 2000);
+    }).catch(() => {
+      abrirModalRecomendar();
+    });
+  }
+}
 
 function abrirModalRecomendar() {
   document.getElementById('modal-recomendar').style.display = 'flex';
