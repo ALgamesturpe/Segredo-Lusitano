@@ -267,7 +267,7 @@ function initMiniMap() {
 }
 
 // ============================================================
-// Mapa principal (mapa.php) — com clusters e heatmap
+// Mapa principal (mapa.php) — com clusters
 // ============================================================
 function initMainMap(locais) {
   const urlParams = new URLSearchParams(window.location.search);
@@ -302,13 +302,10 @@ function initMainMap(locais) {
     maxClusterRadius: 60,
   });
 
-  const allMarkers  = [];
-  const allHeatPts  = [];
+  const allMarkers = [];
 
   locais.forEach(l => {
-    const lat = parseFloat(l.latitude);
-    const lng = parseFloat(l.longitude);
-    const m = L.marker([lat, lng], { icon: makeIcon(l.icone) });
+    const m = L.marker([parseFloat(l.latitude), parseFloat(l.longitude)], { icon: makeIcon(l.icone) });
     const img = l.foto_capa
       ? `<img src="${SITE_URL}/uploads/locais/${l.foto_capa}" alt="" style="width:100%;height:90px;object-fit:cover;border-radius:4px;margin-bottom:.5rem;">`
       : '';
@@ -323,7 +320,6 @@ function initMainMap(locais) {
       </div>
     `);
     clusterGroup.addLayer(m);
-    allHeatPts.push([lat, lng, 1]);
     allMarkers.push({ marker: m, local: l, onMap: true });
 
     if (abrirId && l.id === abrirId) {
@@ -333,32 +329,8 @@ function initMainMap(locais) {
 
   map.addLayer(clusterGroup);
 
-  const heatLayer = L.heatLayer(allHeatPts, {
-    radius: 25, blur: 20, maxZoom: 17,
-    gradient: { 0.2: '#2d6a4f', 0.5: '#c9a84c', 0.8: '#e07b3a', 1.0: '#d62828' }
-  });
-
-  let currentMode = 'clusters';
-
-  window._mapSetMode = function(mode) {
-    if (mode === currentMode) return;
-    currentMode = mode;
-    if (mode === 'heatmap') {
-      map.removeLayer(clusterGroup);
-      map.addLayer(heatLayer);
-    } else {
-      map.removeLayer(heatLayer);
-      map.addLayer(clusterGroup);
-    }
-    const btnC = document.getElementById('btn-mode-clusters');
-    const btnH = document.getElementById('btn-mode-heatmap');
-    if (btnC) btnC.classList.toggle('active', mode === 'clusters');
-    if (btnH) btnH.classList.toggle('active', mode === 'heatmap');
-  };
-
   window._mapFilterLocais = function(filtros) {
     let visiveis = 0;
-    const heatPts = [];
     allMarkers.forEach(function(entry) {
       const ok =
         (!filtros.categoria   || String(entry.local.categoria_id) === String(filtros.categoria)) &&
@@ -366,13 +338,11 @@ function initMainMap(locais) {
         (!filtros.dificuldade || entry.local.dificuldade          === filtros.dificuldade);
       if (ok) {
         if (!entry.onMap) { clusterGroup.addLayer(entry.marker); entry.onMap = true; }
-        heatPts.push([parseFloat(entry.local.latitude), parseFloat(entry.local.longitude), 1]);
         visiveis++;
       } else {
         if (entry.onMap) { clusterGroup.removeLayer(entry.marker); entry.onMap = false; }
       }
     });
-    heatLayer.setLatLngs(heatPts);
     const countEl = document.getElementById('mapa-count');
     if (countEl) countEl.textContent = visiveis + ' locais';
   };

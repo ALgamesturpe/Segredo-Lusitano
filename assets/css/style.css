@@ -41,7 +41,7 @@ img { max-width: 100%; display: block; }
 ul { list-style: none; }
 button { cursor: pointer; border: none; background: none; font-family: inherit; }
 input,textarea,select {
-  font-family: inherit; font-size: 1rem; outline: none;
+  font-family: inherit; font-size: 1rem; outline: none; color: var(--texto);
   transition: border-color var(--transition), box-shadow var(--transition);
 }
 main { flex: 1; }

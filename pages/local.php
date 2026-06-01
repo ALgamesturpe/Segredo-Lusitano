@@ -26,7 +26,8 @@ if ($user) {
     $guardado = (bool)$stFav->fetch();
 }
 
-$ja_checkin = $user ? user_fez_checkin($id, $user['id']) : false;
+$ja_checkin   = $user ? user_fez_checkin($id, $user['id']) : false;
+$atualizacoes = get_atualizacoes_local($id);
 
 // Verificar se há fotos de outros utilizadores (para mostrar botão de denúncia)
 $tem_fotos_alheias  = false;
@@ -203,6 +204,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['denunciar'])) {
     header('Location: ' . SITE_URL . '/pages/local.php?id=' . $id); exit;
 }
 
+// --- POST: Publicar atualização de local ---
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_atualizacao'])) {
+    if (!$user) { header('Location: ' . SITE_URL . '/pages/login.php'); exit; }
+    if ($local_bloqueado) {
+        flash('error', 'Este local está bloqueado e não aceita novas atualizações.');
+        header('Location: ' . SITE_URL . '/pages/local.php?id=' . $id); exit;
+    }
+    $texto = trim($_POST['atualizacao_texto'] ?? '');
+    if (strlen($texto) < 3) {
+        flash('error', 'A atualização é muito curta (mínimo 3 caracteres).');
+    } elseif (strlen($texto) > 280) {
+        flash('error', 'Máximo 280 caracteres.');
+    } else {
+        add_atualizacao_local($id, $user['id'], $texto);
+        flash('success', 'Atualização publicada! Fica visível durante 7 dias.');
+    }
+    header('Location: ' . SITE_URL . '/pages/local.php?id=' . $id . '#atualizacoes'); exit;
+}
+
+// --- GET: Apagar atualização (autor ou admin) ---
+if (isset($_GET['apagar_atualizacao']) && $user) {
+    $aid = (int)$_GET['apagar_atualizacao'];
+    $stA = db()->prepare('SELECT utilizador_id FROM atualizacoes_local WHERE id = ?');
+    $stA->execute([$aid]);
+    $rowA = $stA->fetch();
+    if ($rowA && (is_admin() || (int)$rowA['utilizador_id'] === (int)$user['id'])) {
+        db()->prepare('DELETE FROM atualizacoes_local WHERE id = ?')->execute([$aid]);
+        flash('success', 'Atualização removida.');
+    }
+    header('Location: ' . SITE_URL . '/pages/local.php?id=' . $id . '#atualizacoes'); exit;
+}
+
 $page_title = local_nome_publico($local);
 include dirname(__DIR__) . '/includes/header.php';
 ?>
@@ -316,6 +349,60 @@ include dirname(__DIR__) . '/includes/header.php';
             </button>
           <?php endif; ?>
         </div>
+
+        <!-- Atualizações recentes -->
+        <?php if ($atualizacoes || ($user && !$local_bloqueado)): ?>
+        <div id="atualizacoes" style="margin-bottom:1.5rem;">
+
+          <?php if ($atualizacoes): ?>
+          <div style="background:#fffbeb;border:2px solid #f59e0b;border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:.75rem;">
+            <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.6rem;">
+              <i class="fas fa-circle-info" style="color:#f59e0b;"></i>
+              <h3 style="margin:0;font-size:.88rem;color:#92400e;font-weight:700;text-transform:uppercase;letter-spacing:.04em;">Atualizações Recentes</h3>
+              <span style="background:#f59e0b;color:#fff;font-size:.65rem;font-weight:700;padding:.1rem .45rem;border-radius:99px;"><?= count($atualizacoes) ?></span>
+            </div>
+            <?php foreach ($atualizacoes as $at): ?>
+            <div style="padding:.5rem 0;border-bottom:1px solid rgba(245,158,11,.2);">
+              <p style="margin:0 0 .25rem;font-size:.88rem;color:#78350f;line-height:1.6;"><?= nl2br(h($at['texto'])) ?></p>
+              <div style="display:flex;align-items:center;justify-content:space-between;">
+                <span style="font-size:.75rem;color:#a16207;">
+                  <i class="fas fa-user" style="font-size:.65rem;"></i> <?= h($at['username']) ?> · <?= tempo_atras($at['criado_em']) ?>
+                </span>
+                <?php if ($user && ((int)$user['id'] === (int)$at['utilizador_id'] || is_admin())): ?>
+                <a href="?id=<?= $id ?>&apagar_atualizacao=<?= $at['id'] ?>"
+                   onclick="return confirm('Remover esta atualização?')"
+                   style="font-size:.75rem;color:#dc2626;text-decoration:none;padding:.1rem .3rem;">
+                  <i class="fas fa-times"></i>
+                </a>
+                <?php endif; ?>
+              </div>
+            </div>
+            <?php endforeach; ?>
+          </div>
+          <?php endif; ?>
+
+          <?php if ($user && !$local_bloqueado): ?>
+          <form method="POST" style="background:var(--creme);border:1.5px solid var(--creme-escuro);border-radius:var(--radius);padding:1rem 1.25rem;">
+            <h3 style="font-size:.85rem;margin:0 0 .55rem;color:var(--verde-escuro);font-weight:600;">
+              <i class="fas fa-circle-info" style="color:#f59e0b;"></i> Publicar Atualização
+              <span style="font-weight:400;color:var(--texto-muted);font-size:.78rem;">&nbsp;· visível 7 dias</span>
+            </h3>
+            <input type="hidden" name="add_atualizacao" value="1">
+            <textarea name="atualizacao_texto" maxlength="280"
+                      id="atualizacao-texto"
+                      data-maxlength="280"
+                      rows="2"
+                      placeholder="Ex: Acesso cortado · Cascata cheia · Caminho difícil após chuva..."
+                      style="width:100%;border:1.5px solid var(--creme-escuro);border-radius:var(--radius);padding:.55rem .75rem;font-family:'Outfit',sans-serif;font-size:.88rem;resize:vertical;outline:none;box-sizing:border-box;background:#fff;"></textarea>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:.4rem;">
+              <span style="font-size:.75rem;color:var(--texto-muted);" data-counter-for="atualizacao-texto">0/280</span>
+              <button type="submit" class="btn btn-sm btn-verde"><i class="fas fa-paper-plane"></i> Publicar</button>
+            </div>
+          </form>
+          <?php endif; ?>
+
+        </div>
+        <?php endif; ?>
 
         <!-- Descrição -->
         <div style="margin-bottom:1.5rem;border:1.5px solid var(--creme-escuro);border-radius:var(--radius);padding:1.25rem;background:var(--branco);">

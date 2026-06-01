@@ -40,6 +40,20 @@ foreach ($locais_perfil as $lp) $total_likes += $lp['total_likes'];
 
 $total_checkins = get_total_checkins($id);
 
+// Locais dos check-ins para o mapa pessoal
+$checkin_locais_mapa = [];
+if ($total_checkins > 0) {
+    $stChk = db()->prepare(
+        'SELECT l.id, l.nome, l.latitude, l.longitude
+         FROM checkins ck
+         JOIN locais l ON l.id = ck.local_id
+         WHERE ck.utilizador_id = ? AND l.estado = "aprovado" AND l.apagado_em IS NULL AND l.bloqueado = 0
+           AND l.latitude IS NOT NULL AND l.longitude IS NOT NULL'
+    );
+    $stChk->execute([$id]);
+    $checkin_locais_mapa = $stChk->fetchAll();
+}
+
 // Numeração de utilizadores domo se fosse um número de processo
 $st3 = db()->prepare('SELECT COUNT(*) FROM utilizadores WHERE id <= ? AND ativo = 1 AND role = "user"');
 $st3->execute([$id]);
@@ -295,6 +309,100 @@ include dirname(__DIR__) . '/includes/header.php';
         </div>
       <?php endif; ?>
     </div>
+    <?php endif; ?>
+
+    <!-- MAPA PESSOAL -->
+    <?php
+    $locais_mapa_pub = array_values(array_filter($locais_perfil, fn($l) =>
+        $l['latitude'] && $l['longitude'] && $l['estado'] === 'aprovado'
+    ));
+    $tem_mapa = !empty($locais_mapa_pub) || !empty($checkin_locais_mapa);
+    ?>
+    <?php if ($tem_mapa): ?>
+    <div style="margin-top:3.5rem;" id="mapa-perfil-section">
+      <h2 style="margin-bottom:.75rem;display:flex;align-items:center;gap:.6rem;">
+        <i class="fas fa-map" style="color:var(--dourado);font-size:1.1rem;"></i> Território Explorado
+      </h2>
+      <div style="display:flex;align-items:center;gap:1.25rem;margin-bottom:.9rem;flex-wrap:wrap;">
+        <?php if ($locais_mapa_pub): ?>
+        <span style="display:flex;align-items:center;gap:.4rem;font-size:.82rem;color:var(--texto-muted);">
+          <span style="width:12px;height:12px;background:#2d6a4f;border-radius:50%;flex-shrink:0;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.3);"></span>
+          <?= count($locais_mapa_pub) ?> local<?= count($locais_mapa_pub) > 1 ? 'is' : '' ?> publicado<?= count($locais_mapa_pub) > 1 ? 's' : '' ?>
+        </span>
+        <?php endif; ?>
+        <?php if ($checkin_locais_mapa): ?>
+        <span style="display:flex;align-items:center;gap:.4rem;font-size:.82rem;color:var(--texto-muted);">
+          <span style="width:12px;height:12px;background:#3b82f6;border-radius:50%;flex-shrink:0;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.3);"></span>
+          <?= count($checkin_locais_mapa) ?> visita<?= count($checkin_locais_mapa) > 1 ? 's' : '' ?> confirmada<?= count($checkin_locais_mapa) > 1 ? 's' : '' ?>
+        </span>
+        <?php endif; ?>
+      </div>
+      <div id="mapa-perfil" style="height:380px;border-radius:var(--radius);overflow:hidden;border:1.5px solid var(--creme-escuro);"></div>
+    </div>
+
+    <script>
+    (function() {
+      const _pubPerfil = <?= json_encode(array_map(fn($l) => [
+          'id'   => (int)$l['id'],
+          'nome' => local_nome_publico($l),
+          'lat'  => (float)$l['latitude'],
+          'lng'  => (float)$l['longitude'],
+      ], $locais_mapa_pub), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>;
+      const _visPerf = <?= json_encode(array_map(fn($l) => [
+          'id'   => (int)$l['id'],
+          'nome' => $l['nome'],
+          'lat'  => (float)$l['latitude'],
+          'lng'  => (float)$l['longitude'],
+      ], $checkin_locais_mapa), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>;
+      const _siteUrl = "<?= SITE_URL ?>";
+
+      document.addEventListener('DOMContentLoaded', function() {
+        const el = document.getElementById('mapa-perfil');
+        if (!el || typeof L === 'undefined') return;
+
+        const map = L.map('mapa-perfil').setView([39.5, -8.0], 6);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+          attribution: '© OpenStreetMap © CARTO', maxZoom: 18
+        }).addTo(map);
+
+        const mkVerde = L.divIcon({
+          className: '',
+          html: '<div style="background:#2d6a4f;border:2px solid #fff;border-radius:50%;width:14px;height:14px;box-shadow:0 2px 6px rgba(0,0,0,.4);"></div>',
+          iconSize: [14,14], iconAnchor: [7,7]
+        });
+        const mkAzul = L.divIcon({
+          className: '',
+          html: '<div style="background:#3b82f6;border:2px solid #fff;border-radius:50%;width:14px;height:14px;box-shadow:0 2px 6px rgba(0,0,0,.4);"></div>',
+          iconSize: [14,14], iconAnchor: [7,7]
+        });
+
+        const pts = [];
+        _pubPerfil.forEach(l => {
+          pts.push([l.lat, l.lng]);
+          L.marker([l.lat, l.lng], { icon: mkVerde })
+            .bindPopup(`<div style="font-family:'Outfit',sans-serif;min-width:140px;">
+              <div style="font-weight:700;font-size:.9rem;color:#1a3a2a;">${l.nome}</div>
+              <a href="${_siteUrl}/pages/local.php?id=${l.id}" style="font-size:.8rem;color:#2d6a4f;font-weight:600;">Ver local →</a>
+            </div>`)
+            .addTo(map);
+        });
+        _visPerf.forEach(l => {
+          pts.push([l.lat, l.lng]);
+          L.marker([l.lat, l.lng], { icon: mkAzul })
+            .bindPopup(`<div style="font-family:'Outfit',sans-serif;min-width:140px;">
+              <div style="font-weight:700;font-size:.9rem;color:#1a3a2a;">${l.nome}</div>
+              <div style="font-size:.75rem;color:#3b82f6;margin-bottom:.2rem;"><i class="fas fa-check-circle"></i> Visitado</div>
+              <a href="${_siteUrl}/pages/local.php?id=${l.id}" style="font-size:.8rem;color:#2d6a4f;font-weight:600;">Ver local →</a>
+            </div>`)
+            .addTo(map);
+        });
+
+        if (pts.length > 0) {
+          map.fitBounds(L.latLngBounds(pts), { padding: [30, 30], maxZoom: 13 });
+        }
+      });
+    })();
+    </script>
     <?php endif; ?>
 
   </div>

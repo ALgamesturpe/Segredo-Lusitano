@@ -562,6 +562,59 @@ function get_regioes(): array {
     return $st->fetchAll();
 }
 
+// ---------- UTILITÁRIOS DE DATA ----------
+function tempo_atras(string $data): string {
+    $diff = time() - strtotime($data);
+    if ($diff < 60)     return 'agora mesmo';
+    if ($diff < 3600)   return 'há ' . floor($diff / 60) . ' min';
+    if ($diff < 86400)  return 'há ' . floor($diff / 3600) . 'h';
+    if ($diff < 604800) { $d = floor($diff / 86400); return 'há ' . $d . ' dia' . ($d > 1 ? 's' : ''); }
+    return date('d/m/Y', strtotime($data));
+}
+
+// ---------- ATUALIZAÇÕES DE LOCAL ----------
+function _migrar_atualizacoes_local(): void {
+    static $done = false;
+    if ($done) return;
+    $done = true;
+    db()->exec('
+        CREATE TABLE IF NOT EXISTS atualizacoes_local (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            local_id INT NOT NULL,
+            utilizador_id INT NOT NULL,
+            texto VARCHAR(280) NOT NULL,
+            criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            expira_em TIMESTAMP NOT NULL,
+            FOREIGN KEY (local_id) REFERENCES locais(id) ON DELETE CASCADE,
+            FOREIGN KEY (utilizador_id) REFERENCES utilizadores(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    ');
+}
+
+function get_atualizacoes_local(int $local_id): array {
+    _migrar_atualizacoes_local();
+    $st = db()->prepare(
+        'SELECT a.*, u.username, u.nome AS autor_nome
+         FROM atualizacoes_local a
+         JOIN utilizadores u ON u.id = a.utilizador_id
+         WHERE a.local_id = ? AND a.expira_em > NOW()
+         ORDER BY a.criado_em DESC
+         LIMIT 10'
+    );
+    $st->execute([$local_id]);
+    return $st->fetchAll();
+}
+
+function add_atualizacao_local(int $local_id, int $user_id, string $texto): int {
+    _migrar_atualizacoes_local();
+    $st = db()->prepare(
+        'INSERT INTO atualizacoes_local (local_id, utilizador_id, texto, expira_em)
+         VALUES (?, ?, ?, DATE_ADD(NOW(), INTERVAL 7 DAY))'
+    );
+    $st->execute([$local_id, $user_id, $texto]);
+    return (int)db()->lastInsertId();
+}
+
 // ---------- CHECK-INS ----------
 function _migrar_checkins(): void {
     static $done = false;
