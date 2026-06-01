@@ -41,8 +41,10 @@ if ($user) {
 <!-- Ícones -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
+<?php if ($carregar_leaflet ?? false): ?>
 <!-- Leaflet -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<?php endif; ?>
 
 <!-- Bootstrap (base) -->
 <link rel="stylesheet" href="<?= SITE_URL ?>/assets/css/bootstrap.min.css?v=<?= filemtime(dirname(__DIR__).'/assets/css/bootstrap.min.css') ?>">

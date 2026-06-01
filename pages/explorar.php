@@ -123,6 +123,7 @@ if ($tipo === 'utilizadores') {
     $regioes    = get_regioes();
     $utilizadores = [];
 } elseif ($tipo === 'stories') {
+    if (!$auth_user) { header('Location: ' . SITE_URL . '/pages/login.php'); exit; }
     _migrar_stories();
     $stories    = get_stories($por_pagina, $offset);
     $total      = count_stories();

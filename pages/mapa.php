@@ -77,6 +77,7 @@ footer, .site-footer { display:none !important; height:0 !important; }
   .mapa-select { min-width: 82px; font-size: .76rem; padding: .22rem .3rem; }
 }
 </style>';
+$carregar_leaflet = true;
 include dirname(__DIR__) . '/includes/header.php';
 ?>
 

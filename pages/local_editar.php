@@ -81,6 +81,7 @@ $extra_head = '<style>
     #mini-map { height:320px; }
   }
 </style>';
+$carregar_leaflet = true;
 $extra_scripts = '<script>const SITE_URL="' . SITE_URL . '"; document.addEventListener("DOMContentLoaded", initMiniMap);</script>';
 include dirname(__DIR__) . '/includes/header.php';
 ?>

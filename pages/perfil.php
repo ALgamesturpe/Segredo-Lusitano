@@ -119,6 +119,7 @@ $page_title = $perfil['nome'];
 $extra_head = '<style>
 .page-content { background: var(--verde-escuro); }
 </style>';
+$carregar_leaflet = true;
 include dirname(__DIR__) . '/includes/header.php';
 ?>
 

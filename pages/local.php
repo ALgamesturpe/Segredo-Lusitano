@@ -237,6 +237,7 @@ if (isset($_GET['apagar_atualizacao']) && $user) {
 }
 
 $page_title = local_nome_publico($local);
+$carregar_leaflet = true;
 include dirname(__DIR__) . '/includes/header.php';
 ?>
 
@@ -349,9 +350,15 @@ include dirname(__DIR__) . '/includes/header.php';
             </button>
           <?php endif; ?>
           <!-- QR Code -->
+          <?php if ($user): ?>
           <button onclick="abrirModalQR()" class="btn btn-sm btn-outline" style="color:var(--texto-muted);border-color:var(--creme-escuro);" title="Gerar QR Code">
             <i class="fas fa-qrcode"></i> QR
           </button>
+          <?php else: ?>
+          <button onclick="mostrarAvisoLogin('Precisas de iniciar sessão para gerar o QR Code.', '<?= SITE_URL ?>/pages/login.php')" class="btn btn-sm btn-outline" style="color:var(--texto-muted);border-color:var(--creme-escuro);" title="Gerar QR Code">
+            <i class="fas fa-qrcode"></i> QR
+          </button>
+          <?php endif; ?>
         </div>
 
         <!-- Atualizações recentes -->
@@ -1324,8 +1331,8 @@ document.addEventListener('DOMContentLoaded', function() {
     </div>
     <div style="position:relative;width:240px;height:240px;margin:0 auto 1.25rem;">
       <img id="qr-img" src="" alt="QR Code" style="width:100%;height:100%;display:block;">
-      <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;padding:2px;border-radius:50%;line-height:0;">
-        <img src="<?= SITE_URL ?>/assets/images/logo_icon.png" alt="" style="width:44px;height:44px;object-fit:contain;display:block;border-radius:50%;">
+      <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;padding:1px;border-radius:50%;line-height:0;">
+        <img src="<?= SITE_URL ?>/assets/images/logo_icon_qr.png" alt="" style="width:44px;height:44px;object-fit:contain;display:block;border-radius:50%;">
       </div>
     </div>
     <p style="font-size:.8rem;color:var(--texto-muted);margin-bottom:1.25rem;">Aponta a câmara para aceder diretamente a este local.</p>

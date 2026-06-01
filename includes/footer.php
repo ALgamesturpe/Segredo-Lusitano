@@ -57,7 +57,9 @@ function fecharAvisoLogin() {
   document.getElementById('modal-login-aviso').style.display = 'none';
 }
 </script>
+<?php if ($carregar_leaflet ?? false): ?>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<?php endif; ?>
 <script src="<?= SITE_URL ?>/assets/js/main.js"></script>
 <?= $extra_scripts ?? '' ?>
 <!-- Script botões seguir nos cards -->
@@ -91,10 +93,21 @@ function fecharAvisoLogin() {
   });
 })();
 </script>
+<!-- Toast offline -->
+<div id="offline-toast" style="display:none;position:fixed;bottom:1.25rem;left:50%;transform:translateX(-50%);background:#1a3a2a;color:#f5efe6;padding:.55rem 1.25rem;border-radius:var(--radius);font-size:.85rem;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.35);border:1px solid rgba(201,168,76,.35);white-space:nowrap;">
+  <i class="fas fa-wifi-slash" style="color:#c9a84c;margin-right:.4rem;"></i> Sem ligação à internet
+</div>
 <script>
+(function() {
+  const toast = document.getElementById('offline-toast');
+  function update() { if (toast) toast.style.display = navigator.onLine ? 'none' : 'block'; }
+  window.addEventListener('online',  update);
+  window.addEventListener('offline', update);
+  update();
+})();
+
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('<?= SITE_URL ?>/service-worker.js')
-    .catch(() => {});
+  navigator.serviceWorker.register('<?= SITE_URL ?>/service-worker.js').catch(() => {});
 }
 </script>
 </body>
