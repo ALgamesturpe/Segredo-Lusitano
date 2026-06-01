@@ -91,5 +91,11 @@ function fecharAvisoLogin() {
   });
 })();
 </script>
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('<?= SITE_URL ?>/service-worker.js')
+    .catch(() => {});
+}
+</script>
 </body>
 </html>

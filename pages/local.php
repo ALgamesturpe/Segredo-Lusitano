@@ -348,6 +348,10 @@ include dirname(__DIR__) . '/includes/header.php';
               <i class="fas fa-flag"></i> Denunciar
             </button>
           <?php endif; ?>
+          <!-- QR Code -->
+          <button onclick="abrirModalQR()" class="btn btn-sm btn-outline" style="color:var(--texto-muted);border-color:var(--creme-escuro);" title="Gerar QR Code">
+            <i class="fas fa-qrcode"></i> QR
+          </button>
         </div>
 
         <!-- Atualizações recentes -->
@@ -1309,6 +1313,58 @@ document.addEventListener('DOMContentLoaded', function() {
     btnMais.style.display = aberto ? '' : 'none';
   }
 });
+</script>
+
+<!-- MODAL QR CODE -->
+<div id="modal-qr" style="display:none;position:fixed;inset:0;z-index:6000;background:rgba(0,0,0,.55);align-items:center;justify-content:center;padding:1rem;">
+  <div style="background:#fff;border-radius:var(--radius-lg);padding:2rem;max-width:360px;width:100%;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,.25);">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;">
+      <h3 style="margin:0;font-size:1rem;color:var(--verde-escuro);"><?= h(local_nome_publico($local)) ?></h3>
+      <button onclick="fecharModalQR()" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--texto-muted);"><i class="fas fa-times"></i></button>
+    </div>
+    <img id="qr-img" src="" alt="QR Code" style="width:240px;height:240px;border:1px solid var(--creme-escuro);border-radius:var(--radius);margin:0 auto 1.25rem;display:block;">
+    <p style="font-size:.8rem;color:var(--texto-muted);margin-bottom:1.25rem;">Aponta a câmara para aceder diretamente a este local.</p>
+    <div style="display:flex;gap:.75rem;justify-content:center;">
+      <button onclick="downloadQR()" class="btn btn-sm btn-primary"><i class="fas fa-download"></i> Descarregar</button>
+      <button onclick="fecharModalQR()" class="btn btn-sm" style="border:1px solid var(--creme-escuro);color:var(--texto-muted);">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  const localUrl = encodeURIComponent('<?= SITE_URL ?>/pages/local.php?id=<?= $id ?>');
+  const localNome = '<?= addslashes(local_nome_publico($local)) ?>';
+
+  window.abrirModalQR = function() {
+    const modal = document.getElementById('modal-qr');
+    const img   = document.getElementById('qr-img');
+    img.src = 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=12&data=' + localUrl;
+    modal.style.display = 'flex';
+  };
+
+  window.fecharModalQR = function() {
+    document.getElementById('modal-qr').style.display = 'none';
+  };
+
+  window.downloadQR = function() {
+    const url = 'https://api.qrserver.com/v1/create-qr-code/?size=600x600&margin=20&data=' + localUrl;
+    fetch(url)
+      .then(r => r.blob())
+      .then(blob => {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'qr-' + localNome.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '.png';
+        a.click();
+        URL.revokeObjectURL(a.href);
+      })
+      .catch(() => window.open(url, '_blank'));
+  };
+
+  document.getElementById('modal-qr').addEventListener('click', function(e) {
+    if (e.target === this) fecharModalQR();
+  });
+})();
 </script>
 
 <?php include dirname(__DIR__) . '/includes/footer.php'; ?>

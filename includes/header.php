@@ -26,6 +26,14 @@ if ($user) {
 <link rel="icon" type="image/x-icon" href="<?= SITE_URL ?>/favicon.ico">
 <link rel="icon" type="image/png" sizes="32x32" href="<?= SITE_URL ?>/assets/images/favicon-32.png">
 
+<!-- PWA -->
+<link rel="manifest" href="<?= SITE_URL ?>/manifest.php">
+<meta name="theme-color" content="#1a3a2a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Segredo">
+<link rel="apple-touch-icon" href="<?= SITE_URL ?>/assets/images/logo_icon.png">
+
 <!-- Fontes -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=Outfit:wght@300;400;600&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
