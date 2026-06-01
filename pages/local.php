@@ -1324,8 +1324,8 @@ document.addEventListener('DOMContentLoaded', function() {
     </div>
     <div style="position:relative;width:240px;height:240px;margin:0 auto 1.25rem;">
       <img id="qr-img" src="" alt="QR Code" style="width:100%;height:100%;display:block;">
-      <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:#1a3a2a;border-radius:10px;padding:5px;line-height:0;box-shadow:0 0 0 3px #fff;">
-        <img src="<?= SITE_URL ?>/assets/images/logo_icon.png" alt="" style="width:48px;height:48px;object-fit:contain;border-radius:6px;display:block;">
+      <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;padding:2px;border-radius:50%;line-height:0;">
+        <img src="<?= SITE_URL ?>/assets/images/logo_icon.png" alt="" style="width:44px;height:44px;object-fit:contain;display:block;border-radius:50%;">
       </div>
     </div>
     <p style="font-size:.8rem;color:var(--texto-muted);margin-bottom:1.25rem;">Aponta a câmara para aceder diretamente a este local.</p>
