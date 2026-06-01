@@ -4,13 +4,64 @@
 // ============================================================
 require_once dirname(__DIR__) . '/includes/functions.php';
 
+$auth_user = auth_user();
+
+// --- POST: Publicar Story ---
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_story'])) {
+    if (!$auth_user) { header('Location: ' . SITE_URL . '/pages/login.php'); exit; }
+    $texto    = trim($_POST['story_texto'] ?? '');
+    $local_id = ((int)($_POST['story_local_id'] ?? 0)) ?: null;
+    $foto     = null;
+    if (isset($_FILES['story_foto']) && $_FILES['story_foto']['error'] === 0) {
+        $f    = $_FILES['story_foto'];
+        $info = @getimagesize($f['tmp_name']);
+        $mime = $info ? ($info['mime'] ?? '') : '';
+        $tipos = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'];
+        if (isset($tipos[$mime]) && $f['size'] <= 10 * 1024 * 1024) {
+            _migrar_stories();
+            $dir = dirname(UPLOAD_DIR) . '/stories/';
+            if (!is_dir($dir)) @mkdir($dir, 0777, true);
+            $nome = uniqid('story_') . '.' . $tipos[$mime];
+            if (move_uploaded_file($f['tmp_name'], $dir . $nome)) $foto = $nome;
+        }
+    }
+    if (strlen($texto) < 3 && !$foto) {
+        flash('error', 'Escreve algo ou adiciona uma foto para publicar.');
+    } elseif (strlen($texto) > 500) {
+        flash('error', 'Máximo 500 caracteres.');
+    } else {
+        add_story($auth_user['id'], $texto, $local_id, $foto);
+        flash('success', 'Story publicado! Fica visível durante 7 dias.');
+    }
+    header('Location: ' . SITE_URL . '/pages/explorar.php?tipo=stories'); exit;
+}
+
+// --- GET: Apagar Story ---
+if (isset($_GET['apagar_story']) && $auth_user) {
+    $sid = (int)$_GET['apagar_story'];
+    _migrar_stories();
+    $stS = db()->prepare('SELECT utilizador_id, foto FROM stories WHERE id = ?');
+    $stS->execute([$sid]);
+    $rowS = $stS->fetch();
+    if ($rowS && (is_admin() || (int)$rowS['utilizador_id'] === (int)$auth_user['id'])) {
+        if ($rowS['foto']) {
+            $fp = dirname(UPLOAD_DIR) . '/stories/' . $rowS['foto'];
+            if (file_exists($fp)) unlink($fp);
+        }
+        db()->prepare('DELETE FROM stories WHERE id = ?')->execute([$sid]);
+        flash('success', 'Story removido.');
+    }
+    header('Location: ' . SITE_URL . '/pages/explorar.php?tipo=stories'); exit;
+}
+
 $tipo = $_GET['tipo'] ?? 'locais';
-if (!in_array($tipo, ['locais', 'utilizadores'])) $tipo = 'locais';
+if (!in_array($tipo, ['locais', 'utilizadores', 'stories'])) $tipo = 'locais';
 
 $page_title = 'Explorar';
 $por_pagina = 12;
 $pagina     = max(1, (int)($_GET['pagina'] ?? 1));
 $offset     = ($pagina - 1) * $por_pagina;
+$stories    = [];
 
 if ($tipo === 'utilizadores') {
     $pesquisa = trim($_GET['pesquisa'] ?? '');
@@ -56,7 +107,7 @@ if ($tipo === 'utilizadores') {
     $filtros = [];
     $categorias = [];
     $regioes    = [];
-} else {
+} elseif ($tipo === 'locais') {
     $filtros = [
         'regiao'      => $_GET['regiao']      ?? '',
         'categoria'   => $_GET['categoria']   ?? '',
@@ -71,6 +122,16 @@ if ($tipo === 'utilizadores') {
     $categorias = get_categorias();
     $regioes    = get_regioes();
     $utilizadores = [];
+} elseif ($tipo === 'stories') {
+    _migrar_stories();
+    $stories    = get_stories($por_pagina, $offset);
+    $total      = count_stories();
+    $total_pag  = (int)ceil($total / $por_pagina);
+    $locais     = [];
+    $utilizadores = [];
+    $filtros    = [];
+    $categorias = [];
+    $regioes    = [];
 }
 
 $qs = http_build_query(array_filter(array_diff_key($_GET, ['pagina' => ''])));
@@ -106,6 +167,20 @@ $extra_head = '<style>
     cursor:pointer; display:inline-flex; align-items:center; gap:.3rem;
     transition:all .15s;
   }
+  /* Stories */
+  .story-card {
+    background:#fff;border:1.5px solid var(--creme-escuro);border-radius:var(--radius);
+    padding:1rem 1.25rem;margin-bottom:1rem;
+  }
+  .story-card-header { display:flex;align-items:center;gap:.65rem;margin-bottom:.65rem; }
+  .story-avatar {
+    width:38px;height:38px;border-radius:50%;background:var(--verde-escuro);
+    color:var(--dourado);font-weight:700;font-size:1rem;flex-shrink:0;overflow:hidden;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .story-avatar img { width:100%;height:100%;object-fit:cover; }
+  .story-card img.story-foto { width:100%;max-height:400px;object-fit:cover;border-radius:var(--radius);margin:.65rem 0; }
+  .story-form { background:var(--creme);border:1.5px solid var(--creme-escuro);border-radius:var(--radius);padding:1.25rem;margin-bottom:1.5rem; }
 </style>';
 
 include dirname(__DIR__) . '/includes/header.php';
@@ -118,6 +193,8 @@ include dirname(__DIR__) . '/includes/header.php';
       <h2>Segredos de Portugal</h2>
       <?php if ($tipo === 'utilizadores'): ?>
         <p><?= $total ?> exploradores na comunidade</p>
+      <?php elseif ($tipo === 'stories'): ?>
+        <p><?= $total ?> stories partilhados</p>
       <?php else: ?>
         <p><?= $total ?> locais secretos descobertos pela nossa comunidade</p>
       <?php endif; ?>
@@ -132,6 +209,10 @@ include dirname(__DIR__) . '/includes/header.php';
       <a href="<?= SITE_URL ?>/pages/explorar.php?tipo=utilizadores"
          class="explorar-tab <?= $tipo === 'utilizadores' ? 'active' : '' ?>">
         <i class="fas fa-users"></i> Utilizadores
+      </a>
+      <a href="<?= SITE_URL ?>/pages/explorar.php?tipo=stories"
+         class="explorar-tab <?= $tipo === 'stories' ? 'active' : '' ?>">
+        <i class="fas fa-camera"></i> Stories
       </a>
     </div>
 
@@ -243,7 +324,7 @@ include dirname(__DIR__) . '/includes/header.php';
       </div>
     <?php endif; ?>
 
-    <?php else: /* ── LOCAIS ── */ ?>
+    <?php elseif ($tipo === 'locais'): /* ── LOCAIS ── */ ?>
 
     <div class="filtros-bar">
       <form class="filtros-form" method="GET">
@@ -338,6 +419,91 @@ include dirname(__DIR__) . '/includes/header.php';
       </div>
     <?php endif; ?>
 
+    <?php elseif ($tipo === 'stories'): ?>
+
+      <!-- FORMULÁRIO PUBLICAR STORY -->
+      <?php if ($auth_user): ?>
+      <form method="POST" enctype="multipart/form-data" class="story-form">
+        <input type="hidden" name="add_story" value="1">
+        <h3 style="font-size:.9rem;margin:0 0 .75rem;color:var(--verde-escuro);font-weight:600;">
+          <i class="fas fa-pen"></i> Publicar Story
+          <span style="font-weight:400;color:var(--texto-muted);font-size:.78rem;">&nbsp;&middot; visivel 7 dias</span>
+        </h3>
+        <textarea name="story_texto" id="story-texto" maxlength="500" data-maxlength="500" rows="3"
+                  placeholder="Partilha um momento, uma descoberta, uma dica..."
+                  style="width:100%;border:1.5px solid var(--creme-escuro);border-radius:var(--radius);padding:.6rem .85rem;font-size:.9rem;resize:vertical;box-sizing:border-box;background:#fff;"></textarea>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:.5rem;gap:.75rem;flex-wrap:wrap;">
+          <span style="font-size:.75rem;color:var(--texto-muted);" data-counter-for="story-texto">0/500</span>
+          <div style="display:flex;align-items:center;gap:.5rem;">
+            <label style="cursor:pointer;display:inline-flex;align-items:center;gap:.35rem;font-size:.82rem;color:var(--verde);font-weight:600;padding:.3rem .65rem;border:1.5px solid var(--verde);border-radius:var(--radius);">
+              <i class="fas fa-image"></i> Foto
+              <input type="file" name="story_foto" accept="image/jpeg,image/png,image/webp" style="display:none;" onchange="previewStoryFoto(this)">
+            </label>
+            <button type="submit" class="btn btn-sm btn-primary"><i class="fas fa-paper-plane"></i> Publicar</button>
+          </div>
+        </div>
+        <div id="story-foto-preview" style="display:none;margin-top:.6rem;position:relative;">
+          <img id="story-foto-img" src="" alt="" style="max-height:200px;border-radius:var(--radius);border:1.5px solid var(--creme-escuro);">
+          <button type="button" onclick="removerStoryFoto()" style="position:absolute;top:4px;left:4px;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:50%;width:22px;height:22px;font-size:.75rem;cursor:pointer;display:flex;align-items:center;justify-content:center;">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+      </form>
+      <?php else: ?>
+      <div style="background:var(--creme);border:1.5px solid var(--creme-escuro);border-radius:var(--radius);padding:1.25rem;margin-bottom:1.5rem;text-align:center;">
+        <p style="margin:0;font-size:.9rem;color:var(--texto-muted);">
+          <a href="<?= SITE_URL ?>/pages/login.php" style="color:var(--verde);font-weight:600;">Inicia sessao</a> para publicar um story.
+        </p>
+      </div>
+      <?php endif; ?>
+
+      <!-- FEED DE STORIES -->
+      <?php if (!empty($stories)): ?>
+      <div style="max-width:680px;">
+        <?php foreach ($stories as $s): ?>
+        <div class="story-card">
+          <div class="story-card-header">
+            <a href="<?= SITE_URL ?>/pages/perfil.php?id=<?= $s['utilizador_id'] ?>" style="text-decoration:none;display:contents;">
+              <div class="story-avatar">
+                <?php if ($s['autor_avatar']): ?>
+                  <img src="<?= SITE_URL ?>/uploads/locais/<?= h($s['autor_avatar']) ?>" alt="">
+                <?php else: ?>
+                  <?= mb_strtoupper(mb_substr($s['username'], 0, 1)) ?>
+                <?php endif; ?>
+              </div>
+            </a>
+            <div style="flex:1;min-width:0;">
+              <a href="<?= SITE_URL ?>/pages/perfil.php?id=<?= $s['utilizador_id'] ?>" style="font-weight:700;font-size:.9rem;color:var(--texto);text-decoration:none;"><?= h($s['autor_nome']) ?></a>
+              <div style="font-size:.75rem;color:var(--texto-muted);">@<?= h($s['username']) ?> &middot; <?= tempo_atras($s['criado_em']) ?></div>
+            </div>
+            <?php if ($auth_user && ((int)$auth_user['id'] === (int)$s['utilizador_id'] || is_admin())): ?>
+            <a href="?tipo=stories&apagar_story=<?= $s['id'] ?>"
+               onclick="return confirm('Remover este story?')"
+               style="color:var(--texto-muted);font-size:.8rem;padding:.2rem .4rem;text-decoration:none;" title="Remover">
+              <i class="fas fa-trash"></i>
+            </a>
+            <?php endif; ?>
+          </div>
+          <?php if ($s['foto']): ?>
+            <img src="<?= SITE_URL ?>/uploads/stories/<?= h($s['foto']) ?>" alt="" class="story-foto">
+          <?php endif; ?>
+          <?php if (trim($s['texto'])): ?>
+            <p style="margin:0;font-size:.92rem;line-height:1.7;color:var(--texto);word-break:break-word;"><?= nl2br(h($s['texto'])) ?></p>
+          <?php endif; ?>
+          <?php if ($s['local_nome']): ?>
+            <div style="margin-top:.5rem;font-size:.78rem;color:var(--verde);"><i class="fas fa-map-marker-alt"></i> <?= h($s['local_nome']) ?></div>
+          <?php endif; ?>
+        </div>
+        <?php endforeach; ?>
+      </div>
+      <?php else: ?>
+      <div class="empty-state">
+        <i class="fas fa-camera" style="font-size:2.5rem;opacity:.3;"></i>
+        <h3 style="margin-top:.75rem;">Ainda sem stories</h3>
+        <p style="font-size:.9rem;">Sê o primeiro a partilhar um momento.</p>
+      </div>
+      <?php endif; ?>
+
     <?php endif; /* fim tabs */ ?>
 
   </div>
@@ -382,6 +548,25 @@ include dirname(__DIR__) . '/includes/header.php';
     }, 350);
   });
 })();
+</script>
+<?php endif; ?>
+
+<?php if ($tipo === 'stories'): ?>
+<script>
+function previewStoryFoto(input) {
+  if (!input.files || !input.files[0]) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    document.getElementById('story-foto-img').src = e.target.result;
+    document.getElementById('story-foto-preview').style.display = 'block';
+  };
+  reader.readAsDataURL(input.files[0]);
+}
+function removerStoryFoto() {
+  document.querySelector('input[name="story_foto"]').value = '';
+  document.getElementById('story-foto-preview').style.display = 'none';
+  document.getElementById('story-foto-img').src = '';
+}
 </script>
 <?php endif; ?>
 

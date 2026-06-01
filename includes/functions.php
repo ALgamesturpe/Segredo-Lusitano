@@ -572,6 +572,59 @@ function tempo_atras(string $data): string {
     return date('d/m/Y', strtotime($data));
 }
 
+// ---------- STORIES ----------
+function _migrar_stories(): void {
+    static $done = false;
+    if ($done) return;
+    $done = true;
+    db()->exec('
+        CREATE TABLE IF NOT EXISTS stories (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            utilizador_id INT NOT NULL,
+            local_id INT NULL,
+            texto TEXT NOT NULL,
+            foto VARCHAR(255) NULL,
+            criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            expira_em TIMESTAMP NOT NULL,
+            FOREIGN KEY (utilizador_id) REFERENCES utilizadores(id) ON DELETE CASCADE,
+            FOREIGN KEY (local_id) REFERENCES locais(id) ON DELETE SET NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    ');
+    $dir = dirname(UPLOAD_DIR) . '/stories/';
+    if (!is_dir($dir)) @mkdir($dir, 0777, true);
+}
+
+function get_stories(int $limite = 20, int $offset = 0): array {
+    _migrar_stories();
+    $st = db()->prepare(
+        'SELECT s.*, u.username, u.nome AS autor_nome, u.avatar AS autor_avatar,
+                l.nome AS local_nome
+         FROM stories s
+         JOIN utilizadores u ON u.id = s.utilizador_id
+         LEFT JOIN locais l ON l.id = s.local_id
+         WHERE s.expira_em > NOW()
+         ORDER BY s.criado_em DESC
+         LIMIT ? OFFSET ?'
+    );
+    $st->execute([$limite, $offset]);
+    return $st->fetchAll();
+}
+
+function count_stories(): int {
+    _migrar_stories();
+    return (int)db()->query('SELECT COUNT(*) FROM stories WHERE expira_em > NOW()')->fetchColumn();
+}
+
+function add_story(int $user_id, string $texto, ?int $local_id, ?string $foto): int {
+    _migrar_stories();
+    $st = db()->prepare(
+        'INSERT INTO stories (utilizador_id, local_id, texto, foto, expira_em)
+         VALUES (?, ?, ?, ?, DATE_ADD(NOW(), INTERVAL 7 DAY))'
+    );
+    $st->execute([$user_id, $local_id, $texto, $foto]);
+    return (int)db()->lastInsertId();
+}
+
 // ---------- ATUALIZAÇÕES DE LOCAL ----------
 function _migrar_atualizacoes_local(): void {
     static $done = false;
