@@ -64,6 +64,7 @@ $offset     = ($pagina - 1) * $por_pagina;
 $stories    = [];
 
 if ($tipo === 'utilizadores') {
+    if (!$auth_user) { header('Location: ' . SITE_URL . '/pages/login.php'); exit; }
     $pesquisa = trim($_GET['pesquisa'] ?? '');
     $ordem    = $_GET['ordem'] ?? 'pontos';
     if (!in_array($ordem, ['pontos', 'locais', 'recente'])) $ordem = 'pontos';
