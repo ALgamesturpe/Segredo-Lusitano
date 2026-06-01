@@ -39,15 +39,18 @@ $dif_label = [
     'dificil' => 'Difícil',
 ][$local_dif] ?? 'Médio';
 
-// Verificar se o utilizador autenticado segue o autor deste local
+// Seguidos carregados uma única vez por request (evita N+1 queries)
 $_card_user = auth_user();
-$_card_segue = false;
 $_card_e_proprio = $_card_user && $_card_user['id'] == $local_utilizador_id;
-if ($_card_user && !$_card_e_proprio && $local_utilizador_id > 0) {
-    $__st = db()->prepare('SELECT id FROM seguidores WHERE seguidor_id = ? AND seguido_id = ?');
-    $__st->execute([$_card_user['id'], $local_utilizador_id]);
-    $_card_segue = (bool)$__st->fetch();
+if (!isset($GLOBALS['_card_seguindo_ids'])) {
+    $GLOBALS['_card_seguindo_ids'] = [];
+    if ($_card_user) {
+        $__st2 = db()->prepare('SELECT seguido_id FROM seguidores WHERE seguidor_id = ?');
+        $__st2->execute([$_card_user['id']]);
+        $GLOBALS['_card_seguindo_ids'] = array_column($__st2->fetchAll(), 'seguido_id');
+    }
 }
+$_card_segue = in_array($local_utilizador_id, $GLOBALS['_card_seguindo_ids']);
 ?>
 <div class="card">
   <a href="<?= SITE_URL ?>/pages/local.php?id=<?= $local_id ?>" class="card-img" style="display:block;">

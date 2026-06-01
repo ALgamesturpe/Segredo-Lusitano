@@ -11,7 +11,10 @@ if (session_status() === PHP_SESSION_NONE) {
 function auth_user(): ?array {
     if (!isset($_SESSION['user_id'])) return null;
 
-    // Invalidar sessão se a base de dados foi reiniciada (token muda a cada reset)
+    static $cache = false; // false = ainda não verificado; null = não encontrado; array = utilizador
+    if ($cache !== false) return $cache;
+
+    // Invalidar sessão se a base de dados foi reiniciada — corre apenas uma vez
     try {
         $token = db()->query("SELECT valor FROM app_meta WHERE nome='reset_token'")->fetchColumn();
         if ($token !== false) {
@@ -20,14 +23,12 @@ function auth_user(): ?array {
             } elseif ($_SESSION['reset_token'] !== $token) {
                 $_SESSION = [];
                 session_destroy();
+                $cache = null;
                 return null;
             }
         }
-    } catch (\Exception $e) {
-        // app_meta pode não existir em bases de dados antigas
-    }
-    static $cache = null;
-    if ($cache) return $cache;
+    } catch (\Exception $e) {}
+
     $st = db()->prepare('SELECT * FROM utilizadores WHERE id = ? AND ativo = 1');
     $st->execute([$_SESSION['user_id']]);
     $cache = $st->fetch() ?: null;
