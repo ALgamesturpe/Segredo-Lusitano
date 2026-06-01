@@ -1322,7 +1322,12 @@ document.addEventListener('DOMContentLoaded', function() {
       <h3 style="margin:0;font-size:1rem;color:var(--verde-escuro);"><?= h(local_nome_publico($local)) ?></h3>
       <button onclick="fecharModalQR()" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--texto-muted);"><i class="fas fa-times"></i></button>
     </div>
-    <img id="qr-img" src="" alt="QR Code" style="width:240px;height:240px;border:1px solid var(--creme-escuro);border-radius:var(--radius);margin:0 auto 1.25rem;display:block;">
+    <div style="position:relative;width:240px;height:240px;margin:0 auto 1.25rem;">
+      <img id="qr-img" src="" alt="QR Code" style="width:100%;height:100%;border:1px solid var(--creme-escuro);border-radius:var(--radius);display:block;">
+      <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;border-radius:50%;padding:4px;line-height:0;box-shadow:0 0 0 2px #fff;">
+        <img src="<?= SITE_URL ?>/assets/images/logo_icon.png" alt="" style="width:52px;height:52px;object-fit:contain;border-radius:50%;display:block;">
+      </div>
+    </div>
     <p style="font-size:.8rem;color:var(--texto-muted);margin-bottom:1.25rem;">Aponta a câmara para aceder diretamente a este local.</p>
     <div style="display:flex;gap:.75rem;justify-content:center;">
       <button onclick="downloadQR()" class="btn btn-sm btn-primary"><i class="fas fa-download"></i> Descarregar</button>
