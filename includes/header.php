@@ -20,7 +20,17 @@ if ($user) {
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title><?= h($page_title) ?> &mdash; <?= SITE_NAME ?></title>
-<meta name="description" content="Descobre os segredos escondidos de Portugal.">
+<meta name="description" content="<?= h($og_description ?? 'Descobre os segredos escondidos de Portugal.') ?>">
+
+<!-- Open Graph (WhatsApp, Telegram, Facebook, etc.) -->
+<meta property="og:site_name"   content="Segredo Lusitano">
+<meta property="og:type"        content="website">
+<meta property="og:title"       content="<?= h($og_title ?? ($page_title . ' — Segredo Lusitano')) ?>">
+<meta property="og:description" content="<?= h($og_description ?? 'Descobre os segredos escondidos de Portugal.') ?>">
+<meta property="og:url"         content="<?= h($og_url ?? SITE_URL) ?>">
+<meta property="og:image"       content="<?= h($og_image ?? SITE_URL . '/assets/images/logo.png') ?>">
+<meta name="twitter:card"       content="summary_large_image">
+<meta name="twitter:image"      content="<?= h($og_image ?? SITE_URL . '/assets/images/logo.png') ?>">
 
 <!-- Favicon -->
 <link rel="icon" type="image/x-icon" href="<?= SITE_URL ?>/favicon.ico">

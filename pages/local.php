@@ -236,7 +236,13 @@ if (isset($_GET['apagar_atualizacao']) && $user) {
     header('Location: ' . SITE_URL . '/pages/local.php?id=' . $id . '#atualizacoes'); exit;
 }
 
-$page_title = local_nome_publico($local);
+$page_title     = local_nome_publico($local);
+$og_title       = local_nome_publico($local) . ' — Segredo Lusitano';
+$og_description = trim(mb_substr(strip_tags(local_descricao_publica($local)), 0, 160)) ?: 'Descobre este local secreto em Portugal.';
+$og_url         = SITE_URL . '/pages/local.php?id=' . $id;
+$og_image       = $local['foto_capa']
+    ? SITE_URL . '/uploads/locais/' . $local['foto_capa']
+    : SITE_URL . '/assets/images/fundo_site.jpeg';
 $carregar_leaflet = true;
 include dirname(__DIR__) . '/includes/header.php';
 ?>
