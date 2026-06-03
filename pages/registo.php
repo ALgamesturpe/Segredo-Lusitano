@@ -61,6 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) $erros['email'] = 'Email inválido.';
     if (strlen($password) < 6)          $erros['password'] = 'Password com mínimo 6 caracteres.';
     elseif (!preg_match('/[A-Z]/', $password))       $erros['password'] = 'Password deve conter pelo menos uma letra maiúscula.';
+    elseif (!preg_match('/[0-9]/', $password))          $erros['password'] = 'Password deve conter pelo menos um número.';
     elseif (!preg_match('/[^a-zA-Z0-9]/', $password)) $erros['password'] = 'Password deve conter pelo menos um carácter especial.';
     if ($password !== $confirm)    $erros['confirm']  = 'As passwords não coincidem.';
     if (empty($_POST['aceitar_termos'])) $erros['termos'] = 'Deves aceitar os Termos e Condições para continuar.';
@@ -189,6 +190,10 @@ include dirname(__DIR__) . '/includes/header.php';
             <div class="pw-req" id="req-upper" style="display:flex;align-items:center;gap:.5rem;font-size:.8rem;color:var(--texto-muted);">
               <span class="pw-circle" style="width:16px;height:16px;border-radius:50%;border:2px solid #ccc;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;"></span>
               Letra maiúscula (A-Z)
+            </div>
+            <div class="pw-req" id="req-number" style="display:flex;align-items:center;gap:.5rem;font-size:.8rem;color:var(--texto-muted);">
+              <span class="pw-circle" style="width:16px;height:16px;border-radius:50%;border:2px solid #ccc;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;"></span>
+              Um número (0-9)
             </div>
             <div class="pw-req" id="req-special" style="display:flex;align-items:center;gap:.5rem;font-size:.8rem;color:var(--texto-muted);">
               <span class="pw-circle" style="width:16px;height:16px;border-radius:50%;border:2px solid #ccc;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;"></span>
@@ -414,6 +419,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var v = this.value;
     _pwCircle('req-length',  v.length >= 6);
     _pwCircle('req-upper',   /[A-Z]/.test(v));
+    _pwCircle('req-number',  /[0-9]/.test(v));
     _pwCircle('req-special', /[^a-zA-Z0-9]/.test(v));
   });
 });
