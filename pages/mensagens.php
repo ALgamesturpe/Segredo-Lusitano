@@ -6,6 +6,12 @@ $user = auth_user();
 $uid  = $user['id'];
 $conversa_id = isset($_GET['com']) ? (int)$_GET['com'] : 0;
 
+// Marcar como lidas ANTES de carregar a lista (para o badge já sair a zero)
+if ($conversa_id) {
+    db()->prepare('UPDATE mensagens SET lida=1 WHERE remetente_id=? AND destinatario_id=? AND lida=0')
+       ->execute([$conversa_id, $uid]);
+}
+
 $st = db()->prepare(
     'SELECT DISTINCT
         u.id, u.nome, u.username, u.avatar,
@@ -724,6 +730,12 @@ async function enviarFicheiroConfirmado() {
 }
 
 let ultimaMsg = <?= $mensagens ? '"' . end($mensagens)['criado_em'] . '"' : '"0"' ?>;
+
+// Zerar badge da navbar imediatamente ao abrir a conversa
+(function() {
+  const badge = document.getElementById('msg-badge');
+  if (badge) badge.style.display = 'none';
+})();
 
 setInterval(async () => {
   const res  = await fetch(`${SITE_URL_JS}/pages/mensagens_api.php?acao=novas&com=${CONVERSA_COM}&desde=${encodeURIComponent(ultimaMsg)}`);
