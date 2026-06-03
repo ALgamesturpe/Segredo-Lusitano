@@ -21,6 +21,7 @@ $local_bloqueado  = ((int)($local['bloqueado'] ?? 0) === 1);
 
 $guardado = false;
 if ($user) {
+    _migrar_favoritos();
     $stFav = db()->prepare('SELECT id FROM favoritos WHERE utilizador_id = ? AND local_id = ?');
     $stFav->execute([$user['id'], $id]);
     $guardado = (bool)$stFav->fetch();

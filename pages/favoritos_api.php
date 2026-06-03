@@ -3,6 +3,7 @@ error_reporting(0);
 ini_set('display_errors', 0);
 require_once dirname(__DIR__) . '/includes/functions.php';
 require_login();
+_migrar_favoritos();
 
 header('Content-Type: application/json');
 $user     = auth_user();

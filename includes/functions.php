@@ -562,6 +562,24 @@ function get_regioes(): array {
     return $st->fetchAll();
 }
 
+// ---------- FAVORITOS ----------
+function _migrar_favoritos(): void {
+    static $done = false;
+    if ($done) return;
+    $done = true;
+    db()->exec('
+        CREATE TABLE IF NOT EXISTS favoritos (
+            id            INT AUTO_INCREMENT PRIMARY KEY,
+            utilizador_id INT NOT NULL,
+            local_id      INT NOT NULL,
+            criado_em     DATETIME DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE KEY unique_fav (utilizador_id, local_id),
+            FOREIGN KEY (utilizador_id) REFERENCES utilizadores(id) ON DELETE CASCADE,
+            FOREIGN KEY (local_id)      REFERENCES locais(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    ');
+}
+
 // ---------- UTILITÁRIOS DE DATA ----------
 function tempo_atras(string $data): string {
     $diff = time() - strtotime($data);

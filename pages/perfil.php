@@ -97,6 +97,7 @@ $lista_seguidos = $st_lista_seguidos->fetchAll();
 // Locais guardados (só para o próprio utilizador)
 $locais_guardados = [];
 if ($is_own) {
+    _migrar_favoritos();
     $stFavs = db()->prepare(
         'SELECT l.*, c.nome AS categoria_nome, c.icone AS categoria_icone, r.nome AS regiao_nome,
                 u.username, u.nome AS autor_nome,
