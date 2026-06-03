@@ -22,7 +22,12 @@
       "PowerShell(cmd /c \"dir C:\\\\wamp64\\\\bin\\\\mysql 2>&1\")",
       "Bash(Get-ChildItem \"C:\\\\wamp64\\\\logs\" -ErrorAction SilentlyContinue)",
       "Bash(Select-Object Name, LastWriteTime)",
-      "PowerShell(Get-ChildItem -Path \"c:\\\\wamp64\\\\www\\\\Segredo-Lusitano\" -Recurse -Force | Where-Object { $_.PSIsContainer -eq $true } | Select-Object FullName | Sort-Object FullName)"
+      "PowerShell(Get-ChildItem -Path \"c:\\\\wamp64\\\\www\\\\Segredo-Lusitano\" -Recurse -Force | Where-Object { $_.PSIsContainer -eq $true } | Select-Object FullName | Sort-Object FullName)",
+      "Bash(Remove-Item \"c:\\\\wamp64\\\\www\\\\Segredo-Lusitano\\\\pages\\\\favoritos_api.php\")",
+      "PowerShell(& \"C:\\\\wamp64\\\\bin\\\\mysql\\\\mysql8.0.31\\\\bin\\\\mysql.exe\" -u root -p123456 segredo_lusitano -e \"SHOW TABLES LIKE 'favoritos';\")",
+      "PowerShell(& \"C:\\\\wamp64\\\\bin\\\\mysql\\\\mysql8.4.7\\\\bin\\\\mysql.exe\" -u root -p123456 segredo_lusitano -e \"SHOW TABLES LIKE 'favoritos'; DESCRIBE favoritos;\" 2>&1)",
+      "PowerShell(& \"C:\\\\wamp64\\\\bin\\\\mysql\\\\mysql8.4.7\\\\bin\\\\mysql.exe\" -u root -p123456 segredo_lusitano -e \"DROP TABLE favoritos;\" 2>&1)",
+      "PowerShell(& \"C:\\\\wamp64\\\\bin\\\\mysql\\\\mysql8.4.7\\\\bin\\\\mysql.exe\" -u root -p123456 segredo_lusitano -e \"SHOW TABLES LIKE 'favoritos';\" 2>&1)"
     ]
   }
 }
