@@ -325,20 +325,9 @@ include dirname(__DIR__) . '/includes/header.php';
             <button onclick="mostrarAvisoLogin('Precisas de iniciar sessão para guardar este local.', '<?= SITE_URL ?>/pages/login.php')" class="btn btn-sm btn-outline" style="color:var(--texto-muted);border-color:var(--creme-escuro);">
               <i class="far fa-bookmark"></i> Guardar
             </button>
-            <!-- Dropdown Partilhar (não autenticado) -->
-            <div style="position:relative;display:inline-block;">
-              <button onclick="toggleDropPartilhar(event)" class="btn btn-sm btn-outline" style="color:var(--verde);border-color:var(--verde);">
-                <i class="fas fa-share-alt"></i> Partilhar <i class="fas fa-chevron-down" style="font-size:.65rem;margin-left:.2rem;"></i>
-              </button>
-              <div id="drop-partilhar" style="display:none;position:absolute;top:calc(100% + 6px);left:0;background:#fff;border:1.5px solid var(--creme-escuro);border-radius:var(--radius);box-shadow:0 6px 20px rgba(0,0,0,.12);min-width:200px;z-index:500;overflow:hidden;">
-                <button onclick="mostrarAvisoLogin('Precisas de iniciar sessão para recomendar este local.','<?= SITE_URL ?>/pages/login.php');fecharDropPartilhar()" style="width:100%;text-align:left;padding:.65rem 1rem;background:none;border:none;border-bottom:1px solid var(--creme-escuro);cursor:pointer;font-size:.88rem;color:var(--texto);display:flex;align-items:center;gap:.6rem;">
-                  <i class="fas fa-paper-plane" style="color:var(--verde);width:14px;"></i> Enviar a um seguidor
-                </button>
-                <button onclick="partilharLocal();fecharDropPartilhar()" style="width:100%;text-align:left;padding:.65rem 1rem;background:none;border:none;cursor:pointer;font-size:.88rem;color:var(--texto);display:flex;align-items:center;gap:.6rem;">
-                  <i class="fas fa-arrow-up-from-bracket" style="color:var(--verde);width:14px;"></i> Partilhar externamente
-                </button>
-              </div>
-            </div>
+            <button onclick="mostrarAvisoLogin('Precisas de iniciar sessão para partilhar este local.', '<?= SITE_URL ?>/pages/login.php')" class="btn btn-sm btn-outline" style="color:var(--verde);border-color:var(--verde);">
+              <i class="fas fa-share-alt"></i> Partilhar
+            </button>
           <?php endif; ?>
 
           <!-- Check-in GPS -->
@@ -811,6 +800,10 @@ function fecharDropPartilhar() {
 document.addEventListener('click', fecharDropPartilhar);
 
 function partilharLocal() {
+  if (!IS_LOGGED_IN) {
+    mostrarAvisoLogin('Precisas de iniciar sessão para partilhar este local.', '<?= SITE_URL ?>/pages/login.php');
+    return;
+  }
   const url  = '<?= SITE_URL ?>/pages/local.php?id=<?= $id ?>';
   const nome = <?= json_encode(local_nome_publico($local)) ?>;
   if (navigator.share) {
