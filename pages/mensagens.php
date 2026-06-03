@@ -356,13 +356,14 @@ html, body     { overflow: hidden; }
 </div>
 </div>
 
-<!-- Overlay de confirmação de eliminar (substitui confirm() bloqueado no iOS) -->
-<div id="overlay-eliminar" style="display:none;position:fixed;top:0;right:0;bottom:0;left:0;z-index:7000;background:rgba(0,0,0,.4);align-items:flex-end;" onclick="cancelarEliminar()">
-  <div onclick="event.stopPropagation()" style="width:100%;background:#fff;border-radius:16px 16px 0 0;padding:1.25rem 1.5rem;padding-bottom:calc(1.25rem + env(safe-area-inset-bottom));box-shadow:0 -4px 24px rgba(0,0,0,.15);">
-    <p style="margin:0 0 1rem;font-size:.95rem;text-align:center;color:var(--texto);">Eliminar esta mensagem?</p>
+<!-- Modal de confirmação de eliminar -->
+<div id="overlay-eliminar" style="display:none;position:fixed;inset:0;z-index:7000;background:rgba(0,0,0,.45);align-items:center;justify-content:center;padding:1rem;" onclick="cancelarEliminar()">
+  <div onclick="event.stopPropagation()" style="background:#fff;border-radius:var(--radius-lg);padding:1.75rem 1.5rem;width:100%;max-width:320px;box-shadow:0 8px 32px rgba(0,0,0,.2);text-align:center;">
+    <i class="fas fa-trash" style="font-size:1.6rem;color:#c0392b;margin-bottom:.75rem;display:block;"></i>
+    <p style="margin:0 0 1.25rem;font-size:.95rem;color:var(--texto);font-weight:600;">Eliminar esta mensagem?</p>
     <div style="display:flex;gap:.75rem;">
-      <button onclick="cancelarEliminar()" style="flex:1;padding:.75rem;border:1.5px solid var(--creme-escuro);border-radius:8px;background:#fff;font-size:.95rem;cursor:pointer;">Cancelar</button>
-      <button onclick="confirmarEliminar()" style="flex:1;padding:.75rem;border:none;border-radius:8px;background:#c0392b;color:#fff;font-size:.95rem;font-weight:600;cursor:pointer;">Eliminar</button>
+      <button onclick="cancelarEliminar()" style="flex:1;padding:.65rem;border:1.5px solid var(--creme-escuro);border-radius:var(--radius);background:#fff;font-size:.9rem;cursor:pointer;color:var(--texto-muted);">Cancelar</button>
+      <button onclick="confirmarEliminar()" style="flex:1;padding:.65rem;border:none;border-radius:var(--radius);background:#c0392b;color:#fff;font-size:.9rem;font-weight:600;cursor:pointer;">Eliminar</button>
     </div>
   </div>
 </div>
