@@ -21,4 +21,12 @@ if (!$local_id) {
 }
 
 $result = toggle_like($local_id, $user['id']);
+
+if ($result['liked']) {
+    $stDono = db()->prepare('SELECT utilizador_id FROM locais WHERE id=?');
+    $stDono->execute([$local_id]);
+    $dono_id = (int)$stDono->fetchColumn();
+    if ($dono_id) criar_notificacao($dono_id, $user['id'], 'like', $local_id);
+}
+
 echo json_encode($result);

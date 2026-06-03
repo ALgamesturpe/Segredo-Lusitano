@@ -341,6 +341,7 @@ function add_comentario(int $local_id, int $user_id, string $texto, ?string $fic
     $dono_id = (int)$stDono->fetchColumn();
     if ($dono_id && $dono_id !== (int)$user_id) {
         add_pontos($dono_id, PONTOS_COMENTARIO);
+        criar_notificacao($dono_id, $user_id, 'comentario', $local_id);
     }
     return (int)db()->lastInsertId();
 }
@@ -684,6 +685,77 @@ function add_atualizacao_local(int $local_id, int $user_id, string $texto): int 
     );
     $st->execute([$local_id, $user_id, $texto]);
     return (int)db()->lastInsertId();
+}
+
+// ---------- NOTIFICAÇÕES ----------
+function _migrar_notificacoes(): void {
+    static $done = false;
+    if ($done) return;
+    $done = true;
+    db()->exec('
+        CREATE TABLE IF NOT EXISTS notificacoes (
+            id            INT AUTO_INCREMENT PRIMARY KEY,
+            utilizador_id INT NOT NULL,
+            ator_id       INT NOT NULL,
+            tipo          ENUM(\'like\',\'comentario\',\'seguidor\',\'checkin\') NOT NULL,
+            local_id      INT NULL,
+            lida          TINYINT(1) DEFAULT 0,
+            criado_em     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (utilizador_id) REFERENCES utilizadores(id) ON DELETE CASCADE,
+            FOREIGN KEY (ator_id)       REFERENCES utilizadores(id) ON DELETE CASCADE,
+            FOREIGN KEY (local_id)      REFERENCES locais(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    ');
+}
+
+function criar_notificacao(int $para, int $ator, string $tipo, ?int $local_id = null): void {
+    if ($para === $ator) return;
+    _migrar_notificacoes();
+    // Evitar duplicados recentes (mesma ação nas últimas 24h)
+    $st = db()->prepare(
+        'SELECT id FROM notificacoes
+         WHERE utilizador_id=? AND ator_id=? AND tipo=? AND (local_id<=>?)
+           AND criado_em > DATE_SUB(NOW(), INTERVAL 24 HOUR)'
+    );
+    $st->execute([$para, $ator, $tipo, $local_id]);
+    if ($st->fetch()) return;
+    db()->prepare(
+        'INSERT INTO notificacoes (utilizador_id, ator_id, tipo, local_id) VALUES (?,?,?,?)'
+    )->execute([$para, $ator, $tipo, $local_id]);
+}
+
+function get_notificacoes(int $user_id, int $limite = 40): array {
+    _migrar_notificacoes();
+    $st = db()->prepare(
+        'SELECT n.*, u.username AS ator_username, u.nome AS ator_nome, u.avatar AS ator_avatar,
+                l.nome AS local_nome
+         FROM notificacoes n
+         JOIN utilizadores u ON u.id = n.ator_id
+         LEFT JOIN locais l ON l.id = n.local_id
+         WHERE n.utilizador_id = ?
+         ORDER BY n.criado_em DESC
+         LIMIT ?'
+    );
+    $st->execute([$user_id, $limite]);
+    return $st->fetchAll();
+}
+
+function count_notificacoes_nao_lidas(int $user_id): int {
+    _migrar_notificacoes();
+    $st = db()->prepare('SELECT COUNT(*) FROM notificacoes WHERE utilizador_id=? AND lida=0');
+    $st->execute([$user_id]);
+    return (int)$st->fetchColumn();
+}
+
+function marcar_notificacoes_lidas(int $user_id, ?int $notif_id = null): void {
+    _migrar_notificacoes();
+    if ($notif_id) {
+        db()->prepare('UPDATE notificacoes SET lida=1 WHERE id=? AND utilizador_id=?')
+           ->execute([$notif_id, $user_id]);
+    } else {
+        db()->prepare('UPDATE notificacoes SET lida=1 WHERE utilizador_id=?')
+           ->execute([$user_id]);
+    }
 }
 
 // ---------- CHECK-INS ----------

@@ -28,6 +28,7 @@ if ($st->fetch()) {
     db()->prepare('INSERT INTO seguidores (seguidor_id, seguido_id) VALUES (?, ?)')
         ->execute([$user['id'], $seguido_id]);
     $a_seguir = true;
+    criar_notificacao($seguido_id, $user['id'], 'seguidor');
 }
 
 $st2 = db()->prepare('SELECT COUNT(*) FROM seguidores WHERE seguido_id = ?');

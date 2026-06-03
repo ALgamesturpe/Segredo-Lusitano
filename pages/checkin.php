@@ -40,6 +40,10 @@ if (user_fez_checkin($local_id, $user['id'])) {
 try {
     $st = db()->prepare('INSERT INTO checkins (utilizador_id, local_id) VALUES (?, ?)');
     $st->execute([$user['id'], $local_id]);
+    $stDono = db()->prepare('SELECT utilizador_id FROM locais WHERE id=?');
+    $stDono->execute([$local_id]);
+    $dono_id = (int)$stDono->fetchColumn();
+    if ($dono_id) criar_notificacao($dono_id, $user['id'], 'checkin', $local_id);
     echo json_encode(['ok' => true]);
 } catch (\PDOException $e) {
     echo json_encode(['ok' => false, 'erro' => 'Erro ao registar']);

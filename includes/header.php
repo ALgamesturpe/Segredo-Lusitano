@@ -13,6 +13,11 @@ if ($user) {
     $stNL->execute([$user['id']]);
     $nao_lidas_msg = (int)$stNL->fetchColumn();
 }
+// Contador de notificações não lidas
+$nao_lidas_notif = 0;
+if ($user) {
+    $nao_lidas_notif = count_notificacoes_nao_lidas($user['id']);
+}
 ?>
 <!DOCTYPE html>
 <html lang="pt">
@@ -97,6 +102,16 @@ if ($user) {
           </a>
         <?php endif; ?>
       </li>
+      <?php if ($user): ?>
+      <li>
+        <a href="<?= SITE_URL ?>/pages/notificacoes.php" style="position:relative;">
+          <i class="fas fa-bell"></i> Notificações
+          <?php if ($nao_lidas_notif > 0): ?>
+            <span id="notif-badge" style="position:absolute;top:-6px;right:-8px;background:#e74c3c;color:#fff;border-radius:0;padding:.1rem .4rem;font-size:.7rem;font-weight:700;line-height:1.4;"><?= $nao_lidas_notif ?></span>
+          <?php endif; ?>
+        </a>
+      </li>
+      <?php endif; ?>
       <li>
         <a href="<?= $user ? SITE_URL . '/pages/mensagens.php' : '#' ?>"
            <?= !$user ? 'onclick="mostrarAvisoLogin(\'Inicia sessão para acederes às tuas mensagens.\', \'' . SITE_URL . '/pages/login.php\'); return false;"' : '' ?>
