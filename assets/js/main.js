@@ -296,6 +296,8 @@ function initMainMap(locais) {
     noWrap: true,
   }).addTo(map);
 
+  setTimeout(function() { map.invalidateSize(); }, 100);
+
   const makeIcon = (cat) => L.divIcon({
     className: '',
     html: `<div style="background:#1a3a2a;border:3px solid #c9a84c;border-radius:50% 50% 50% 0;transform:rotate(-45deg);width:32px;height:32px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,.3);"><i class='${cat}' style='transform:rotate(45deg);color:#c9a84c;font-size:.7rem;'></i></div>`,
@@ -307,23 +309,18 @@ function initMainMap(locais) {
   const allMarkers = [];
 
   locais.forEach(l => {
-    const m = L.marker([parseFloat(l.latitude), parseFloat(l.longitude)], { icon: makeIcon(l.icone) });
-    m.addTo(map);
-    let img = l.foto_capa ? `<img src="${SITE_URL}/uploads/locais/${l.foto_capa}" alt="" style="width:100%;height:90px;object-fit:cover;border-radius:4px;margin-bottom:.5rem;">` : '';
-    m.bindPopup(`
-      <div style="min-width:200px;font-family:'Outfit',sans-serif;">
-        ${img}
-        <div style="font-family:'Playfair Display',serif;font-weight:700;font-size:1rem;color:#1a3a2a;">${l.nome}</div>
-        <div style="font-size:.8rem;color:#6b7280;margin:.2rem 0 .6rem;">${l.categoria_nome} · ${l.regiao_nome}</div>
-        <a href="${SITE_URL}/pages/local.php?id=${l.id}" style="display:inline-flex;align-items:center;gap:.35rem;color:#2d6a4f;font-size:.85rem;font-weight:700;">
-          Ver local <i class="fas fa-arrow-right"></i>
-        </a>
-      </div>
-    `);
-    allMarkers.push({ marker: m, local: l, onMap: true });
-
-    if (abrirId && l.id === abrirId) {
-      m.openPopup();
+    try {
+      const lat = parseFloat(l.latitude);
+      const lng = parseFloat(l.longitude);
+      if (isNaN(lat) || isNaN(lng)) return;
+      const m = L.marker([lat, lng], { icon: makeIcon(l.icone) });
+      m.addTo(map);
+      const img = l.foto_capa ? `<img src="${SITE_URL}/uploads/locais/${l.foto_capa}" alt="" style="width:100%;height:90px;object-fit:cover;border-radius:4px;margin-bottom:.5rem;">` : '';
+      m.bindPopup(`<div style="min-width:200px;font-family:'Outfit',sans-serif;">${img}<div style="font-family:'Playfair Display',serif;font-weight:700;font-size:1rem;color:#1a3a2a;">${l.nome}</div><div style="font-size:.8rem;color:#6b7280;margin:.2rem 0 .6rem;">${l.categoria_nome} &middot; ${l.regiao_nome}</div><a href="${SITE_URL}/pages/local.php?id=${l.id}" style="display:inline-flex;align-items:center;gap:.35rem;color:#2d6a4f;font-size:.85rem;font-weight:700;">Ver local <i class="fas fa-arrow-right"></i></a></div>`);
+      allMarkers.push({ marker: m, local: l, onMap: true });
+      if (abrirId && l.id === abrirId) m.openPopup();
+    } catch(e) {
+      console.warn('Erro ao adicionar marcador id=' + l.id + ':', e);
     }
   });
 
