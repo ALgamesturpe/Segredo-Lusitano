@@ -34,7 +34,8 @@
       "PowerShell(& \"C:\\\\wamp64\\\\bin\\\\php\\\\php8.3.28\\\\php.exe\" \"C:\\\\wamp64\\\\www\\\\Segredo-Lusitano\\\\check_db.php\")",
       "PowerShell(& \"C:\\\\wamp64\\\\bin\\\\php\\\\php8.3.28\\\\php.exe\" \"C:\\\\wamp64\\\\www\\\\Segredo-Lusitano\\\\check_map.php\")",
       "PowerShell(Invoke-WebRequest -Uri \"http://localhost/Segredo-Lusitano/pages/mapa.php\" -UseBasicParsing -TimeoutSec 5 2>&1)",
-      "PowerShell(& \"C:\\\\wamp64\\\\bin\\\\php\\\\php8.3.28\\\\php.exe\" \"C:\\\\wamp64\\\\www\\\\Segredo-Lusitano\\\\check_db.php\" 2>&1)"
+      "PowerShell(& \"C:\\\\wamp64\\\\bin\\\\php\\\\php8.3.28\\\\php.exe\" \"C:\\\\wamp64\\\\www\\\\Segredo-Lusitano\\\\check_db.php\" 2>&1)",
+      "PowerShell(& \"C:\\\\wamp64\\\\bin\\\\php\\\\php8.3.28\\\\php.exe\" \"C:\\\\wamp64\\\\www\\\\Segredo-Lusitano\\\\insert_trilhos.php\")"
     ]
   }
 }
