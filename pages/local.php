@@ -244,6 +244,31 @@ $og_url         = SITE_URL . '/pages/local.php?id=' . $id;
 $og_image       = $local['foto_capa']
     ? SITE_URL . '/uploads/locais/' . $local['foto_capa']
     : SITE_URL . '/assets/images/fundo_site.jpeg';
+// --- Locais próximos (Haversine) ---
+$locais_proximos = [];
+if ($local['latitude'] && $local['longitude']) {
+    $st_lp = db()->prepare(
+        'SELECT l.id, l.nome, l.foto_capa, l.dificuldade, l.latitude, l.longitude,
+                c.nome AS categoria_nome, c.icone AS categoria_icone,
+                r.nome AS regiao_nome,
+                (6371 * acos(
+                    cos(radians(?)) * cos(radians(l.latitude)) *
+                    cos(radians(l.longitude) - radians(?)) +
+                    sin(radians(?)) * sin(radians(l.latitude))
+                )) AS distancia
+         FROM locais l
+         JOIN categorias c ON c.id = l.categoria_id
+         JOIN regioes r ON r.id = l.regiao_id
+         WHERE l.id != ? AND l.estado = "aprovado" AND l.bloqueado = 0
+           AND l.apagado_em IS NULL AND l.latitude IS NOT NULL AND l.longitude IS NOT NULL
+         HAVING distancia < 50
+         ORDER BY distancia ASC
+         LIMIT 4'
+    );
+    $st_lp->execute([$local['latitude'], $local['longitude'], $local['latitude'], $id]);
+    $locais_proximos = $st_lp->fetchAll();
+}
+
 $carregar_leaflet = true;
 include dirname(__DIR__) . '/includes/header.php';
 ?>
@@ -509,6 +534,43 @@ include dirname(__DIR__) . '/includes/header.php';
           </div>
         </div>
         <?php endif; ?>
+
+        <?php if ($locais_proximos): ?>
+        <div style="margin-bottom:1.5rem;">
+          <h3 style="font-size:1rem;margin-bottom:.75rem;"><i class="fas fa-location-dot"></i> Locais Perto Deste</h3>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:.85rem;">
+            <?php foreach ($locais_proximos as $lp):
+              $dif_lp = ['facil'=>'badge-dif-facil','medio'=>'badge-dif-medio','dificil'=>'badge-dif-dificil'][$lp['dificuldade']] ?? 'badge-dif-medio';
+              $dist_km = $lp['distancia'] < 1 ? number_format($lp['distancia'] * 1000).' m' : number_format($lp['distancia'], 1).' km';
+            ?>
+            <a href="<?= SITE_URL ?>/pages/local.php?id=<?= $lp['id'] ?>"
+               style="text-decoration:none;border:1.5px solid var(--creme-escuro);border-radius:var(--radius);overflow:hidden;background:var(--branco);display:block;transition:border-color .15s;"
+               onmouseover="this.style.borderColor='var(--verde)'" onmouseout="this.style.borderColor='var(--creme-escuro)'">
+              <div style="height:100px;overflow:hidden;background:var(--creme);position:relative;">
+                <?php if ($lp['foto_capa']): ?>
+                  <img src="<?= SITE_URL ?>/uploads/locais/<?= h($lp['foto_capa']) ?>" alt="" style="width:100%;height:100%;object-fit:cover;">
+                <?php else: ?>
+                  <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;">
+                    <i class="<?= h($lp['categoria_icone']) ?>" style="font-size:2rem;opacity:.25;color:var(--verde-escuro);"></i>
+                  </div>
+                <?php endif; ?>
+                <span style="position:absolute;bottom:.35rem;right:.35rem;background:rgba(26,58,42,.85);color:#c9a84c;font-size:.7rem;font-weight:700;padding:.15rem .4rem;border-radius:0;">
+                  <i class="fas fa-location-dot"></i> <?= $dist_km ?>
+                </span>
+              </div>
+              <div style="padding:.55rem .7rem;">
+                <div style="font-size:.72rem;color:var(--texto-muted);margin-bottom:.15rem;"><?= h($lp['regiao_nome']) ?></div>
+                <div style="font-weight:600;font-size:.85rem;color:var(--texto);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><?= h($lp['nome']) ?></div>
+                <div style="margin-top:.3rem;">
+                  <span class="badge badge-cat" style="font-size:.66rem;padding:.1rem .38rem;"><i class="<?= h($lp['categoria_icone']) ?>"></i> <?= h($lp['categoria_nome']) ?></span>
+                </div>
+              </div>
+            </a>
+            <?php endforeach; ?>
+          </div>
+        </div>
+        <?php endif; ?>
+
       </div><!-- /detalhe-main-top -->
 
       <div class="detalhe-mapa">

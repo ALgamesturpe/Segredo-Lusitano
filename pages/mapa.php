@@ -143,6 +143,11 @@ include dirname(__DIR__) . '/includes/header.php';
          style="display:<?= $tem_filtros ? 'flex' : 'none' ?>;color:rgba(245,239,230,.5);font-size:.75rem;text-decoration:none;padding:.2rem .4rem;border:1px solid rgba(245,239,230,.15);border-radius:0;align-items:center;align-self:flex-end;" title="Limpar filtros">
         <i class="fas fa-times"></i>
       </a>
+      <button type="button" id="btn-perto-mim-mapa" onclick="togglePertoDeMimMapa()"
+              style="background:rgba(255,255,255,.1);color:var(--creme);border:1px solid rgba(201,168,76,.3);border-radius:0;padding:.2rem .55rem;font-size:.75rem;cursor:pointer;display:flex;align-items:center;gap:.3rem;white-space:nowrap;align-self:flex-end;transition:all .2s;"
+              title="Mostrar locais perto de mim">
+        <i class="fas fa-location-crosshairs"></i> <span class="d-none d-sm-inline">Perto de mim</span>
+      </button>
     </form>
 
   </div>
@@ -185,6 +190,61 @@ function limparFiltrosMapa() {
   history.pushState({}, '', window.location.pathname);
   document.getElementById('btn-limpar-filtro').style.display = 'none';
   window._mapFilterLocais({ categoria: '', regiao: '', dificuldade: '' });
+}
+
+let _pertoDeMimAtivo = false;
+let _userMarkerMapa  = null;
+let _userLatMapa     = null;
+let _userLngMapa     = null;
+
+function togglePertoDeMimMapa() {
+  const btn = document.getElementById('btn-perto-mim-mapa');
+  if (_pertoDeMimAtivo) {
+    _pertoDeMimAtivo = false;
+    _userLatMapa = null;
+    _userLngMapa = null;
+    if (_userMarkerMapa) { _userMarkerMapa.remove(); _userMarkerMapa = null; }
+    btn.style.background = 'rgba(255,255,255,.1)';
+    btn.style.color      = 'var(--creme)';
+    btn.style.borderColor = 'rgba(201,168,76,.3)';
+    btn.innerHTML = '<i class="fas fa-location-crosshairs"></i> <span class="d-none d-sm-inline">Perto de mim</span>';
+    const form = document.getElementById('form-filtro-mapa');
+    window._mapFilterLocais({ categoria: form.categoria.value, regiao: form.regiao.value, dificuldade: form.dificuldade.value });
+    return;
+  }
+  if (!navigator.geolocation) { alert('O teu browser não suporta geolocalização.'); return; }
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+  navigator.geolocation.getCurrentPosition(pos => {
+    _userLatMapa = pos.coords.latitude;
+    _userLngMapa = pos.coords.longitude;
+    _pertoDeMimAtivo = true;
+    btn.disabled  = false;
+    btn.style.background  = 'var(--dourado)';
+    btn.style.color       = 'var(--verde-escuro)';
+    btn.style.borderColor = 'var(--dourado)';
+    btn.innerHTML = '<i class="fas fa-location-crosshairs"></i> <span class="d-none d-sm-inline">Perto de mim</span>';
+    if (window._mapaInstance) {
+      window._mapaInstance.setView([_userLatMapa, _userLngMapa], 12);
+      if (_userMarkerMapa) _userMarkerMapa.remove();
+      _userMarkerMapa = L.circleMarker([_userLatMapa, _userLngMapa], {
+        radius: 8, fillColor: '#2d6a4f', fillOpacity: 1, color: '#fff', weight: 2
+      }).addTo(window._mapaInstance).bindPopup('<strong>A tua localização</strong>').openPopup();
+    }
+    const form = document.getElementById('form-filtro-mapa');
+    window._mapFilterLocais({
+      categoria:   form.categoria.value,
+      regiao:      form.regiao.value,
+      dificuldade: form.dificuldade.value,
+      lat:  _userLatMapa,
+      lng:  _userLngMapa,
+      raio: 50,
+    });
+  }, () => {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-location-crosshairs"></i> <span class="d-none d-sm-inline">Perto de mim</span>';
+    alert('Ativa o GPS e tenta novamente.');
+  }, { enableHighAccuracy: true, timeout: 10000 });
 }
 </script>
 </body>

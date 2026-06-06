@@ -269,6 +269,14 @@ function initMiniMap() {
 // ============================================================
 // Mapa principal (mapa.php) — com clusters
 // ============================================================
+function haversineKm(lat1, lng1, lat2, lng2) {
+  const R = 6371;
+  const toRad = x => x * Math.PI / 180;
+  const dLat = toRad(lat2 - lat1), dLng = toRad(lng2 - lng1);
+  const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLng/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
 function initMainMap(locais) {
   const urlParams = new URLSearchParams(window.location.search);
   const abrirId = urlParams.get('abrir') ? parseInt(urlParams.get('abrir')) : null;
@@ -284,6 +292,7 @@ function initMainMap(locais) {
   const bounds = L.latLngBounds(L.latLng(-85, -180), L.latLng(85, 180));
   const map = L.map('map', { maxBounds: bounds, maxBoundsViscosity: 1.0 })
     .setView(viewInicial, zoomInicial);
+  window._mapaInstance = map;
 
   L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
     attribution: '© <a href="https://openstreetmap.org">OpenStreetMap</a> © <a href="https://carto.com">CARTO</a>',
@@ -333,10 +342,16 @@ function initMainMap(locais) {
   window._mapFilterLocais = function(filtros) {
     let visiveis = 0;
     allMarkers.forEach(function(entry) {
-      const ok =
+      const okFiltros =
         (!filtros.categoria   || String(entry.local.categoria_id) === String(filtros.categoria)) &&
         (!filtros.regiao      || String(entry.local.regiao_id)    === String(filtros.regiao)) &&
         (!filtros.dificuldade || entry.local.dificuldade          === filtros.dificuldade);
+      let okProx = true;
+      if (filtros.lat && filtros.lng && filtros.raio) {
+        const dist = haversineKm(filtros.lat, filtros.lng, parseFloat(entry.local.latitude), parseFloat(entry.local.longitude));
+        okProx = dist <= filtros.raio;
+      }
+      const ok = okFiltros && okProx;
       if (ok) {
         if (!entry.onMap) { clusterGroup.addLayer(entry.marker); entry.onMap = true; }
         visiveis++;

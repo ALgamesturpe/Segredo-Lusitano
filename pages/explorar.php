@@ -117,9 +117,49 @@ if ($tipo === 'utilizadores') {
         'ordem'       => $_GET['ordem']       ?? 'recente',
     ];
 
-    $locais     = get_locais($filtros, $por_pagina, $offset);
-    $total      = count_locais($filtros);
-    $total_pag  = (int)ceil($total / $por_pagina);
+    $filtro_lat = (float)($_GET['lat'] ?? 0);
+    $filtro_lng = (float)($_GET['lng'] ?? 0);
+
+    if ($filtro_lat && $filtro_lng) {
+        $raio_prox = 50;
+        $st_prox = db()->prepare(
+            'SELECT l.*, c.nome AS categoria_nome, c.icone AS categoria_icone, r.nome AS regiao_nome,
+                    u.username, u.nome AS autor_nome, u.avatar,
+                    (SELECT COUNT(*) FROM likes WHERE local_id = l.id) AS total_likes,
+                    (SELECT COUNT(*) FROM comentarios WHERE local_id = l.id) AS total_comentarios,
+                    (6371 * acos(cos(radians(?)) * cos(radians(l.latitude)) * cos(radians(l.longitude) - radians(?)) + sin(radians(?)) * sin(radians(l.latitude)))) AS distancia
+             FROM locais l
+             JOIN categorias c ON c.id = l.categoria_id
+             JOIN regioes r ON r.id = l.regiao_id
+             JOIN utilizadores u ON u.id = l.utilizador_id
+             WHERE l.estado = "aprovado" AND l.bloqueado = 0 AND l.apagado_em IS NULL
+               AND l.latitude IS NOT NULL AND l.longitude IS NOT NULL
+             HAVING distancia < ?
+             ORDER BY distancia ASC
+             LIMIT ? OFFSET ?'
+        );
+        $st_prox->execute([$filtro_lat, $filtro_lng, $filtro_lat, $raio_prox, $por_pagina, $offset]);
+        $locais = $st_prox->fetchAll();
+
+        $st_cnt = db()->prepare(
+            'SELECT COUNT(*) FROM (
+                SELECT l.id,
+                       (6371 * acos(cos(radians(?)) * cos(radians(l.latitude)) * cos(radians(l.longitude) - radians(?)) + sin(radians(?)) * sin(radians(l.latitude)))) AS distancia
+                FROM locais l
+                WHERE l.estado = "aprovado" AND l.bloqueado = 0 AND l.apagado_em IS NULL
+                  AND l.latitude IS NOT NULL AND l.longitude IS NOT NULL
+                HAVING distancia < ?
+            ) AS sub'
+        );
+        $st_cnt->execute([$filtro_lat, $filtro_lng, $filtro_lat, $raio_prox]);
+        $total = (int)$st_cnt->fetchColumn();
+        $total_pag = (int)ceil($total / $por_pagina);
+    } else {
+        $locais    = get_locais($filtros, $por_pagina, $offset);
+        $total     = count_locais($filtros);
+        $total_pag = (int)ceil($total / $por_pagina);
+    }
+
     $categorias = get_categorias();
     $regioes    = get_regioes();
     $utilizadores = [];
@@ -383,9 +423,21 @@ include dirname(__DIR__) . '/includes/header.php';
         <div class="filtros-actions">
           <button type="submit" class="btn btn-verde" style="border:1.5px solid transparent;justify-content:center;"><i class="fas fa-search"></i> Filtrar</button>
           <a href="<?= SITE_URL ?>/pages/explorar.php" class="btn" style="border:1.5px solid var(--creme-escuro);color:var(--texto-muted);background:transparent;justify-content:center;padding:.6rem 1.75rem;font-size:.9rem;">Limpar</a>
+          <button type="button" id="btn-perto-mim" onclick="filtrarPertoDeMim()"
+                  class="btn" style="border:1.5px solid var(--verde);color:var(--verde);background:transparent;justify-content:center;white-space:nowrap;<?= $filtro_lat ? 'background:var(--verde);color:#fff;' : '' ?>">
+            <i class="fas fa-location-crosshairs"></i> Perto de mim
+          </button>
         </div>
       </form>
     </div>
+
+    <?php if ($filtro_lat && $filtro_lng): ?>
+    <div style="display:flex;align-items:center;gap:.6rem;padding:.65rem 1rem;background:rgba(45,106,79,.08);border:1.5px solid var(--verde-claro);border-radius:var(--radius);margin-bottom:1rem;font-size:.88rem;color:var(--verde-escuro);">
+      <i class="fas fa-location-crosshairs"></i>
+      <span>A mostrar <strong><?= $total ?></strong> locais num raio de 50 km à tua volta, ordenados por distância.</span>
+      <a href="<?= SITE_URL ?>/pages/explorar.php?tipo=locais" style="margin-left:auto;color:var(--texto-muted);font-size:.8rem;text-decoration:none;white-space:nowrap;"><i class="fas fa-times"></i> Limpar</a>
+    </div>
+    <?php endif; ?>
 
     <!-- RESULTADOS LOCAIS -->
     <?php if ($locais): ?>
@@ -514,8 +566,23 @@ include dirname(__DIR__) . '/includes/header.php';
 </section>
 </div>
 
-<!-- Script pesquisa dinâmica (só para locais) -->
+<!-- Script perto de mim + pesquisa dinâmica (só para locais) -->
 <?php if ($tipo === 'locais'): ?>
+<script>
+function filtrarPertoDeMim() {
+  const btn = document.getElementById('btn-perto-mim');
+  if (!navigator.geolocation) { alert('O teu browser não suporta geolocalização.'); return; }
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> A obter localização...';
+  navigator.geolocation.getCurrentPosition(pos => {
+    window.location.href = '<?= SITE_URL ?>/pages/explorar.php?tipo=locais&lat=' + pos.coords.latitude + '&lng=' + pos.coords.longitude;
+  }, () => {
+    alert('Ativa o GPS e tenta novamente.');
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-location-crosshairs"></i> Perto de mim';
+  }, { enableHighAccuracy: true, timeout: 10000 });
+}
+</script>
 <script>
 (function() {
   const input   = document.getElementById('pesquisa');
