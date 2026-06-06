@@ -117,8 +117,9 @@ include dirname(__DIR__) . '/includes/header.php';
           <?php if ($minha_posicao !== null): ?>
           <div style="background:var(--branco); border-radius:var(--radius-lg); padding:1.75rem; margin-top:2rem; border:2px solid var(--dourado);">
             <h3 style="margin-bottom:1.25rem;"><i class="fas fa-trophy"></i> A tua posição</h3>
+            <?php if ($meus_pontos > 0): ?>
             <div style="text-align:center; padding:1rem; background:var(--creme); border-radius:var(--radius); margin-bottom:.75rem;">
-              <div style="font-size:2.5rem; font-weight:700; color:var(--dourado); font-family:'Playfair Display',serif;">#<?= $minha_posicao ?></div>
+              <div style="font-size:2.5rem; font-weight:700; color:var(--dourado); font-family:'Playfair Display',serif;"><?= $minha_posicao ?>º</div>
               <div style="font-size:.85rem; color:var(--texto-muted);">entre todos os exploradores</div>
             </div>
             <div style="text-align:center; padding:.75rem; background:var(--creme); border-radius:var(--radius); margin-bottom:.75rem;">
@@ -132,6 +133,17 @@ include dirname(__DIR__) . '/includes/header.php';
             <?php else: ?>
             <div style="font-size:.8rem; color:var(--verde); text-align:center; font-weight:600;">
               <i class="fas fa-crown"></i> Estás no topo!
+            </div>
+            <?php endif; ?>
+            <?php else: ?>
+            <div style="text-align:center; padding:1.25rem; background:var(--creme); border-radius:var(--radius);">
+              <i class="fas fa-star" style="font-size:1.8rem; color:var(--dourado); opacity:.4; display:block; margin-bottom:.6rem;"></i>
+              <p style="font-size:.88rem; color:var(--texto-muted); margin:0; line-height:1.6;">
+                Ganha pontos para entrares no ranking!
+              </p>
+              <a href="<?= SITE_URL ?>/pages/local_novo.php" class="btn btn-sm btn-primary" style="margin-top:.85rem;">
+                <i class="fas fa-plus"></i> Partilhar local
+              </a>
             </div>
             <?php endif; ?>
           </div>
