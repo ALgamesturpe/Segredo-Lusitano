@@ -42,6 +42,7 @@ if ($github_pendente && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['g
         $new_id = (int)db()->lastInsertId();
         guardar_localizacao_registo($new_id);
         unset($_SESSION['github_pendente']);
+        session_regenerate_id(true);
         $_SESSION['user_id'] = $new_id;
         flash('success', 'Conta criada com GitHub, bem-vindo à comunidade!');
         header('Location: ' . SITE_URL . '/index.php');
@@ -84,6 +85,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (!class_exists('PHPMailer\PHPMailer\PHPMailer')) {
                 // PHPMailer não instalado - auto-verificar e fazer login direto
                 db()->prepare('UPDATE utilizadores SET verificado = 1 WHERE id = ?')->execute([$res['id']]);
+                session_regenerate_id(true);
                 $_SESSION['user_id'] = $res['id'];
                 flash('success', 'Conta criada com sucesso! Bem-vindo ao Segredo Lusitano! 🎉 (Email não configurado - conta verificada automaticamente)');
                 header('Location: ' . SITE_URL . '/index.php');
@@ -100,6 +102,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (!$enviado) {
                 // Falha no envio - auto-verificar também
                 db()->prepare('UPDATE utilizadores SET verificado = 1 WHERE id = ?')->execute([$res['id']]);
+                session_regenerate_id(true);
                 $_SESSION['user_id'] = $res['id'];
                 flash('success', 'Conta criada! Email não enviado (erro SMTP) - conta verificada automaticamente.');
                 header('Location: ' . SITE_URL . '/index.php');

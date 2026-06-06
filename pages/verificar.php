@@ -51,6 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['codigo'])) {
             db()->prepare('UPDATE utilizadores SET verificado = 1 WHERE id = ?')->execute([$uid]);
         }
         // Iniciar sessão
+        session_regenerate_id(true);
         $_SESSION['user_id'] = $uid;
         unset($_SESSION['verificar_id'], $_SESSION['verificar_tipo']);
 

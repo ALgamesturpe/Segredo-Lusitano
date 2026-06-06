@@ -73,6 +73,7 @@ function login(string $email, string $password): array {
         return ['ok' => false, 'verificar' => true, 'id' => $user['id'], 'msg' => 'Conta não verificada.'];
     }
 
+    session_regenerate_id(true);
     $_SESSION['user_id'] = $user['id'];
     return ['ok' => true];
 }
