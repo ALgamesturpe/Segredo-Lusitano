@@ -322,6 +322,7 @@ function initMainMap(locais) {
   const allMarkers = [];
 
   locais.forEach(l => {
+  //são as coordenadas guardadas na BD quando o utilizador clicou no mapa ao publicar.
     try {
       const lat = parseFloat(l.latitude);
       const lng = parseFloat(l.longitude);
