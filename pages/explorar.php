@@ -373,7 +373,7 @@ include dirname(__DIR__) . '/includes/header.php';
     <div class="filtros-bar">
       <form class="filtros-form" method="GET">
         <input type="hidden" name="tipo" value="locais">
-        <div class="filtro-group" style="flex:0 0 180px;">
+        <div class="filtro-group filtro-pesquisa">
           <label for="pesquisa">Pesquisa</label>
           <input type="search" id="pesquisa" name="pesquisa" placeholder="Nome do local..."
                 value="<?= h($filtros['pesquisa']) ?>" autocomplete="off" style="width:100%;">

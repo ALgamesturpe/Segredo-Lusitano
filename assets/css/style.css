@@ -241,8 +241,8 @@ main { flex: 1; }
 .section { padding: 2rem 1.5rem; background: var(--creme); }
 .section-dark { background: var(--creme-escuro); }
 .section-alt  { background: rgba(245,239,230,.95); }
-.container { max-width: 1200px; margin: 0 auto; }
-.container-lg { max-width: 1400px; margin: 0 auto; }
+.container { max-width: 1200px; margin: 0 auto; padding: 0 1rem; box-sizing: border-box; }
+.container-lg { max-width: 1400px; margin: 0 auto; padding: 0 1rem; box-sizing: border-box; }
 .section-header { text-align: center; margin-bottom: 3rem; }
 .section-header .label { font-size: .8rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--verde); margin-bottom: .75rem; display: block; }
 .section-header h2 { font-size: clamp(1.8rem, 4vw, 2.8rem); margin-bottom: .75rem; color: var(--verde-escuro); }
@@ -276,6 +276,7 @@ main { flex: 1; }
 .card-meta-stats span { display: flex; align-items: center; gap: .3rem; }
 .card-meta-stats .fa-heart { color: #e74c3c; }
 .card-meta-stats .fa-comment { color: var(--verde-claro); }
+.card-meta-stats .fa-bookmark { color: var(--dourado); }
 
 /* ============================================================
    FILTROS
@@ -292,6 +293,7 @@ main { flex: 1; }
 .filtros-grid .filtro-group select { width: 130px; }
 .filtros-actions { display: flex; gap: .5rem; align-self: flex-end; flex-shrink: 0; }
 .filtros-actions .btn { padding-top: .6rem; padding-bottom: .6rem; font-size: .9rem; }
+.filtro-pesquisa { flex: 0 0 auto; width: 180px; }
 
 /* ============================================================
    PAGINAÇÃO
@@ -639,12 +641,14 @@ main { flex: 1; }
   .cards-grid .card { flex: 0 0 100%; margin-right: 0; }
   .filtros-form { flex-direction: column; gap: .5rem; }
   .filtro-group { min-width: unset; width: 100%; }
+  .filtro-pesquisa { width: 100%; flex: none; }
   .filtro-group select, .filtro-group input { width: 100%; }
   .filtros-grid { display: grid !important; grid-template-columns: 1fr 1fr; gap: .5rem; width: 100%; flex: none; }
   .filtros-grid .filtro-group { flex: unset; width: auto; min-width: unset; }
   .filtros-grid .filtro-group select { width: 100%; }
-  .filtros-actions { width: 100%; }
-  .filtros-actions .btn { flex: 1; justify-content: center; }
+  .filtros-actions { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; width: 100%; }
+  .filtros-actions .btn { flex: unset; width: 100%; justify-content: center; }
+  .filtros-actions > *:last-child { grid-column: 1 / -1; }
   .section { padding: 3rem 1rem; }
   .form-container { padding: 1.5rem; }
   .detalhe-hero { height: 280px; }
