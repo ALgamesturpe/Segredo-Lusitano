@@ -311,7 +311,7 @@ include dirname(__DIR__) . '/includes/header.php';
       <!-- COLUNA PRINCIPAL -->
       <div class="detalhe-main-top">
         <!-- Ações -->
-        <div style="display:flex;align-items:center;gap:1rem;margin-bottom:2rem;flex-wrap:wrap;">
+        <div class="detalhe-acoes">
           <button class="like-btn <?= $liked ? 'liked' : '' ?>" id="like-btn" data-local="<?= $id ?>">
             <i class="fas fa-heart"></i>
             <span id="like-count"><?= $local['total_likes'] ?></span>
@@ -334,8 +334,8 @@ include dirname(__DIR__) . '/includes/header.php';
               <span id="btn-guardar-texto"><?= $guardado ? 'Guardado' : 'Guardar' ?></span>
             </button>
             <!-- Dropdown Partilhar -->
-            <div style="position:relative;display:inline-block;">
-              <button onclick="toggleDropPartilhar(event)" class="btn btn-sm btn-outline" style="color:var(--verde);border-color:var(--verde);">
+            <div class="detalhe-acoes-partilhar" style="position:relative;">
+              <button onclick="toggleDropPartilhar(event)" class="btn btn-sm btn-outline" style="color:var(--verde);border-color:var(--verde);width:100%;justify-content:center;">
                 <i class="fas fa-share-alt"></i> Partilhar <i class="fas fa-chevron-down" style="font-size:.65rem;margin-left:.2rem;"></i>
               </button>
               <div id="drop-partilhar" style="display:none;position:absolute;top:calc(100% + 6px);left:0;background:#fff;border:1.5px solid var(--creme-escuro);border-radius:var(--radius);box-shadow:0 6px 20px rgba(0,0,0,.12);min-width:200px;z-index:500;overflow:hidden;">
@@ -356,28 +356,6 @@ include dirname(__DIR__) . '/includes/header.php';
             </button>
           <?php endif; ?>
 
-          <!-- Check-in GPS -->
-          <?php if ($user): ?>
-            <button id="btn-checkin"
-                    onclick="iniciarCheckin()"
-                    data-lat="<?= h($local['latitude']) ?>"
-                    data-lng="<?= h($local['longitude']) ?>"
-                    data-local="<?= $id ?>"
-                    class="btn btn-sm"
-                    <?= $ja_checkin ? 'disabled' : '' ?>
-                    style="<?= $ja_checkin
-                      ? 'background:var(--verde-claro);color:var(--verde-escuro);border:none;font-weight:700;cursor:default;'
-                      : 'background:var(--verde);color:#fff;border:none;font-weight:600;' ?>">
-              <i class="fas <?= $ja_checkin ? 'fa-check-circle' : 'fa-location-dot' ?>"></i>
-              <?= $ja_checkin ? 'Visitei' : 'Estive Aqui' ?>
-            </button>
-          <?php else: ?>
-            <button onclick="mostrarAvisoLogin('Precisas de iniciar sessão para registar a tua visita.', '<?= SITE_URL ?>/pages/login.php')"
-                    class="btn btn-sm"
-                    style="background:var(--verde);color:#fff;border:none;font-weight:600;">
-              <i class="fas fa-location-dot"></i> Estive Aqui
-            </button>
-          <?php endif; ?>
 
           <?php if ($user && ($user['id'] == $local['utilizador_id'] || is_admin())): ?>
             <a href="<?= SITE_URL ?>/pages/local_editar.php?id=<?= $id ?>" class="btn btn-sm btn-outline" style="color:var(--texto-muted);border-color:var(--creme-escuro);">
@@ -427,15 +405,15 @@ include dirname(__DIR__) . '/includes/header.php';
             <?php endif; ?>
           </div>
 
-          <div style="display:flex;align-items:stretch;gap:1rem;margin-bottom:1rem;">
+          <div class="galeria-wrap">
 
             <?php if ($user && !$local_bloqueado && ((int)$user['id'] === (int)$local['utilizador_id'] || is_admin())): ?>
             <!-- Upload compacto quadrado -->
-            <div style="flex-shrink:0;width:130px;">
+            <div class="galeria-upload">
               <form method="POST" enctype="multipart/form-data"
                     onsubmit="if(!document.getElementById('fotos').files.length){alert('Seleciona pelo menos uma foto antes de enviar.');return false;}">
-                <div class="upload-area" data-input-id="fotos" data-compact="1"
-                     style="width:130px;height:130px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.35rem;padding:.5rem;border-radius:var(--radius);position:relative;overflow:hidden;">
+                <div class="upload-area galeria-upload-area" data-input-id="fotos" data-compact="1"
+                     style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.35rem;padding:.5rem;border-radius:var(--radius);position:relative;overflow:hidden;">
                   <i class="fas fa-plus upload-icon" style="font-size:1.4rem;color:var(--verde-claro);"></i>
                   <p class="upload-label" style="font-size:.75rem;font-weight:500;margin:0;text-align:center;line-height:1.3;">Adicionar fotos</p>
                   <small style="color:var(--texto-muted);font-size:.68rem;text-align:center;">JPG · PNG · WebP<br>máx. 5MB</small>
@@ -456,7 +434,7 @@ include dirname(__DIR__) . '/includes/header.php';
             <?php endif; ?>
 
             <!-- Galeria -->
-            <div style="flex:1;min-width:0;">
+            <div class="galeria-fotos-wrap">
               <?php if (!$fotos): ?>
               <div style="border:1.5px solid #6b7280;border-radius:var(--radius);background:var(--creme);
                           min-height:160px;height:100%;
@@ -538,7 +516,7 @@ include dirname(__DIR__) . '/includes/header.php';
         <?php if ($locais_proximos): ?>
         <div style="margin-bottom:1.5rem;">
           <h3 style="font-size:1rem;margin-bottom:.75rem;"><i class="fas fa-location-dot"></i> Locais Perto Deste</h3>
-          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:.85rem;">
+          <div class="locais-prox-grid">
             <?php foreach ($locais_proximos as $lp):
               $dif_lp = ['facil'=>'badge-dif-facil','medio'=>'badge-dif-medio','dificil'=>'badge-dif-dificil'][$lp['dificuldade']] ?? 'badge-dif-medio';
               $dist_km = $lp['distancia'] < 1 ? number_format($lp['distancia'] * 1000).' m' : number_format($lp['distancia'], 1).' km';
@@ -560,7 +538,7 @@ include dirname(__DIR__) . '/includes/header.php';
               </div>
               <div style="padding:.55rem .7rem;">
                 <div style="font-size:.72rem;color:var(--texto-muted);margin-bottom:.15rem;"><?= h($lp['regiao_nome']) ?></div>
-                <div style="font-weight:600;font-size:.85rem;color:var(--texto);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><?= h($lp['nome']) ?></div>
+                <div style="font-weight:600;font-size:.85rem;color:var(--texto);line-height:1.3;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;"><?= h($lp['nome']) ?></div>
                 <div style="margin-top:.3rem;">
                   <span class="badge badge-cat" style="font-size:.66rem;padding:.1rem .38rem;"><i class="<?= h($lp['categoria_icone']) ?>"></i> <?= h($lp['categoria_nome']) ?></span>
                 </div>
@@ -1218,12 +1196,14 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   L.marker([destLat, destLng], { icon: iconePersonalizado }).addTo(map2)
-    .on('click', () => {
-      <?php if ($user): ?>
-        window.open(`https://www.google.com/maps?q=${destLat},${destLng}`, '_blank');
-      <?php else: ?>
-        mostrarAvisoLogin('Precisas de iniciar sessão para obter direções.', '<?= SITE_URL ?>/pages/login.php');
-      <?php endif; ?>
+    .on('click', function() {
+      const a = document.createElement('a');
+      a.href = `https://maps.google.com/?q=${destLat},${destLng}`;
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
     });
 
   if (navigator.geolocation) {
@@ -1304,50 +1284,43 @@ function haversineMetros(lat1, lng1, lat2, lng2) {
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 }
 
-window.iniciarCheckin = function() {
-  const btn = document.getElementById('btn-checkin');
-  if (!btn) return;
-  if (!navigator.geolocation) { alert('O teu browser não suporta geolocalização.'); return; }
-  btn.disabled = true;
-  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> A verificar...';
-  navigator.geolocation.getCurrentPosition(pos => {
-    const dist = haversineMetros(pos.coords.latitude, pos.coords.longitude,
-                                 parseFloat(btn.dataset.lat), parseFloat(btn.dataset.lng));
-    if (dist > 500) {
-      const km = (dist / 1000).toFixed(1);
-      alert(`Estás a ${km} km deste local. Tens de estar a menos de 500 m para fazer check-in.`);
-      btn.disabled = false;
-      btn.innerHTML = '<i class="fas fa-location-dot"></i> Estive Aqui';
-      return;
-    }
-    fetch(`${SITE_URL}/pages/checkin.php`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: `local_id=${btn.dataset.local}`
-    })
-    .then(r => r.json())
-    .then(data => {
-      if (data.ok || data.ja_fez) {
-        btn.disabled = true;
-        btn.style.cssText = 'background:var(--verde-claro);color:var(--verde-escuro);border:none;font-weight:700;cursor:default;';
-        btn.innerHTML = '<i class="fas fa-check-circle"></i> Visitei';
-      } else {
-        alert(data.erro || 'Erro ao registar o check-in.');
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-location-dot"></i> Estive Aqui';
+<?php if ($user && !$ja_checkin && $local['latitude'] && $local['longitude']): ?>
+// Verificar proximidade ao carregar a página (100m)
+(function() {
+  if (!navigator.geolocation) return;
+  setTimeout(function() {
+    navigator.geolocation.getCurrentPosition(function(pos) {
+      const dist = haversineMetros(pos.coords.latitude, pos.coords.longitude,
+                                   <?= (float)$local['latitude'] ?>, <?= (float)$local['longitude'] ?>);
+      if (dist <= 100) {
+        const notif = document.getElementById('notif-proximidade');
+        if (notif) notif.style.display = 'flex';
       }
-    })
-    .catch(() => {
-      alert('Erro de ligação. Tenta novamente.');
-      btn.disabled = false;
-      btn.innerHTML = '<i class="fas fa-location-dot"></i> Estive Aqui';
-    });
-  }, () => {
-    alert('Ativa o GPS e tenta novamente.');
-    btn.disabled = false;
-    btn.innerHTML = '<i class="fas fa-location-dot"></i> Estive Aqui';
-  }, { enableHighAccuracy: true, timeout: 15000 });
+    }, null, { enableHighAccuracy: true, timeout: 10000 });
+  }, 1500);
+})();
+
+window.confirmarCheckinProximo = function() {
+  const notif = document.getElementById('notif-proximidade');
+  notif.innerHTML = '<i class="fas fa-spinner fa-spin" style="color:var(--dourado);font-size:1.3rem;flex-shrink:0;"></i><span style="margin-left:.75rem;">A registar visita...</span>';
+  fetch(`${SITE_URL}/pages/checkin.php`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: `local_id=<?= $id ?>`
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.ok || data.ja_fez) {
+      notif.innerHTML = '<i class="fas fa-check-circle" style="color:var(--dourado);font-size:1.3rem;flex-shrink:0;"></i><span style="margin-left:.75rem;font-weight:600;">Visita registada! Obrigado.</span>';
+      setTimeout(() => { notif.style.transition='opacity .5s'; notif.style.opacity='0'; setTimeout(()=>notif.remove(),500); }, 2500);
+    } else {
+      notif.style.display = 'none';
+      alert(data.erro || 'Erro ao registar.');
+    }
+  })
+  .catch(() => { notif.style.display = 'none'; alert('Erro de ligação.'); });
 };
+<?php endif; ?>
 
 // ── Ver mais / menos comentários ─────────────────────────
 document.addEventListener('DOMContentLoaded', function() {
@@ -1442,5 +1415,28 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 })();
 </script>
+
+<?php if ($user && !$ja_checkin && $local['latitude'] && $local['longitude']): ?>
+<div id="notif-proximidade" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:9000;
+     background:var(--verde-escuro);color:var(--creme);padding:1rem 1.25rem;
+     align-items:center;gap:.75rem;box-shadow:0 -4px 24px rgba(0,0,0,.35);">
+  <i class="fas fa-location-dot" style="color:var(--dourado);font-size:1.4rem;flex-shrink:0;"></i>
+  <div style="flex:1;min-width:0;">
+    <div style="font-weight:700;font-size:.92rem;margin-bottom:.1rem;">Estás perto deste local!</div>
+    <div style="font-size:.8rem;opacity:.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+      Queres registar a tua visita a <strong><?= h(local_nome_publico($local)) ?></strong>?
+    </div>
+  </div>
+  <button onclick="confirmarCheckinProximo()"
+          style="background:var(--dourado);color:var(--verde-escuro);border:none;padding:.5rem 1.1rem;
+                 border-radius:var(--radius);font-weight:700;font-size:.88rem;cursor:pointer;white-space:nowrap;flex-shrink:0;">
+    <i class="fas fa-check"></i> Sim!
+  </button>
+  <button onclick="document.getElementById('notif-proximidade').style.display='none'"
+          style="background:none;border:none;color:rgba(245,239,230,.5);font-size:1.3rem;cursor:pointer;flex-shrink:0;padding:.25rem .5rem;line-height:1;">
+    <i class="fas fa-times"></i>
+  </button>
+</div>
+<?php endif; ?>
 
 <?php include dirname(__DIR__) . '/includes/footer.php'; ?>

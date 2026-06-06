@@ -381,22 +381,23 @@ include dirname(__DIR__) . '/includes/header.php';
         const pts = [];
         _pubPerfil.forEach(l => {
           pts.push([l.lat, l.lng]);
-          L.marker([l.lat, l.lng], { icon: mkVerde })
-            .bindPopup(`<div style="font-family:'Outfit',sans-serif;min-width:140px;">
-              <div style="font-weight:700;font-size:.9rem;color:#1a3a2a;">${l.nome}</div>
-              <a href="${_siteUrl}/pages/local.php?id=${l.id}" style="font-size:.8rem;color:#2d6a4f;font-weight:600;">Ver local →</a>
-            </div>`)
-            .addTo(map);
+          L.marker([l.lat, l.lng], { icon: mkVerde, bubblingMouseEvents: false })
+            .addTo(map)
+            .on('click', (e) => {
+              e.originalEvent.preventDefault();
+              e.originalEvent.stopPropagation();
+              window.location.href = `${_siteUrl}/pages/local.php?id=${l.id}`;
+            });
         });
         _visPerf.forEach(l => {
           pts.push([l.lat, l.lng]);
-          L.marker([l.lat, l.lng], { icon: mkAzul })
-            .bindPopup(`<div style="font-family:'Outfit',sans-serif;min-width:140px;">
-              <div style="font-weight:700;font-size:.9rem;color:#1a3a2a;">${l.nome}</div>
-              <div style="font-size:.75rem;color:#3b82f6;margin-bottom:.2rem;"><i class="fas fa-check-circle"></i> Visitado</div>
-              <a href="${_siteUrl}/pages/local.php?id=${l.id}" style="font-size:.8rem;color:#2d6a4f;font-weight:600;">Ver local →</a>
-            </div>`)
-            .addTo(map);
+          L.marker([l.lat, l.lng], { icon: mkAzul, bubblingMouseEvents: false })
+            .addTo(map)
+            .on('click', (e) => {
+              e.originalEvent.preventDefault();
+              e.originalEvent.stopPropagation();
+              window.location.href = `${_siteUrl}/pages/local.php?id=${l.id}`;
+            });
         });
 
         if (pts.length > 0) {
