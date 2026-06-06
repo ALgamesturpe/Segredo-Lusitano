@@ -59,7 +59,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (strlen($nome) < 2)         $erros['nome']     = 'Nome demasiado curto.';
     if (strlen($username) < 3)     $erros['username'] = 'Username com mínimo 3 caracteres.';
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) $erros['email'] = 'Email inválido.';
-    if (strlen($password) < 6)     $erros['password'] = 'Password com mínimo 6 caracteres.';
+    if (strlen($password) < 6)          $erros['password'] = 'Password com mínimo 6 caracteres.';
+    elseif (!preg_match('/[A-Z]/', $password))       $erros['password'] = 'Password deve conter pelo menos uma letra maiúscula.';
+    elseif (!preg_match('/[0-9]/', $password))          $erros['password'] = 'Password deve conter pelo menos um número.';
+    elseif (!preg_match('/[^a-zA-Z0-9]/', $password)) $erros['password'] = 'Password deve conter pelo menos um carácter especial.';
     if ($password !== $confirm)    $erros['confirm']  = 'As passwords não coincidem.';
     if (empty($_POST['aceitar_termos'])) $erros['termos'] = 'Deves aceitar os Termos e Condições para continuar.';
 
@@ -178,7 +181,25 @@ include dirname(__DIR__) . '/includes/header.php';
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
         <div class="form-group">
           <label for="password">Password</label>
-          <input type="password" id="password" name="password" placeholder="Mínimo 6 caracteres" required>
+          <input type="password" id="password" name="password" placeholder="Password segura" required>
+          <div id="pw-requisitos" style="margin-top:.5rem;display:flex;flex-direction:column;gap:.3rem;">
+            <div class="pw-req" id="req-length" style="display:flex;align-items:center;gap:.5rem;font-size:.8rem;color:var(--texto-muted);">
+              <span class="pw-circle" style="width:16px;height:16px;border-radius:50%;border:2px solid #ccc;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;"></span>
+              Mínimo 6 caracteres
+            </div>
+            <div class="pw-req" id="req-upper" style="display:flex;align-items:center;gap:.5rem;font-size:.8rem;color:var(--texto-muted);">
+              <span class="pw-circle" style="width:16px;height:16px;border-radius:50%;border:2px solid #ccc;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;"></span>
+              Letra maiúscula (A-Z)
+            </div>
+            <div class="pw-req" id="req-number" style="display:flex;align-items:center;gap:.5rem;font-size:.8rem;color:var(--texto-muted);">
+              <span class="pw-circle" style="width:16px;height:16px;border-radius:50%;border:2px solid #ccc;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;"></span>
+              Um número (0-9)
+            </div>
+            <div class="pw-req" id="req-special" style="display:flex;align-items:center;gap:.5rem;font-size:.8rem;color:var(--texto-muted);">
+              <span class="pw-circle" style="width:16px;height:16px;border-radius:50%;border:2px solid #ccc;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;"></span>
+              Carácter especial (!@#$...)
+            </div>
+          </div>
           <?php if (isset($erros['password'])): ?><div class="form-error"><?= h($erros['password']) ?></div><?php endif; ?>
         </div>
         <div class="form-group">
@@ -375,6 +396,34 @@ function verificarTermosParaSocial(url) {
   </div>
 </div>
 <script>
+function _pwCircle(id, ok) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const c = el.querySelector('.pw-circle');
+  if (ok) {
+    c.style.border = '2px solid var(--verde)';
+    c.style.background = 'var(--verde)';
+    c.innerHTML = '<svg width="10" height="10" viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    el.style.color = 'var(--verde-escuro)';
+  } else {
+    c.style.border = '2px solid #ccc';
+    c.style.background = 'transparent';
+    c.innerHTML = '';
+    el.style.color = 'var(--texto-muted)';
+  }
+}
+document.addEventListener('DOMContentLoaded', function() {
+  var pw = document.getElementById('password');
+  if (!pw) return;
+  pw.addEventListener('input', function() {
+    var v = this.value;
+    _pwCircle('req-length',  v.length >= 6);
+    _pwCircle('req-upper',   /[A-Z]/.test(v));
+    _pwCircle('req-number',  /[0-9]/.test(v));
+    _pwCircle('req-special', /[^a-zA-Z0-9]/.test(v));
+  });
+});
+
 function submeterComTermos() {
   const termos = document.getElementById('aceitar-termos');
   const erroEl = document.getElementById('erro-termos-js');

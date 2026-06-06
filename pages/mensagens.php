@@ -747,7 +747,7 @@ setInterval(async () => {//de 3 em 3s pergunta ao servidor se há mensagens nova
       if (msg.ficheiro) adicionarMensagemFicheiro(msg, msg.remetente_id == MEU_ID);
       else              adicionarMensagem(msg, msg.remetente_id == MEU_ID);
       ultimaMsg = msg.criado_em;//envia 'ultimaMsg' (hora da última mensagem) e o servidor só devolve o que é novo
-    });
+    });                         //evita duplicados e poupa dados; conceito de polling visto em Java (11º)
     if (aoFundo) scrollFundo();
   }
 }, 3000);
