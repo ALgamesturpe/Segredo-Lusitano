@@ -218,7 +218,8 @@ function get_locais(array $filtros = [], int $limite = 12, int $offset = 0): arr
     $sql = 'SELECT l.*, c.nome AS categoria_nome, c.icone AS categoria_icone,
                    r.nome AS regiao_nome, u.username, u.nome AS autor_nome,
                    (SELECT COUNT(*) FROM likes WHERE local_id = l.id) AS total_likes,
-                   (SELECT COUNT(*) FROM comentarios WHERE local_id = l.id) AS total_comentarios
+                   (SELECT COUNT(*) FROM comentarios WHERE local_id = l.id) AS total_comentarios,
+                   (SELECT COUNT(*) FROM favoritos WHERE local_id = l.id) AS total_guardados
             FROM locais l
             JOIN categorias c ON c.id = l.categoria_id
             JOIN regioes r    ON r.id = l.regiao_id
@@ -236,7 +237,8 @@ function get_local(int $id): ?array {
         'SELECT l.*, c.nome AS categoria_nome, c.icone AS categoria_icone,
                 r.nome AS regiao_nome, u.username, u.nome AS autor_nome, u.avatar,
                 (SELECT COUNT(*) FROM likes WHERE local_id = l.id) AS total_likes,
-                (SELECT COUNT(*) FROM comentarios WHERE local_id = l.id) AS total_comentarios
+                (SELECT COUNT(*) FROM comentarios WHERE local_id = l.id) AS total_comentarios,
+                (SELECT COUNT(*) FROM favoritos WHERE local_id = l.id) AS total_guardados
          FROM locais l
          JOIN categorias c ON c.id = l.categoria_id
          JOIN regioes r    ON r.id = l.regiao_id

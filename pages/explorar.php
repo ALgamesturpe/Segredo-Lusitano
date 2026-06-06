@@ -373,10 +373,10 @@ include dirname(__DIR__) . '/includes/header.php';
     <div class="filtros-bar">
       <form class="filtros-form" method="GET">
         <input type="hidden" name="tipo" value="locais">
-        <div class="filtro-group" style="flex:2; min-width:200px;">
+        <div class="filtro-group" style="flex:0 0 180px;">
           <label for="pesquisa">Pesquisa</label>
           <input type="search" id="pesquisa" name="pesquisa" placeholder="Nome do local..."
-                value="<?= h($filtros['pesquisa']) ?>" autocomplete="off">
+                value="<?= h($filtros['pesquisa']) ?>" autocomplete="off" style="width:100%;">
         </div>
         <div class="filtros-grid">
           <div class="filtro-group">
@@ -421,12 +421,12 @@ include dirname(__DIR__) . '/includes/header.php';
           </div>
         </div>
         <div class="filtros-actions">
-          <button type="submit" class="btn btn-verde" style="border:1.5px solid transparent;justify-content:center;"><i class="fas fa-search"></i> Filtrar</button>
-          <a href="<?= SITE_URL ?>/pages/explorar.php" class="btn" style="border:1.5px solid var(--creme-escuro);color:var(--texto-muted);background:transparent;justify-content:center;padding:.6rem 1.75rem;font-size:.9rem;">Limpar</a>
           <button type="button" id="btn-perto-mim" onclick="filtrarPertoDeMim()"
-                  class="btn" style="border:1.5px solid var(--verde);color:var(--verde);background:transparent;justify-content:center;white-space:nowrap;<?= $filtro_lat ? 'background:var(--verde);color:#fff;' : '' ?>">
+                  class="btn" style="border:1.5px solid var(--verde);color:var(--verde);background:transparent;white-space:nowrap;<?= $filtro_lat ? 'background:var(--verde);color:#fff;' : '' ?>">
             <i class="fas fa-location-crosshairs"></i> Perto de mim
           </button>
+          <button type="submit" class="btn btn-verde" style="border:1.5px solid transparent;justify-content:center;"><i class="fas fa-search"></i> Filtrar</button>
+          <a href="<?= SITE_URL ?>/pages/explorar.php" class="btn" style="border:1.5px solid var(--creme-escuro);color:var(--texto-muted);background:transparent;justify-content:center;padding:.6rem 1.75rem;font-size:.9rem;">Limpar</a>
         </div>
       </form>
     </div>

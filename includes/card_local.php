@@ -21,6 +21,7 @@ $local_username = (string)($local['username'] ?? 'Anónimo');
 $local_utilizador_id = (int)($local['utilizador_id'] ?? 0);
 $local_total_likes = (int)($local['total_likes'] ?? 0);
 $local_total_comentarios = (int)($local['total_comentarios'] ?? 0);
+$local_total_guardados = (int)($local['total_guardados'] ?? 0);
 
 // Validar ID
 if ($local_id <= 0) {
@@ -93,6 +94,7 @@ $_card_segue = in_array($local_utilizador_id, $GLOBALS['_card_seguindo_ids']);
       <div class="card-meta-stats">
         <span><i class="fas fa-heart"></i> <?= $local_total_likes ?></span>
         <span><i class="fas fa-comment"></i> <?= $local_total_comentarios ?></span>
+        <span><i class="fas fa-bookmark"></i> <?= $local_total_guardados ?></span>
       </div>
     </div>
   </div>
