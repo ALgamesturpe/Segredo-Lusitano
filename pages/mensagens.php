@@ -738,7 +738,7 @@ let ultimaMsg = <?= $mensagens ? '"' . end($mensagens)['criado_em'] . '"' : '"0"
   if (badge) badge.style.display = 'none';
 })();
 
-setInterval(async () => {
+setInterval(async () => {//de 3 em 3s pergunta ao servidor se há mensagens novas
   const res  = await fetch(`${SITE_URL_JS}/pages/mensagens_api.php?acao=novas&com=${CONVERSA_COM}&desde=${encodeURIComponent(ultimaMsg)}`);
   const data = await res.json();
   if (data.mensagens && data.mensagens.length > 0) {
@@ -746,7 +746,7 @@ setInterval(async () => {
     data.mensagens.forEach(msg => {
       if (msg.ficheiro) adicionarMensagemFicheiro(msg, msg.remetente_id == MEU_ID);
       else              adicionarMensagem(msg, msg.remetente_id == MEU_ID);
-      ultimaMsg = msg.criado_em;
+      ultimaMsg = msg.criado_em;//envia 'ultimaMsg' (hora da última mensagem) e o servidor só devolve o que é novo
     });
     if (aoFundo) scrollFundo();
   }

@@ -305,6 +305,7 @@ function initMainMap(locais) {
   const allMarkers = [];
 
   locais.forEach(l => {
+    //são as coordenadas guardadas na BD quando o utilizador clicou no mapa ao publicar.
     const m = L.marker([parseFloat(l.latitude), parseFloat(l.longitude)], { icon: makeIcon(l.icone) });
     const img = l.foto_capa
       ? `<img src="${SITE_URL}/uploads/locais/${l.foto_capa}" alt="" style="width:100%;height:90px;object-fit:cover;border-radius:4px;margin-bottom:.5rem;">`
