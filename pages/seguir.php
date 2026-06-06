@@ -10,7 +10,7 @@ if (!$user) {
     echo json_encode(['ok' => false, 'msg' => 'Não autenticado']);
     exit;
 }
-
+verificar_csrf();
 $seguido_id = (int)($_POST['id'] ?? 0);
 if (!$seguido_id || $seguido_id === $user['id']) {
     echo json_encode(['ok' => false, 'msg' => 'ID inválido']);

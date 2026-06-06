@@ -8,6 +8,10 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
 function auth_user(): ?array {
     if (!isset($_SESSION['user_id'])) return null;
 
@@ -105,6 +109,24 @@ function add_pontos(int $user_id, int $pontos): void {
 
 function h(string $s): string {
     return htmlspecialchars($s, ENT_QUOTES, 'UTF-8');
+}
+
+function csrf_token(): string {
+    return $_SESSION['csrf_token'] ?? '';
+}
+
+function csrf_field(): string {
+    return '<input type="hidden" name="csrf_token" value="' . h(csrf_token()) . '">';
+}
+
+function verificar_csrf(): void {
+    $enviado = $_POST['csrf_token'] ?? ($_SERVER['HTTP_X_CSRF_TOKEN'] ?? '');
+    if (!$enviado || !hash_equals($_SESSION['csrf_token'] ?? '', $enviado)) {
+        http_response_code(403);
+        if (!headers_sent()) header('Content-Type: application/json');
+        echo json_encode(['ok' => false, 'erro' => 'Token CSRF inválido. Recarrega a página.']);
+        exit;
+    }
 }
 
 function flash(string $key, string $msg = ''): string {

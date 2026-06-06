@@ -494,7 +494,7 @@ async function eliminarMensagem(msgId, tipo) {
   try {
     const res = await fetch(SITE_URL_JS + '/pages/mensagens_api.php', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRF-Token': CSRF_TOKEN },
       body: `acao=eliminar&msg_id=${msgId}&tipo=${tipo}`
     });
     if (!res.ok) return;
@@ -677,7 +677,7 @@ async function enviarMensagem() {
   input.style.height = 'auto';
   const res  = await fetch(SITE_URL_JS + '/pages/mensagens_api.php', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRF-Token': CSRF_TOKEN },
     body: `acao=enviar&destinatario_id=${CONVERSA_COM}&texto=${encodeURIComponent(texto)}`
   });
   const data = await res.json();
@@ -717,7 +717,7 @@ async function enviarFicheiroConfirmado() {
   form.append('acao', 'ficheiro');
   form.append('destinatario_id', CONVERSA_COM);
   form.append('ficheiro', ficheiroSelecionado);
-  const res  = await fetch(SITE_URL_JS + '/pages/mensagens_api.php', { method: 'POST', body: form });
+  const res  = await fetch(SITE_URL_JS + '/pages/mensagens_api.php', { method: 'POST', headers: { 'X-CSRF-Token': CSRF_TOKEN }, body: form });
   const data = await res.json();
   if (data.ok) { adicionarMensagemFicheiro(data.mensagem, true); ultimaMsg = data.mensagem.criado_em; scrollFundo(); }
   cancelarFicheiro();

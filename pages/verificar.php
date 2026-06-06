@@ -20,6 +20,7 @@ $sucesso = false;
 
 // Reenviar código
 if (isset($_POST['reenviar'])) {
+    verificar_csrf();
     $st = db()->prepare('SELECT nome, email FROM utilizadores WHERE id = ?');
     $st->execute([$uid]);
     $u = $st->fetch();
@@ -38,6 +39,7 @@ if (isset($_POST['reenviar'])) {
 
 // Submeter código
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['codigo'])) {
+    verificar_csrf();
     $codigo = trim(preg_replace('/\D/', '', $_POST['codigo'] ?? ''));
 
     if (strlen($codigo) !== 6) {
@@ -110,6 +112,7 @@ $flash_success = flash('success');
 
     <!-- Formulário do código -->
     <form method="POST" novalidate>
+      <?= csrf_field() ?>
       <div class="form-group">
         <label for="codigo" style="text-align:center;display:block;">Código de Verificação</label>
         <input type="text" id="codigo" name="codigo"
@@ -134,6 +137,7 @@ $flash_success = flash('success');
     <div style="text-align:center;margin-top:1.5rem;">
       <p style="color:var(--texto-muted);font-size:.9rem;margin-bottom:.75rem;">Não recebeste o email?</p>
       <form method="POST" style="display:inline;">
+        <?= csrf_field() ?>
         <button type="submit" name="reenviar" value="1" class="btn btn-sm" style="background:rgba(201,168,76,.15);color:var(--dourado);border:1px solid var(--dourado);padding:.4rem 1.2rem;border-radius:0;">
           <i class="fas fa-paper-plane"></i> Reenviar Código
         </button>

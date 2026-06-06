@@ -31,6 +31,10 @@ if ($user && !is_admin()) {
     }
 }
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verificar_csrf();
+}
+
 // --- POST: Comentário ---
 $erro_com = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['comentario'])) {
@@ -304,6 +308,7 @@ include dirname(__DIR__) . '/includes/header.php';
             <div style="flex-shrink:0;width:130px;">
               <form method="POST" enctype="multipart/form-data"
                     onsubmit="if(!document.getElementById('fotos').files.length){alert('Seleciona pelo menos uma foto antes de enviar.');return false;}">
+                <?= csrf_field() ?>
                 <div class="upload-area" data-input-id="fotos" data-compact="1"
                      style="width:130px;height:130px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.35rem;padding:.5rem;border-radius:var(--radius);position:relative;overflow:hidden;">
                   <i class="fas fa-plus upload-icon" style="font-size:1.4rem;color:var(--verde-claro);"></i>
@@ -437,6 +442,7 @@ include dirname(__DIR__) . '/includes/header.php';
             <p style="margin-bottom:1.5rem;color:var(--texto-muted);font-size:.9rem;">Este post esta bloqueado. Novos comentarios estao desativados.</p>
           <?php elseif ($user): ?>
             <form method="POST" enctype="multipart/form-data" style="margin-bottom:1.5rem;">
+              <?= csrf_field() ?>
               <!-- Preview da foto selecionada -->
               <div id="com-foto-preview" style="display:none;margin-bottom:.5rem;position:relative;width:fit-content;">
                 <img id="com-foto-preview-img" src="" alt="" style="max-height:120px;max-width:100%;border-radius:var(--radius);border:1.5px solid var(--creme-escuro);">
@@ -533,6 +539,7 @@ include dirname(__DIR__) . '/includes/header.php';
                         <!-- Substituir foto -->
                         <label title="Substituir foto" style="cursor:pointer;">
                           <form method="POST" enctype="multipart/form-data" id="form-subst-<?= (int)$com['id'] ?>">
+                            <?= csrf_field() ?>
                             <input type="hidden" name="substituir_foto_comentario" value="1">
                             <input type="hidden" name="comentario_id_foto" value="<?= (int)$com['id'] ?>">
                             <input type="file" name="nova_foto_comentario" accept="image/*" style="display:none;"
@@ -769,7 +776,7 @@ async function enviarRecomendacao(destId, destNome, itemEl) {
   try {
     const res  = await fetch(SITE_URL_RECOMENDAR + '/pages/mensagens_api.php', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRF-Token': CSRF_TOKEN },
       body: `acao=recomendar&destinatario_id=${destId}&local_id=${LOCAL_ID_RECOMENDAR}&texto=${encodeURIComponent(texto)}`
     });
     const data = await res.json();
@@ -842,6 +849,7 @@ document.addEventListener('keydown', e => {
       <h3 style="margin:0;font-size:1.1rem;"><span id="denuncia-titulo">Denunciar</span></h3>
     </div>
     <form method="POST">
+      <?= csrf_field() ?>
       <input type="hidden" name="denunciar" value="1">
       <input type="hidden" name="tipo" id="denuncia-tipo" value="local">
       <input type="hidden" name="ref_id" id="denuncia-ref-id" value="<?= $id ?>">

@@ -21,6 +21,7 @@ $erro = '';
 
 // ── Processar formulário de login por email e password ────
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verificar_csrf();
     $email    = trim($_POST['email']    ?? '');
     $password = trim($_POST['password'] ?? '');
 
@@ -140,6 +141,7 @@ include dirname(__DIR__) . '/includes/header.php';
 
     <!-- Formulário de login por email e password -->
     <form method="POST" novalidate id="form-login">
+      <?= csrf_field() ?>
       <div class="form-group">
         <label for="email"><i class="fas fa-envelope"></i> Email</label>
         <input type="email" id="email" name="email" value="<?= h($_POST['email'] ?? '') ?>"

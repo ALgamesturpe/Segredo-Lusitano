@@ -12,7 +12,7 @@ if (!$user) {
     echo json_encode(['error' => 'Não autenticado']);
     exit;
 }
-
+verificar_csrf();
 $local_id = (int)($_POST['local_id'] ?? 0);
 if (!$local_id) {
     http_response_code(400);

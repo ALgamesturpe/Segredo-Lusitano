@@ -43,7 +43,8 @@ if ($user) {
 <link rel="stylesheet" href="<?= SITE_URL ?>/assets/css/style.css?v=<?= filemtime(dirname(__DIR__).'/assets/css/style.css') ?>">
 
 <?= $extra_head ?? '' ?>
-<script>const SITE_URL = "<?= SITE_URL ?>";</script>
+<meta name="csrf-token" content="<?= h(csrf_token()) ?>">
+<script>const SITE_URL = "<?= SITE_URL ?>"; const CSRF_TOKEN = document.querySelector('meta[name="csrf-token"]').content;</script>
 </head>
 <body>
 

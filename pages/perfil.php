@@ -292,7 +292,7 @@ if (btnSeguir) {
     const id  = btnSeguir.dataset.id;
     const res = await fetch(`${SITE_URL_JS}/pages/seguir.php`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRF-Token': CSRF_TOKEN },
       body: `id=${id}`
     });
     const data = await res.json();

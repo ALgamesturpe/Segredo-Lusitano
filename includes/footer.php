@@ -71,7 +71,7 @@ function fecharAvisoLogin() {
     const id = btn.dataset.id;
     const res = await fetch(`${SITE}/pages/seguir.php`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRF-Token': CSRF_TOKEN },
       body: `id=${id}`
     });
     if (res.status === 401) { mostrarAvisoLogin('Precisas de iniciar sessão para seguir utilizadores.', `${SITE}/pages/login.php`); return; }

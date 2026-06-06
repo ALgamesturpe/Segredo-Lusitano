@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const localId = likeBtn.dataset.local;
       const res = await fetch(`${SITE_URL}/pages/like.php`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRF-Token': CSRF_TOKEN },
         body: `local_id=${localId}`
       });
       if (res.status === 401) {

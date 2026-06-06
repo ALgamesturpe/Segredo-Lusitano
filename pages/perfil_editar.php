@@ -30,6 +30,10 @@ $avatar_extensoes = [
     'image/webp' => 'webp',
 ];
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verificar_csrf();
+}
+
 // ── POST: Guardar dados do perfil ─────────────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['guardar_perfil'])) {
     $nome     = trim($_POST['nome']     ?? '');
@@ -160,6 +164,7 @@ include dirname(__DIR__) . '/includes/header.php';
 
         <!-- ── FORMULÁRIO DO PERFIL ── -->
         <form method="POST" enctype="multipart/form-data" novalidate>
+          <?= csrf_field() ?>
           <input type="hidden" name="guardar_perfil" value="1">
 
           <!-- Foto de perfil com preview e overlay ao hover -->
@@ -238,6 +243,7 @@ include dirname(__DIR__) . '/includes/header.php';
           </p>
 
           <form method="POST" novalidate>
+            <?= csrf_field() ?>
             <input type="hidden" name="alterar_password" value="1">
 
             <!-- Campo de password atual -->
@@ -284,6 +290,7 @@ include dirname(__DIR__) . '/includes/header.php';
     </p>
     <div style="display:flex;gap:.75rem;">
       <form method="POST" style="flex:1;">
+        <?= csrf_field() ?>
         <input type="hidden" name="eliminar_conta" value="1">
         <button type="submit" class="btn"
                 style="width:100%;justify-content:center;background:#c0392b;color:#fff;border:none;">
