@@ -154,7 +154,12 @@ include dirname(__DIR__) . '/includes/header.php';
                placeholder="o.teu@email.pt" required autocomplete="email">
       </div>
       <div class="form-group">
-        <label for="password"><i class="fas fa-lock"></i> Password</label>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.4rem;">
+          <label for="password" style="margin:0;"><i class="fas fa-lock"></i> Password</label>
+          <a href="<?= SITE_URL ?>/pages/recuperar_password.php" style="font-size:.8rem;color:var(--texto-muted);text-decoration:none;" onmouseover="this.style.color='var(--verde)'" onmouseout="this.style.color='var(--texto-muted)'">
+            Esqueceu-se da sua palavra-passe?
+          </a>
+        </div>
         <input type="password" id="password" name="password" placeholder="••••••••" required autocomplete="current-password">
       </div>
       <button type="submit" id="btn-entrar" class="btn btn-primary" style="width:100%; justify-content:center; margin-top:.5rem;">

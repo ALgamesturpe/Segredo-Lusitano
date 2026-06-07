@@ -183,10 +183,16 @@ function verificar_codigo(int $utilizador_id, string $codigo, string $tipo = 're
  * Template HTML do email
  */
 function email_template(string $nome, string $codigo, string $tipo): string {
-    $titulo = $tipo === 'login' ? 'Código de Acesso' : 'Confirma a tua Conta';
-    $msg    = $tipo === 'login'
-        ? 'Usa este código para concluir o teu início de sessão.'
-        : 'Este é o código de ativação.';
+    $titulo = match($tipo) {
+        'login'     => 'Código de Acesso',
+        'recuperar' => 'Recuperar Palavra-passe',
+        default     => 'Confirma a tua Conta',
+    };
+    $msg = match($tipo) {
+        'login'     => 'Usa este código para concluir o teu início de sessão.',
+        'recuperar' => 'Usa este código para redefinir a tua palavra-passe.',
+        default     => 'Este é o código de ativação.',
+    };
 
     // Código dividido em dígitos individuais para melhor visual
     $digitos = '';
