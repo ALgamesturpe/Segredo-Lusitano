@@ -360,4 +360,7 @@ function enviar_codigo(
  */
 function limpar_codigos_expirados(): void {
     db()->prepare('DELETE FROM codigos_verificacao WHERE expira_em < NOW()')->execute();
+    // Apagar contas não verificadas com mais de 24h (registos abandonados)
+    db()->prepare('DELETE FROM codigos_verificacao WHERE utilizador_id IN (SELECT id FROM utilizadores WHERE verificado = 0 AND criado_em < DATE_SUB(NOW(), INTERVAL 24 HOUR))')->execute();
+    db()->prepare('DELETE FROM utilizadores WHERE verificado = 0 AND criado_em < DATE_SUB(NOW(), INTERVAL 24 HOUR)')->execute();
 }

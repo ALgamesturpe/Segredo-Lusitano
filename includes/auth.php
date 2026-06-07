@@ -74,6 +74,12 @@ function login(string $email, string $password): array {
     }
     // Verificar se a conta está verificada por email
     if (!$user['verificado']) {
+        // Conta não verificada há mais de 24h: apagar e tratar como inexistente
+        if (strtotime($user['criado_em']) < time() - 86400) {
+            db()->prepare('DELETE FROM codigos_verificacao WHERE utilizador_id = ?')->execute([$user['id']]);
+            db()->prepare('DELETE FROM utilizadores WHERE id = ?')->execute([$user['id']]);
+            return ['ok' => false, 'msg' => 'Email ou password incorretos.'];
+        }
         return ['ok' => false, 'verificar' => true, 'id' => $user['id'], 'msg' => 'Conta não verificada.'];
     }
 
@@ -89,11 +95,25 @@ function logout(): void {
 }
 
 function register(string $nome, string $username, string $email, string $password, ?string $termos_aceites_em = null): array {
-    $st = db()->prepare('SELECT id FROM utilizadores WHERE email = ? OR username = ?');
-    $st->execute([$email, $username]);
-    if ($st->fetch()) {
-        return ['ok' => false, 'msg' => 'Email ou username já registado.'];
+    // Se o email já existe mas não foi verificado, apagar conta fantasma e permitir novo registo
+    $st = db()->prepare('SELECT id, verificado FROM utilizadores WHERE email = ?');
+    $st->execute([$email]);
+    $existing_email = $st->fetch();
+    if ($existing_email) {
+        if ($existing_email['verificado']) {
+            return ['ok' => false, 'msg' => 'Email já registado.'];
+        }
+        db()->prepare('DELETE FROM codigos_verificacao WHERE utilizador_id = ?')->execute([$existing_email['id']]);
+        db()->prepare('DELETE FROM utilizadores WHERE id = ?')->execute([$existing_email['id']]);
     }
+
+    // Verificar username separadamente
+    $st = db()->prepare('SELECT id FROM utilizadores WHERE username = ?');
+    $st->execute([$username]);
+    if ($st->fetch()) {
+        return ['ok' => false, 'msg' => 'Username já registado.'];
+    }
+
     $password_hash = password_hash($password, PASSWORD_BCRYPT, ['cost' => 12]);
     $st = db()->prepare('INSERT INTO utilizadores (nome, username, email, password, verificado, pontos, termos_aceites_em) VALUES (?,?,?,?,0,0,?)');
     $st->execute([$nome, $username, $email, $password_hash, $termos_aceites_em]);
