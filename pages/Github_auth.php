@@ -106,6 +106,7 @@ if ($user) {
         exit;
     }
     // Login na conta existente
+    session_regenerate_id(true);
     $_SESSION['user_id'] = $user['id'];
     flash('success', 'Bem-vindo de volta, ' . $user['nome'] . '!');
     header('Location: ' . SITE_URL . '/index.php');
@@ -146,6 +147,7 @@ $st3->execute([$nome, $username, $email, $password_hash, $termos_em]);
 $new_id = (int)db()->lastInsertId();
 guardar_localizacao_registo($new_id);
 
+session_regenerate_id(true);
 $_SESSION['user_id'] = $new_id;
 flash('success', 'Conta criada com GitHub, bem-vindo à comunidade!');
 header('Location: ' . SITE_URL . '/index.php');

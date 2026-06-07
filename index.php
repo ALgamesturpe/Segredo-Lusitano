@@ -40,11 +40,13 @@ include __DIR__ . '/includes/header.php';
       </div>
 
       <?php if ($locais_destaque): ?>
+      <?php $ocultar_btn_seguir = true; ?>
       <div class="cards-grid">
         <?php foreach ($locais_destaque as $local): ?>
           <?php include __DIR__ . '/includes/card_local.php'; ?>
         <?php endforeach; ?>
       </div>
+      <?php unset($ocultar_btn_seguir); ?>
       <div style="text-align:center; margin-top:2.5rem;">
         <a href="<?= SITE_URL ?>/pages/explorar.php" class="btn btn-verde">Ver Todos os Locais <i class="fas fa-arrow-right"></i></a>
       </div>

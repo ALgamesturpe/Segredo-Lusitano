@@ -17,6 +17,7 @@ if (($_GET['continuar'] ?? '') === 'github' && !empty($_SESSION['github_pendente
 $erros = [];
 
 if ($github_pendente && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['github_criar'])) {
+    verificar_csrf();
     if (empty($_POST['aceitar_termos'])) {
         $erros['termos'] = 'Deves aceitar os Termos e Condições para continuar.';
     } else {
@@ -42,6 +43,7 @@ if ($github_pendente && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['g
         $new_id = (int)db()->lastInsertId();
         guardar_localizacao_registo($new_id);
         unset($_SESSION['github_pendente']);
+        session_regenerate_id(true);
         $_SESSION['user_id'] = $new_id;
         flash('success', 'Conta criada com GitHub, bem-vindo à comunidade!');
         header('Location: ' . SITE_URL . '/index.php');
@@ -50,6 +52,7 @@ if ($github_pendente && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['g
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verificar_csrf();
     $nome     = trim($_POST['nome']     ?? '');
     $username = trim($_POST['username'] ?? '');
     $email    = trim($_POST['email']    ?? '');
@@ -84,6 +87,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (!class_exists('PHPMailer\PHPMailer\PHPMailer')) {
                 // PHPMailer não instalado - auto-verificar e fazer login direto
                 db()->prepare('UPDATE utilizadores SET verificado = 1 WHERE id = ?')->execute([$res['id']]);
+                session_regenerate_id(true);
                 $_SESSION['user_id'] = $res['id'];
                 flash('success', 'Conta criada com sucesso! Bem-vindo ao Segredo Lusitano! 🎉 (Email não configurado - conta verificada automaticamente)');
                 header('Location: ' . SITE_URL . '/index.php');
@@ -100,6 +104,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (!$enviado) {
                 // Falha no envio - auto-verificar também
                 db()->prepare('UPDATE utilizadores SET verificado = 1 WHERE id = ?')->execute([$res['id']]);
+                session_regenerate_id(true);
                 $_SESSION['user_id'] = $res['id'];
                 flash('success', 'Conta criada! Email não enviado (erro SMTP) - conta verificada automaticamente.');
                 header('Location: ' . SITE_URL . '/index.php');
@@ -131,6 +136,7 @@ include dirname(__DIR__) . '/includes/header.php';
       <p style="font-size:.88rem;color:var(--texto-muted);margin:0;">A criar conta para <strong><?= h($github_pendente['nome']) ?></strong> (<?= h($github_pendente['email']) ?>). Aceita os termos para finalizar.</p>
     </div>
     <form method="POST" novalidate>
+      <?= csrf_field() ?>
       <input type="hidden" name="github_criar" value="1">
       <input type="checkbox" id="aceitar-termos" name="aceitar_termos" style="display:none;">
       <input type="hidden" id="termos-aceites-em" name="termos_aceites_em" value="">
@@ -158,6 +164,7 @@ include dirname(__DIR__) . '/includes/header.php';
 
     <?php else: ?>
     <form method="POST" novalidate>
+      <?= csrf_field() ?>
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
         <div class="form-group">
           <label for="nome">Nome</label>

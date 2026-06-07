@@ -90,6 +90,7 @@ $nomes_meses_g = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho',
 
 // ── Ações de moderação ────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verificar_csrf();
     if (isset($_POST['moderar'])) {
         moderar_local((int)$_POST['local_id'], $_POST['estado']);
         flash('success', 'Local ' . $_POST['estado'] . ' com sucesso!');
@@ -380,6 +381,7 @@ function render_top_user(?array $u, string $valor_label): string {
           <td><?= date('d/m/Y', strtotime($den['criado_em'])) ?></td>
           <td style="white-space:nowrap;">
             <form method="POST" style="display:inline;">
+              <?= csrf_field() ?>
               <input type="hidden" name="den_id" value="<?= (int)$den['id'] ?>">
               <button type="submit" name="devolver_denuncia" class="btn btn-sm"
                       style="border:1px solid var(--creme-escuro);color:var(--texto-muted);">
@@ -387,6 +389,7 @@ function render_top_user(?array $u, string $valor_label): string {
               </button>
             </form>
             <form method="POST" style="display:inline;margin-left:.35rem;">
+              <?= csrf_field() ?>
               <input type="hidden" name="tipo"   value="<?= h($den['tipo']) ?>">
               <input type="hidden" name="ref_id" value="<?= (int)$den['referencia_id'] ?>">
               <input type="hidden" name="acao"   value="bloquear">
@@ -446,6 +449,7 @@ function render_top_user(?array $u, string $valor_label): string {
     </div>
     <div style="padding:1rem 1.5rem;border-top:1px solid var(--creme-escuro);display:flex;gap:.75rem;">
       <form method="POST" style="flex:1;">
+        <?= csrf_field() ?>
         <input type="hidden" name="den_id" id="modal-input-den-id">
         <button type="submit" name="devolver_denuncia" class="btn btn-sm"
                 style="width:100%;justify-content:center;border:1.5px solid var(--creme-escuro);color:var(--texto-muted);">
@@ -453,6 +457,7 @@ function render_top_user(?array $u, string $valor_label): string {
         </button>
       </form>
       <form method="POST" style="flex:1;">
+        <?= csrf_field() ?>
         <input type="hidden" name="tipo"   id="modal-input-tipo">
         <input type="hidden" name="ref_id" id="modal-input-ref-id">
         <input type="hidden" name="acao"   id="modal-input-acao">

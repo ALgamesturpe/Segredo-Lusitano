@@ -120,6 +120,7 @@ try {
         if (!$user['verificado']) {
             db()->prepare('UPDATE utilizadores SET verificado = 1 WHERE id = ?')->execute([$user['id']]);
         }
+        session_regenerate_id(true);
         $_SESSION['user_id'] = $user['id'];
         echo json_encode(['ok' => true, 'redirect' => SITE_URL . '/index.php', 'novo' => false]);
 
@@ -152,6 +153,7 @@ try {
 
         $novo_id = (int)db()->lastInsertId();
         guardar_localizacao_registo($novo_id);
+        session_regenerate_id(true);
         $_SESSION['user_id'] = $novo_id;
         echo json_encode(['ok' => true, 'redirect' => SITE_URL . '/index.php', 'novo' => true, 'nome' => $google_nome]);
     }

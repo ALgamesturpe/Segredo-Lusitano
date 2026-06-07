@@ -87,6 +87,7 @@ if (isset($_GET['apagar_foto'])) {
 
 // ── Upload de foto pelo admin ─────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['foto_admin']) && isset($_POST['local_id_upload'])) {
+    verificar_csrf();
     $lid  = (int)$_POST['local_id_upload'];
     $user = auth_user();
     $f    = $_FILES['foto_admin'];
@@ -182,6 +183,7 @@ include dirname(__DIR__) . '/includes/header.php';
 
       <!-- Upload nova foto -->
       <form method="POST" enctype="multipart/form-data" style="margin-bottom:1.25rem;display:flex;gap:.75rem;align-items:center;flex-wrap:wrap;">
+        <?= csrf_field() ?>
         <input type="hidden" name="local_id_upload" value="<?= $gerir_id ?>">
         <input type="file" name="foto_admin" accept="image/*" required
                style="border:1.5px solid var(--creme-escuro);border-radius:0;padding:.4rem .75rem;background:var(--creme);font-size:.9rem;">

@@ -72,7 +72,8 @@ if ($user) {
 <link rel="stylesheet" href="<?= SITE_URL ?>/assets/css/style.css?v=<?= filemtime(dirname(__DIR__).'/assets/css/style.css') ?>">
 
 <?= $extra_head ?? '' ?>
-<script>const SITE_URL = "<?= SITE_URL ?>"; const IS_LOGGED_IN = <?= $user ? 'true' : 'false' ?>;</script>
+<meta name="csrf-token" content="<?= h(csrf_token()) ?>">
+<script>const SITE_URL = "<?= SITE_URL ?>"; const CSRF_TOKEN = document.querySelector('meta[name="csrf-token"]').content;</script>
 </head>
 <body>
 
@@ -168,7 +169,7 @@ if ($flash_success): ?>
 <div class="flash flash-error"><i class="fas fa-exclamation-circle"></i> <?= h($flash_error) ?></div>
 <?php endif;
 
-// Atualizar badge de mensagens a cada 30 segundos
+// Atualizar badge de mensagens e verificar estado da conta a cada 15 segundos
 if ($user): ?>
 <script>
 setInterval(async () => {
@@ -183,5 +184,49 @@ setInterval(async () => {
     badge.style.display = 'none';
   }
 }, 30000);
+
+// Verificar estado da conta a cada 8 segundos
+(function verificarEstadoConta() {
+  setInterval(async () => {
+    try {
+      const res  = await fetch(`${SITE_URL}/pages/estado_conta_api.php`);
+      const data = await res.json();
+      if (!data.ok) _mostrarBloqueio(data.motivo);
+    } catch (_) {}
+  }, 8000);
+})();
+
+function _mostrarBloqueio(motivo) {
+  if (document.getElementById('overlay-conta-bloqueada')) return;
+
+  const isSuspenso = motivo === 'suspenso';
+  const titulo  = isSuspenso ? 'Conta Suspensa' : 'Conta Banida';
+  const icone   = isSuspenso ? 'fa-pause-circle' : 'fa-user-slash';
+  const cor     = isSuspenso ? '#e67e22' : '#c0392b';
+  const mensagem = isSuspenso
+    ? 'A tua conta foi suspensa pelo administrador. Não podes aceder à plataforma.'
+    : 'A tua conta foi banida pelo administrador. O acesso à plataforma foi permanentemente removido.';
+
+  const overlay = document.createElement('div');
+  overlay.id = 'overlay-conta-bloqueada';
+  overlay.style.cssText = [
+    'position:fixed','inset:0','z-index:99999',
+    'background:rgba(0,0,0,.82)',
+    'display:flex','align-items:center','justify-content:center','padding:1rem'
+  ].join(';');
+
+  overlay.innerHTML = `
+    <div style="background:#fff;max-width:440px;width:100%;padding:2.5rem 2rem;text-align:center;border-top:5px solid ${cor};">
+      <i class="fas ${icone}" style="font-size:3rem;color:${cor};margin-bottom:1rem;display:block;"></i>
+      <h2 style="font-family:'Playfair Display',serif;color:#1a1a1a;margin:0 0 .75rem;">${titulo}</h2>
+      <p style="color:#555;font-size:.95rem;line-height:1.6;margin:0 0 1.75rem;">${mensagem}</p>
+      <a href="${SITE_URL}/pages/login.php" style="display:inline-block;background:${cor};color:#fff;padding:.7rem 1.75rem;font-weight:600;text-decoration:none;font-size:.95rem;">
+        Ir para o Login
+      </a>
+    </div>`;
+
+  document.body.appendChild(overlay);
+  document.body.style.overflow = 'hidden';
+}
 </script>
 <?php endif;

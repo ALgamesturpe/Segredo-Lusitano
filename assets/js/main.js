@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const localId = likeBtn.dataset.local;
       const res = await fetch(`${SITE_URL}/pages/like.php`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRF-Token': CSRF_TOKEN },
         body: `local_id=${localId}`
       });
       if (res.status === 401) {
@@ -299,11 +299,26 @@ function initMainMap(locais) {
     maxZoom: 18, noWrap: true,
   }).addTo(map);
 
-  const makeIcon = (cat) => L.divIcon({
-    className: '',
-    html: `<div style="background:#1a3a2a;border:3px solid #c9a84c;border-radius:50% 50% 50% 0;transform:rotate(-45deg);width:32px;height:32px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,.3);"><i class='${cat}' style='transform:rotate(45deg);color:#c9a84c;font-size:.7rem;'></i></div>`,
-    iconSize: [32,32], iconAnchor: [16,32], popupAnchor: [0,-34]
-  });
+  setTimeout(function() { map.invalidateSize(); }, 100);
+
+  const TRILHO_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="15" height="15" style="transform:rotate(45deg);overflow:visible;display:block;" fill="#c9a84c">
+    <path d="M48 96 C42 80 58 66 52 50 C46 34 28 26 38 8" stroke="#c9a84c" stroke-width="16" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <polygon points="22,62 6,88 38,88"/>
+    <rect x="14" y="88" width="16" height="10"/>
+    <polygon points="78,32 62,58 94,58"/>
+    <rect x="70" y="58" width="16" height="10"/>
+  </svg>`;
+
+  const makeIcon = (cat, catNome) => {
+    const inner = catNome === 'Trilhos'
+      ? TRILHO_SVG
+      : `<i class='${cat}' style='transform:rotate(45deg);color:#c9a84c;font-size:.7rem;'></i>`;
+    return L.divIcon({
+      className: '',
+      html: `<div style="background:#1a3a2a;border:3px solid #c9a84c;border-radius:50% 50% 50% 0;transform:rotate(-45deg);width:32px;height:32px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,.3);">${inner}</div>`,
+      iconSize: [32,32], iconAnchor: [16,32], popupAnchor: [0,-34]
+    });
+  };
 
   const clusterGroup = L.markerClusterGroup({
     chunkedLoading: true,
@@ -314,26 +329,19 @@ function initMainMap(locais) {
   const allMarkers = [];
 
   locais.forEach(l => {
-    //são as coordenadas guardadas na BD quando o utilizador clicou no mapa ao publicar.
-    const m = L.marker([parseFloat(l.latitude), parseFloat(l.longitude)], { icon: makeIcon(l.icone) });
-    const img = l.foto_capa
-      ? `<img src="${SITE_URL}/uploads/locais/${l.foto_capa}" alt="" style="width:100%;height:90px;object-fit:cover;border-radius:4px;margin-bottom:.5rem;">`
-      : '';
-    m.bindPopup(`
-      <div style="min-width:200px;font-family:'Outfit',sans-serif;">
-        ${img}
-        <div style="font-family:'Playfair Display',serif;font-weight:700;font-size:1rem;color:#1a3a2a;">${l.nome}</div>
-        <div style="font-size:.8rem;color:#6b7280;margin:.2rem 0 .6rem;">${l.categoria_nome} · ${l.regiao_nome}</div>
-        <a href="${SITE_URL}/pages/local.php?id=${l.id}" style="display:inline-flex;align-items:center;gap:.35rem;color:#2d6a4f;font-size:.85rem;font-weight:700;">
-          Ver local <i class="fas fa-arrow-right"></i>
-        </a>
-      </div>
-    `);
-    clusterGroup.addLayer(m);
-    allMarkers.push({ marker: m, local: l, onMap: true });
-
-    if (abrirId && l.id === abrirId) {
-      setTimeout(() => clusterGroup.zoomToShowLayer(m, () => m.openPopup()), 400);
+  //são as coordenadas guardadas na BD quando o utilizador clicou no mapa ao publicar.
+    try {
+      const lat = parseFloat(l.latitude);
+      const lng = parseFloat(l.longitude);
+      if (isNaN(lat) || isNaN(lng)) return;
+      const m = L.marker([lat, lng], { icon: makeIcon(l.icone, l.categoria_nome) });
+      m.addTo(map);
+      const img = l.foto_capa ? `<img src="${SITE_URL}/uploads/locais/${l.foto_capa}" alt="" style="width:100%;height:90px;object-fit:cover;border-radius:4px;margin-bottom:.5rem;">` : '';
+      m.bindPopup(`<div style="min-width:200px;font-family:'Outfit',sans-serif;">${img}<div style="font-family:'Playfair Display',serif;font-weight:700;font-size:1rem;color:#1a3a2a;">${l.nome}</div><div style="font-size:.8rem;color:#6b7280;margin:.2rem 0 .6rem;">${l.categoria_nome} &middot; ${l.regiao_nome}</div><a href="${SITE_URL}/pages/local.php?id=${l.id}" style="display:inline-flex;align-items:center;gap:.35rem;color:#2d6a4f;font-size:.85rem;font-weight:700;">Ver local <i class="fas fa-arrow-right"></i></a></div>`);
+      allMarkers.push({ marker: m, local: l, onMap: true });
+      if (abrirId && l.id === abrirId) m.openPopup();
+    } catch(e) {
+      console.warn('Erro ao adicionar marcador id=' + l.id + ':', e);
     }
   });
 

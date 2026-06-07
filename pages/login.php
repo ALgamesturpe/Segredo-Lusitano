@@ -21,6 +21,7 @@ $erro = '';
 
 // ── Processar formulário de login por email e password ────
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verificar_csrf();
     $email    = trim($_POST['email']    ?? '');
     $password = trim($_POST['password'] ?? '');
 
@@ -67,6 +68,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if (!class_exists('PHPMailer\PHPMailer\PHPMailer')) {
                     // PHPMailer não instalado — verificar automaticamente
                     db()->prepare('UPDATE utilizadores SET verificado = 1 WHERE id = ?')->execute([$res['id']]);
+                    session_regenerate_id(true);
                     $_SESSION['user_id'] = $res['id'];
                     flash('success', 'Email não configurado. Bem-vindo!');
                     $redirect = $_GET['redirect'] ?? (SITE_URL . '/index.php');
@@ -84,6 +86,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if (!$enviado) {
                     // Falha no envio — verificar automaticamente
                     db()->prepare('UPDATE utilizadores SET verificado = 1 WHERE id = ?')->execute([$res['id']]);
+                    session_regenerate_id(true);
                     $_SESSION['user_id'] = $res['id'];
                     flash('success', 'Erro ao enviar email. Conta verificada automaticamente.');
                     $redirect = $_GET['redirect'] ?? (SITE_URL . '/index.php');
@@ -129,6 +132,12 @@ include dirname(__DIR__) . '/includes/header.php';
         <i class="fas fa-user-alt-slash"></i> Conta banida pelo administrador pelo motivo: <?= h($motivo_ban ?? '') ?>.
       </p>
 
+    <!-- Mensagem de conta suspensa -->
+    <?php elseif ($erro === 'suspenso'): ?>
+      <p style="color:#c0392b;font-size:.9rem;font-weight:600;margin-bottom:1.25rem;">
+        <i class="fas fa-ban"></i> A tua conta foi suspensa pelo administrador.
+      </p>
+
     <!-- Mensagem de erro normal (credenciais incorretas) -->
     <?php elseif ($erro): ?>
       <div class="flash flash-error" style="position:static; margin-bottom:1.25rem; border-radius:0;">
@@ -138,13 +147,19 @@ include dirname(__DIR__) . '/includes/header.php';
 
     <!-- Formulário de login por email e password -->
     <form method="POST" novalidate id="form-login">
+      <?= csrf_field() ?>
       <div class="form-group">
         <label for="email"><i class="fas fa-envelope"></i> Email</label>
         <input type="email" id="email" name="email" value="<?= h($_POST['email'] ?? '') ?>"
                placeholder="o.teu@email.pt" required autocomplete="email">
       </div>
       <div class="form-group">
-        <label for="password"><i class="fas fa-lock"></i> Password</label>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.4rem;">
+          <label for="password" style="margin:0;"><i class="fas fa-lock"></i> Password</label>
+          <a id="link-recuperar" href="<?= SITE_URL ?>/pages/recuperar_password.php" style="font-size:.8rem;color:var(--texto-muted);text-decoration:none;" onmouseover="this.style.color='var(--verde)'" onmouseout="this.style.color='var(--texto-muted)'">
+            Esqueceu-se da sua palavra-passe?
+          </a>
+        </div>
         <input type="password" id="password" name="password" placeholder="••••••••" required autocomplete="current-password">
       </div>
       <button type="submit" id="btn-entrar" class="btn btn-primary" style="width:100%; justify-content:center; margin-top:.5rem;">
@@ -284,4 +299,15 @@ function aceitarTermos() {
 </script>
 <?php endif; ?>
 
+<script>
+// Passar o email preenchido para a página de recuperação
+document.getElementById('link-recuperar').addEventListener('click', function(e) {
+  const email = document.getElementById('email').value.trim();
+  if (email) {
+    e.preventDefault();
+    this.href = '<?= SITE_URL ?>/pages/recuperar_password.php?email=' + encodeURIComponent(email);
+    window.location.href = this.href;
+  }
+});
+</script>
 <?php include dirname(__DIR__) . '/includes/footer.php'; ?>

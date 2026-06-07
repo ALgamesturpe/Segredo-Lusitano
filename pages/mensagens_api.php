@@ -7,6 +7,10 @@ ini_set('display_errors', 0);
 require_once dirname(__DIR__) . '/includes/functions.php';
 require_login();
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verificar_csrf();
+}
+
 header('Content-Type: application/json');
 $user = auth_user();
 $uid  = $user['id'];

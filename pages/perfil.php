@@ -94,27 +94,6 @@ $st_lista_seguidos = db()->prepare(
 $st_lista_seguidos->execute([$id]);
 $lista_seguidos = $st_lista_seguidos->fetchAll();
 
-// Locais guardados (só para o próprio utilizador)
-$locais_guardados = [];
-if ($is_own) {
-    _migrar_favoritos();
-    $stFavs = db()->prepare(
-        'SELECT l.*, c.nome AS categoria_nome, c.icone AS categoria_icone, r.nome AS regiao_nome,
-                u.username, u.nome AS autor_nome,
-                (SELECT COUNT(*) FROM likes WHERE local_id = l.id) AS total_likes,
-                f.criado_em AS guardado_em
-         FROM favoritos f
-         JOIN locais l ON l.id = f.local_id
-         JOIN categorias c ON c.id = l.categoria_id
-         JOIN regioes r    ON r.id = l.regiao_id
-         JOIN utilizadores u ON u.id = l.utilizador_id
-         WHERE f.utilizador_id = ? AND l.estado = "aprovado" AND l.apagado_em IS NULL AND l.bloqueado = 0
-         ORDER BY f.criado_em DESC'
-    );
-    $stFavs->execute([$id]);
-    $locais_guardados = $stFavs->fetchAll();
-}
-
 
 $page_title = $perfil['nome'];
 $extra_head = '<style>
@@ -270,48 +249,6 @@ include dirname(__DIR__) . '/includes/header.php';
       </div>
     <?php endif; ?>
 
-    <!-- LOCAIS GUARDADOS (só o próprio vê) -->
-    <?php if ($is_own): ?>
-    <div style="margin-top:3.5rem;">
-      <h2 style="margin-bottom:1.5rem;display:flex;align-items:center;gap:.6rem;">
-        <i class="fas fa-bookmark" style="color:var(--dourado);font-size:1.1rem;"></i> Guardados
-        <span style="font-size:.85rem;font-weight:400;color:var(--texto-muted);"></span>
-      </h2>
-      <?php if ($locais_guardados): ?>
-        <div class="cards-grid" style="grid-template-columns:repeat(auto-fill,minmax(260px,300px));">
-          <?php foreach ($locais_guardados as $local): ?>
-            <article class="card">
-              <a href="<?= SITE_URL ?>/pages/local.php?id=<?= $local['id'] ?>" class="card-img" style="display:block;position:relative;">
-                <?php if ($local['foto_capa']): ?>
-                  <img src="<?= SITE_URL ?>/uploads/locais/<?= h($local['foto_capa']) ?>" alt="<?= h(local_nome_publico($local)) ?>">
-                <?php else: ?>
-                  <div class="card-img-placeholder"><i class="<?= h($local['categoria_icone']) ?>"></i></div>
-                <?php endif; ?>
-                <div style="position:absolute;top:.5rem;right:.5rem;background:var(--dourado);color:var(--verde-escuro);border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:.85rem;">
-                  <i class="fas fa-bookmark"></i>
-                </div>
-              </a>
-              <div class="card-body">
-                <h3 class="card-title"><a href="<?= SITE_URL ?>/pages/local.php?id=<?= $local['id'] ?>"><?= h(local_nome_publico($local)) ?></a></h3>
-                <div class="card-meta">
-                  <span style="font-size:.82rem;color:var(--texto-muted);"><?= h($local['regiao_nome']) ?> &bull; <?= h($local['autor_nome']) ?></span>
-                  <div class="card-meta-stats">
-                    <span><i class="fas fa-heart"></i> <?= $local['total_likes'] ?></span>
-                  </div>
-                </div>
-              </div>
-            </article>
-          <?php endforeach; ?>
-        </div>
-      <?php else: ?>
-        <div class="empty-state" style="padding:2rem 0;">
-          <i class="far fa-bookmark" style="font-size:2.5rem;color:var(--texto-muted);opacity:.4;"></i>
-          <h3 style="margin-top:.75rem;">Ainda sem guardados</h3>
-          <p style="font-size:.9rem;color:var(--texto-muted);">Guarda locais para visitar mais tarde</p>
-        </div>
-      <?php endif; ?>
-    </div>
-    <?php endif; ?>
 
     <!-- MAPA PESSOAL -->
     <?php
@@ -468,7 +405,7 @@ if (btnSeguir) {
     const id  = btnSeguir.dataset.id;
     const res = await fetch(`${SITE_URL_JS}/pages/seguir.php`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRF-Token': CSRF_TOKEN },
       body: `id=${id}`
     });
     const data = await res.json();

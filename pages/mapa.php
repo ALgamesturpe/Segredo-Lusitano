@@ -42,7 +42,7 @@ $extra_head = '
 body { overflow: hidden; margin:0; padding:0; }
 .page-content { height: calc(100vh - var(--nav-h)); display:flex; flex-direction:column; margin:0; padding:0; background:var(--verde-escuro); }
 footer, .site-footer { display:none !important; height:0 !important; }
-#map { flex:1; min-height:0; }
+#map { flex:1; min-height:0; height:auto !important; }
 .mapa-select {
   background: rgba(255,255,255,.08);
   color: var(--creme);
@@ -158,8 +158,7 @@ include dirname(__DIR__) . '/includes/header.php';
 
 <!-- Scripts sem footer visual -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
-<script src="<?= SITE_URL ?>/assets/js/main.js"></script>
+<script src="<?= SITE_URL ?>/assets/js/main.js?v=<?= filemtime(dirname(__DIR__).'/assets/js/main.js') ?>"></script>
 <script>
 initMainMap(<?= $locais_json ?>);
 

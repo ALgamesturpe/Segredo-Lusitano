@@ -174,7 +174,7 @@ document.querySelectorAll('.btn-seguir').forEach(btn => {
     const id  = btn.dataset.id;
     const res = await fetch('<?= SITE_URL ?>/pages/seguir.php', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRF-Token': CSRF_TOKEN },
       body: `id=${id}`
     });
     const data = await res.json();

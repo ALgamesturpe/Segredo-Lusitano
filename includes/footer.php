@@ -59,8 +59,7 @@ function fecharAvisoLogin() {
 </script>
 <?php if ($carregar_leaflet ?? false): ?>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<?php endif; ?>
-<script src="<?= SITE_URL ?>/assets/js/main.js"></script>
+<script src="<?= SITE_URL ?>/assets/js/main.js?v=<?= filemtime(dirname(__DIR__).'/assets/js/main.js') ?>"></script>
 <?= $extra_scripts ?? '' ?>
 <!-- Script botões seguir nos cards -->
 <script>
@@ -73,7 +72,7 @@ function fecharAvisoLogin() {
     const id = btn.dataset.id;
     const res = await fetch(`${SITE}/pages/seguir.php`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRF-Token': CSRF_TOKEN },
       body: `id=${id}`
     });
     if (res.status === 401) { mostrarAvisoLogin('Precisas de iniciar sessão para seguir utilizadores.', `${SITE}/pages/login.php`); return; }

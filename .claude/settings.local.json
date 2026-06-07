@@ -23,9 +23,19 @@
       "Bash(Get-ChildItem \"C:\\\\wamp64\\\\logs\" -ErrorAction SilentlyContinue)",
       "Bash(Select-Object Name, LastWriteTime)",
       "PowerShell(Get-ChildItem -Path \"c:\\\\wamp64\\\\www\\\\Segredo-Lusitano\" -Recurse -Force | Where-Object { $_.PSIsContainer -eq $true } | Select-Object FullName | Sort-Object FullName)",
-      "Bash(Get-ChildItem -Path \"C:\\\\wamp64\\\\www\\\\Segredo-Lusitano\" -Recurse -File)",
+      "Bash(Remove-Item \"c:\\\\wamp64\\\\www\\\\Segredo-Lusitano\\\\pages\\\\favoritos_api.php\")",
+      "PowerShell(& \"C:\\\\wamp64\\\\bin\\\\mysql\\\\mysql8.0.31\\\\bin\\\\mysql.exe\" -u root -p123456 segredo_lusitano -e \"SHOW TABLES LIKE 'favoritos';\")",
+      "PowerShell(& \"C:\\\\wamp64\\\\bin\\\\mysql\\\\mysql8.4.7\\\\bin\\\\mysql.exe\" -u root -p123456 segredo_lusitano -e \"SHOW TABLES LIKE 'favoritos'; DESCRIBE favoritos;\" 2>&1)",
+      "PowerShell(& \"C:\\\\wamp64\\\\bin\\\\mysql\\\\mysql8.4.7\\\\bin\\\\mysql.exe\" -u root -p123456 segredo_lusitano -e \"DROP TABLE favoritos;\" 2>&1)",
+      "PowerShell(& \"C:\\\\wamp64\\\\bin\\\\mysql\\\\mysql8.4.7\\\\bin\\\\mysql.exe\" -u root -p123456 segredo_lusitano -e \"SHOW TABLES LIKE 'favoritos';\" 2>&1)",
+      "Bash(Get-ChildItem -Path \"c:\\\\wamp64\\\\www\\\\Segredo-Lusitano\" -Recurse -Include \"*.php\", \"*.js\", \"*.json\")",
       "Bash(Select-Object -ExpandProperty FullName)",
-      "Bash(Sort-Object)"
+      "Bash(grep -E \"\\\\.\\(php|js\\)$\")",
+      "PowerShell(& \"C:\\\\wamp64\\\\bin\\\\php\\\\php8.3.28\\\\php.exe\" \"C:\\\\wamp64\\\\www\\\\Segredo-Lusitano\\\\check_db.php\")",
+      "PowerShell(& \"C:\\\\wamp64\\\\bin\\\\php\\\\php8.3.28\\\\php.exe\" \"C:\\\\wamp64\\\\www\\\\Segredo-Lusitano\\\\check_map.php\")",
+      "PowerShell(Invoke-WebRequest -Uri \"http://localhost/Segredo-Lusitano/pages/mapa.php\" -UseBasicParsing -TimeoutSec 5 2>&1)",
+      "PowerShell(& \"C:\\\\wamp64\\\\bin\\\\php\\\\php8.3.28\\\\php.exe\" \"C:\\\\wamp64\\\\www\\\\Segredo-Lusitano\\\\check_db.php\" 2>&1)",
+      "PowerShell(& \"C:\\\\wamp64\\\\bin\\\\php\\\\php8.3.28\\\\php.exe\" \"C:\\\\wamp64\\\\www\\\\Segredo-Lusitano\\\\insert_trilhos.php\")"
     ]
   }
 }

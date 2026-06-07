@@ -20,6 +20,7 @@ $regioes    = get_regioes();
 $erros      = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verificar_csrf();
     $data = [
         'nome'         => trim($_POST['nome']         ?? ''),
         'descricao'    => trim($_POST['descricao']    ?? ''),
@@ -96,6 +97,7 @@ include dirname(__DIR__) . '/includes/header.php';
     </div>
 
     <form method="POST" enctype="multipart/form-data" novalidate>
+      <?= csrf_field() ?>
 
       <!-- Coordenadas hidden — preenchidas pelo JS do mapa -->
       <input type="hidden" id="latitude"  name="latitude"  value="<?= h($d['latitude']  ?? '') ?>">

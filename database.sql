@@ -16,7 +16,6 @@ DROP TABLE IF EXISTS categorias;
 DROP TABLE IF EXISTS utilizadores;
 DROP TABLE IF EXISTS seguidores;
 DROP TABLE IF EXISTS mensagens;
-DROP TABLE IF EXISTS favoritos;
 DROP TABLE IF EXISTS codigos_verificacao;
 DROP TABLE IF EXISTS app_meta;
 SET FOREIGN_KEY_CHECKS = 1;
@@ -209,19 +208,6 @@ CREATE TABLE mensagens (
     FOREIGN KEY (local_id)        REFERENCES locais(id) ON DELETE SET NULL
 ) ENGINE=InnoDB;
 
--- ============================================================
--- TABELA: favoritos
--- Locais guardados/bookmarked por cada utilizador (privados)
--- ============================================================
-CREATE TABLE favoritos (
-    id            INT AUTO_INCREMENT PRIMARY KEY,
-    utilizador_id INT NOT NULL,
-    local_id      INT NOT NULL,
-    criado_em     DATETIME DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE KEY unique_fav (utilizador_id, local_id),
-    FOREIGN KEY (utilizador_id) REFERENCES utilizadores(id) ON DELETE CASCADE,
-    FOREIGN KEY (local_id)      REFERENCES locais(id) ON DELETE CASCADE
-) ENGINE=InnoDB;
 
 -- ============================================================
 -- TABELA: codigos_verificacao
@@ -464,32 +450,3 @@ INSERT INTO comentarios (local_id, utilizador_id, texto, criado_em) VALUES
   (14, 7, 'É verdadeiramente um postal vivo. Recomendo visita ao nascer do sol.', NOW() - INTERVAL 22 DAY),
   (14, 8, 'Estive lá em Setembro, água ainda quente e menos gente. Perfeito!', NOW() - INTERVAL 12 DAY);
 
--- ============================================================
--- SEGUIDORES — para o ranking "Mais Seguidores"
--- ============================================================
-INSERT INTO seguidores (seguidor_id, seguido_id, criado_em) VALUES
-  -- Mariana (5) — 5 seguidores
-  (3, 5, NOW() - INTERVAL 40 DAY),
-  (4, 5, NOW() - INTERVAL 35 DAY),
-  (6, 5, NOW() - INTERVAL 30 DAY),
-  (7, 5, NOW() - INTERVAL 25 DAY),
-  (8, 5, NOW() - INTERVAL 20 DAY),
-  -- Tiago (4) — 4 seguidores
-  (3, 4, NOW() - INTERVAL 38 DAY),
-  (5, 4, NOW() - INTERVAL 32 DAY),
-  (7, 4, NOW() - INTERVAL 28 DAY),
-  (8, 4, NOW() - INTERVAL 22 DAY),
-  -- Sofia (7) — 3 seguidores
-  (3, 7, NOW() - INTERVAL 30 DAY),
-  (4, 7, NOW() - INTERVAL 25 DAY),
-  (8, 7, NOW() - INTERVAL 15 DAY),
-  -- Ana (3) — 3 seguidores
-  (4, 3, NOW() - INTERVAL 28 DAY),
-  (5, 3, NOW() - INTERVAL 20 DAY),
-  (6, 3, NOW() - INTERVAL 12 DAY),
-  -- Pedro (6) — 2 seguidores
-  (3, 6, NOW() - INTERVAL 25 DAY),
-  (7, 6, NOW() - INTERVAL 15 DAY),
-  -- Rui (8) — 2 seguidores
-  (5, 8, NOW() - INTERVAL 18 DAY),
-  (6, 8, NOW() - INTERVAL 10 DAY);

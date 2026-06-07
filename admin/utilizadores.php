@@ -30,6 +30,7 @@ if (isset($_GET['toggle'])) {
 // transfere o conteúdo para o utilizador fantasma (ID 1)
 // e elimina a conta permanentemente da base de dados.
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['banir_id'])) {
+    verificar_csrf();
     $uid    = (int)$_POST['banir_id'];
     $motivo = trim($_POST['motivo'] ?? '');
 
@@ -375,6 +376,7 @@ include dirname(__DIR__) . '/includes/header.php';
     <p id="modal-ban-nome" style="margin-bottom:1.25rem;color:var(--texto-muted);font-size:.9rem;word-break:break-word;overflow-wrap:break-word;"></p>
 
     <form method="POST">
+      <?= csrf_field() ?>
       <input type="hidden" name="banir_id" id="modal-ban-id">
 
       <!-- Seleção de motivo do ban (obrigatório) -->

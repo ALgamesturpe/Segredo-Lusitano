@@ -19,13 +19,6 @@ $liked           = $user ? user_liked($id, $user['id']) : false;
 $motivos_denuncia = motivos_denuncia();
 $local_bloqueado  = ((int)($local['bloqueado'] ?? 0) === 1);
 
-$guardado = false;
-if ($user) {
-    _migrar_favoritos();
-    $stFav = db()->prepare('SELECT id FROM favoritos WHERE utilizador_id = ? AND local_id = ?');
-    $stFav->execute([$user['id'], $id]);
-    $guardado = (bool)$stFav->fetch();
-}
 
 $ja_checkin   = $user ? user_fez_checkin($id, $user['id']) : false;
 $atualizacoes = get_atualizacoes_local($id);
@@ -39,6 +32,10 @@ if ($user && !is_admin()) {
         else                                                   $tem_fotos_proprias = true;
         if ($tem_fotos_alheias && $tem_fotos_proprias) break;
     }
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verificar_csrf();
 }
 
 // --- POST: Comentário ---
@@ -326,33 +323,12 @@ include dirname(__DIR__) . '/includes/header.php';
             </a>
           <?php endif; ?>
           <?php if ($user): ?>
-            <button id="btn-guardar" onclick="toggleGuardar()"
-                    class="btn btn-sm btn-outline"
-                    style="color:<?= $guardado ? 'var(--dourado)' : 'var(--texto-muted)' ?>;border-color:<?= $guardado ? 'var(--dourado)' : 'var(--creme-escuro)' ?>;"
-                    title="<?= $guardado ? 'Remover dos guardados' : 'Guardar local' ?>">
-              <i class="<?= $guardado ? 'fas' : 'far' ?> fa-bookmark"></i>
-              <span id="btn-guardar-texto"><?= $guardado ? 'Guardado' : 'Guardar' ?></span>
+            <button onclick="abrirModalRecomendar()" class="btn btn-sm btn-outline" style="color:var(--verde);border-color:var(--verde);">
+              <i class="fas fa-share-alt"></i> Recomendar
             </button>
-            <!-- Dropdown Partilhar -->
-            <div class="detalhe-acoes-partilhar" style="position:relative;">
-              <button onclick="toggleDropPartilhar(event)" class="btn btn-sm btn-outline" style="color:var(--verde);border-color:var(--verde);width:100%;justify-content:center;">
-                <i class="fas fa-share-alt"></i> Partilhar <i class="fas fa-chevron-down" style="font-size:.65rem;margin-left:.2rem;"></i>
-              </button>
-              <div id="drop-partilhar" style="display:none;position:absolute;top:calc(100% + 6px);left:0;background:#fff;border:1.5px solid var(--creme-escuro);border-radius:var(--radius);box-shadow:0 6px 20px rgba(0,0,0,.12);min-width:200px;z-index:500;overflow:hidden;">
-                <button onclick="abrirModalRecomendar();fecharDropPartilhar()" style="width:100%;text-align:left;padding:.65rem 1rem;background:none;border:none;border-bottom:1px solid var(--creme-escuro);cursor:pointer;font-size:.88rem;color:var(--texto);display:flex;align-items:center;gap:.6rem;">
-                  <i class="fas fa-paper-plane" style="color:var(--verde);width:14px;"></i> Enviar a um seguidor
-                </button>
-                <button onclick="partilharLocal();fecharDropPartilhar()" style="width:100%;text-align:left;padding:.65rem 1rem;background:none;border:none;cursor:pointer;font-size:.88rem;color:var(--texto);display:flex;align-items:center;gap:.6rem;">
-                  <i class="fas fa-arrow-up-from-bracket" style="color:var(--verde);width:14px;"></i> Partilhar externamente
-                </button>
-              </div>
-            </div>
           <?php else: ?>
-            <button onclick="mostrarAvisoLogin('Precisas de iniciar sessão para guardar este local.', '<?= SITE_URL ?>/pages/login.php')" class="btn btn-sm btn-outline" style="color:var(--texto-muted);border-color:var(--creme-escuro);">
-              <i class="far fa-bookmark"></i> Guardar
-            </button>
-            <button onclick="mostrarAvisoLogin('Precisas de iniciar sessão para partilhar este local.', '<?= SITE_URL ?>/pages/login.php')" class="btn btn-sm btn-outline" style="color:var(--verde);border-color:var(--verde);">
-              <i class="fas fa-share-alt"></i> Partilhar
+            <button onclick="mostrarAvisoLogin('Precisas de iniciar sessão para recomendar este local.', '<?= SITE_URL ?>/pages/login.php')" class="btn btn-sm btn-outline" style="color:var(--verde);border-color:var(--verde);">
+              <i class="fas fa-share-alt"></i> Recomendar
             </button>
           <?php endif; ?>
 
@@ -412,8 +388,9 @@ include dirname(__DIR__) . '/includes/header.php';
             <div class="galeria-upload">
               <form method="POST" enctype="multipart/form-data"
                     onsubmit="if(!document.getElementById('fotos').files.length){alert('Seleciona pelo menos uma foto antes de enviar.');return false;}">
-                <div class="upload-area galeria-upload-area" data-input-id="fotos" data-compact="1"
-                     style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.35rem;padding:.5rem;border-radius:var(--radius);position:relative;overflow:hidden;">
+                <?= csrf_field() ?>
+                <div class="upload-area" data-input-id="fotos" data-compact="1"
+                     style="width:130px;height:130px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.35rem;padding:.5rem;border-radius:var(--radius);position:relative;overflow:hidden;">
                   <i class="fas fa-plus upload-icon" style="font-size:1.4rem;color:var(--verde-claro);"></i>
                   <p class="upload-label" style="font-size:.75rem;font-weight:500;margin:0;text-align:center;line-height:1.3;">Adicionar fotos</p>
                   <small style="color:var(--texto-muted);font-size:.68rem;text-align:center;">JPG · PNG · WebP<br>máx. 5MB</small>
@@ -582,6 +559,7 @@ include dirname(__DIR__) . '/includes/header.php';
             <p style="margin-bottom:1.5rem;color:var(--texto-muted);font-size:.9rem;">Este post esta bloqueado. Novos comentarios estao desativados.</p>
           <?php elseif ($user): ?>
             <form method="POST" enctype="multipart/form-data" style="margin-bottom:1.5rem;">
+              <?= csrf_field() ?>
               <!-- Preview da foto selecionada -->
               <div id="com-foto-preview" style="display:none;margin-bottom:.5rem;position:relative;width:fit-content;">
                 <img id="com-foto-preview-img" src="" alt="" style="max-height:120px;max-width:100%;border-radius:var(--radius);border:1.5px solid var(--creme-escuro);">
@@ -678,6 +656,7 @@ include dirname(__DIR__) . '/includes/header.php';
                         <!-- Substituir foto -->
                         <label title="Substituir foto" style="cursor:pointer;">
                           <form method="POST" enctype="multipart/form-data" id="form-subst-<?= (int)$com['id'] ?>">
+                            <?= csrf_field() ?>
                             <input type="hidden" name="substituir_foto_comentario" value="1">
                             <input type="hidden" name="comentario_id_foto" value="<?= (int)$com['id'] ?>">
                             <input type="file" name="nova_foto_comentario" accept="image/*" style="display:none;"
@@ -951,7 +930,7 @@ async function enviarRecomendacao(destId, destNome, itemEl) {
   try {
     const res  = await fetch(SITE_URL_RECOMENDAR + '/pages/mensagens_api.php', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRF-Token': CSRF_TOKEN },
       body: `acao=recomendar&destinatario_id=${destId}&local_id=${LOCAL_ID_RECOMENDAR}&texto=${encodeURIComponent(texto)}`
     });
     const data = await res.json();
@@ -980,39 +959,7 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape') fecharModalRecomendar();
 });
 
-// ── Guardar / bookmark ────────────────────────────────────
-let _guardando = false;
-async function toggleGuardar() {
-  if (_guardando) return;
-  _guardando = true;
-  const btn     = document.getElementById('btn-guardar');
-  const icone   = btn.querySelector('i');
-  const texto   = document.getElementById('btn-guardar-texto');
-  try {
-    const res  = await fetch(SITE_URL_RECOMENDAR + '/pages/favoritos_api.php', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: `acao=toggle&local_id=${LOCAL_ID_RECOMENDAR}`
-    });
-    const data = await res.json();
-    if (data.ok) {
-      if (data.guardado) {
-        icone.className = 'fas fa-bookmark';
-        texto.textContent = 'Guardado';
-        btn.style.color       = 'var(--dourado)';
-        btn.style.borderColor = 'var(--dourado)';
-        btn.title = 'Remover dos guardados';
-      } else {
-        icone.className = 'far fa-bookmark';
-        texto.textContent = 'Guardar';
-        btn.style.color       = 'var(--texto-muted)';
-        btn.style.borderColor = 'var(--creme-escuro)';
-        btn.title = 'Guardar local';
-      }
-    }
-  } catch(e) { console.error(e); }
-  finally { _guardando = false; }
-}
+
 </script>
 <?php endif; ?>
 
@@ -1056,6 +1003,7 @@ async function toggleGuardar() {
       <h3 style="margin:0;font-size:1.1rem;"><span id="denuncia-titulo">Denunciar</span></h3>
     </div>
     <form method="POST">
+      <?= csrf_field() ?>
       <input type="hidden" name="denunciar" value="1">
       <input type="hidden" name="tipo" id="denuncia-tipo" value="local">
       <input type="hidden" name="ref_id" id="denuncia-ref-id" value="<?= $id ?>">
