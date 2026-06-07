@@ -156,7 +156,7 @@ include dirname(__DIR__) . '/includes/header.php';
       <div class="form-group">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.4rem;">
           <label for="password" style="margin:0;"><i class="fas fa-lock"></i> Password</label>
-          <a href="<?= SITE_URL ?>/pages/recuperar_password.php" style="font-size:.8rem;color:var(--texto-muted);text-decoration:none;" onmouseover="this.style.color='var(--verde)'" onmouseout="this.style.color='var(--texto-muted)'">
+          <a id="link-recuperar" href="<?= SITE_URL ?>/pages/recuperar_password.php" style="font-size:.8rem;color:var(--texto-muted);text-decoration:none;" onmouseover="this.style.color='var(--verde)'" onmouseout="this.style.color='var(--texto-muted)'">
             Esqueceu-se da sua palavra-passe?
           </a>
         </div>
@@ -299,4 +299,15 @@ function aceitarTermos() {
 </script>
 <?php endif; ?>
 
+<script>
+// Passar o email preenchido para a página de recuperação
+document.getElementById('link-recuperar').addEventListener('click', function(e) {
+  const email = document.getElementById('email').value.trim();
+  if (email) {
+    e.preventDefault();
+    this.href = '<?= SITE_URL ?>/pages/recuperar_password.php?email=' + encodeURIComponent(email);
+    window.location.href = this.href;
+  }
+});
+</script>
 <?php include dirname(__DIR__) . '/includes/footer.php'; ?>

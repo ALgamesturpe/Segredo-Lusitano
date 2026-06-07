@@ -5,8 +5,8 @@ require_once dirname(__DIR__) . '/includes/mailer.php';
 
 if (auth_user()) { header('Location: ' . SITE_URL . '/index.php'); exit; }
 
-$erro   = '';
-$enviado = false;
+$erro    = '';
+$email_prefill = trim($_GET['email'] ?? $_POST['email'] ?? '');
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verificar_csrf();
@@ -19,34 +19,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $st->execute([$email]);
         $user = $st->fetch();
 
-        // Resposta genérica para não revelar se o email existe ou não
-        if ($user && $user['ativo']) {
-            if (!class_exists('PHPMailer\PHPMailer\PHPMailer')) {
-                $erro = 'O envio de email não está configurado neste servidor.';
-            } else {
-                $codigo  = gerar_e_guardar_codigo($user['id'], 'recuperar');
-                $enviado_email = enviar_codigo_verificacao($email, $user['nome'], $codigo, 'recuperar');
-
-                if ($enviado_email) {
-                    $_SESSION['recuperar_id'] = $user['id'];
-                    header('Location: ' . SITE_URL . '/pages/redefinir_password.php');
-                    exit;
-                } else {
-                    $erro = 'Erro ao enviar o email. Tenta novamente mais tarde.';
-                }
-            }
+        if (!$user) {
+            $erro = 'Este email ainda não possui conta associada. Cria conta primeiro.';
+        } elseif (!$user['ativo']) {
+            $erro = 'Esta conta está suspensa. Não é possível recuperar a palavra-passe.';
+        } elseif (!class_exists('PHPMailer\PHPMailer\PHPMailer')) {
+            $erro = 'O envio de email não está configurado neste servidor.';
         } else {
-            // Conta suspensa, inexistente ou banida — mesma resposta para não revelar estado
-            // Redirecionar para dar feedback sem revelar se o email existe
-            $_SESSION['recuperar_enviado_feedback'] = true;
-            header('Location: ' . SITE_URL . '/pages/recuperar_password.php?enviado=1');
-            exit;
+            $codigo = gerar_e_guardar_codigo($user['id'], 'recuperar');
+            $enviado_email = enviar_codigo_verificacao($email, $user['nome'], $codigo, 'recuperar');
+
+            if ($enviado_email) {
+                $_SESSION['recuperar_id'] = $user['id'];
+                header('Location: ' . SITE_URL . '/pages/redefinir_password.php');
+                exit;
+            } else {
+                $erro = 'Erro ao enviar o email. Tenta novamente mais tarde.';
+            }
         }
     }
+    $email_prefill = $email;
 }
-
-$feedback_enviado = isset($_GET['enviado']) && !empty($_SESSION['recuperar_enviado_feedback']);
-unset($_SESSION['recuperar_enviado_feedback']);
 
 $page_title = 'Recuperar Palavra-passe';
 include dirname(__DIR__) . '/includes/header.php';
@@ -55,10 +48,8 @@ include dirname(__DIR__) . '/includes/header.php';
 <div class="page-content" style="display:flex;align-items:center;justify-content:center;padding:2rem;min-height:calc(100vh - 72px);">
   <div class="form-container" style="max-width:460px;width:100%;">
 
-    <div style="text-align:center;margin-bottom:1.5rem;">
-      <div style="width:80px;height:80px;background:#1a3a2a;border:3px solid #c9a84c;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:2rem;">
-        🔑
-      </div>
+    <div style="display:flex;justify-content:center;margin-bottom:2rem;">
+      <img src="<?= SITE_URL ?>/assets/images/logo_icon.png" alt="Segredo Lusitano" style="height:80px;width:80px;object-fit:contain;filter:drop-shadow(0 0 10px rgba(201,168,76,.5));">
     </div>
 
     <h1 class="form-title" style="text-align:center;">Recuperar Palavra-passe</h1>
@@ -66,25 +57,21 @@ include dirname(__DIR__) . '/includes/header.php';
       Introduz o teu email e enviamos um código para redefinires a tua palavra-passe.
     </p>
 
-    <?php if ($feedback_enviado): ?>
-      <div class="flash flash-success" style="position:static;margin-bottom:1.25rem;border-radius:0;">
-        <i class="fas fa-envelope"></i> Se existir uma conta associada a esse email, receberás instruções em breve.
-      </div>
-    <?php endif; ?>
-
     <?php if ($erro): ?>
       <div class="flash flash-error" style="position:static;margin-bottom:1.25rem;border-radius:0;">
         <i class="fas fa-exclamation-circle"></i> <?= h($erro) ?>
+        <?php if (str_contains($erro, 'ainda não possui conta')): ?>
+          &nbsp;<a href="<?= SITE_URL ?>/pages/registo.php" style="color:#c0392b;font-weight:700;text-decoration:underline;">Criar conta</a>
+        <?php endif; ?>
       </div>
     <?php endif; ?>
 
-    <?php if (!$feedback_enviado): ?>
     <form method="POST" novalidate>
       <?= csrf_field() ?>
       <div class="form-group">
         <label for="email"><i class="fas fa-envelope"></i> Email</label>
         <input type="email" id="email" name="email"
-               value="<?= h($_POST['email'] ?? '') ?>"
+               value="<?= h($email_prefill) ?>"
                placeholder="o.teu@email.pt"
                required autocomplete="email" autofocus>
       </div>
@@ -92,7 +79,6 @@ include dirname(__DIR__) . '/includes/header.php';
         <i class="fas fa-paper-plane"></i> Enviar Código
       </button>
     </form>
-    <?php endif; ?>
 
     <div style="text-align:center;margin-top:1.5rem;">
       <a href="<?= SITE_URL ?>/pages/login.php" style="color:var(--texto-muted);font-size:.85rem;">

@@ -80,10 +80,8 @@ $flash_error   = flash('error');
 <div class="page-content" style="display:flex;align-items:center;justify-content:center;padding:2rem;min-height:calc(100vh - 72px);">
   <div class="form-container" style="max-width:460px;width:100%;">
 
-    <div style="text-align:center;margin-bottom:1.5rem;">
-      <div style="width:80px;height:80px;background:#1a3a2a;border:3px solid #c9a84c;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:2rem;">
-        🔐
-      </div>
+    <div style="display:flex;justify-content:center;margin-bottom:2rem;">
+      <img src="<?= SITE_URL ?>/assets/images/logo_icon.png" alt="Segredo Lusitano" style="height:80px;width:80px;object-fit:contain;filter:drop-shadow(0 0 10px rgba(201,168,76,.5));">
     </div>
 
     <h1 class="form-title" style="text-align:center;">Nova Palavra-passe</h1>
