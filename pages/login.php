@@ -132,6 +132,12 @@ include dirname(__DIR__) . '/includes/header.php';
         <i class="fas fa-user-alt-slash"></i> Conta banida pelo administrador pelo motivo: <?= h($motivo_ban ?? '') ?>.
       </p>
 
+    <!-- Mensagem de conta suspensa -->
+    <?php elseif ($erro === 'suspenso'): ?>
+      <p style="color:#c0392b;font-size:.9rem;font-weight:600;margin-bottom:1.25rem;">
+        <i class="fas fa-ban"></i> A tua conta foi suspensa pelo administrador.
+      </p>
+
     <!-- Mensagem de erro normal (credenciais incorretas) -->
     <?php elseif ($erro): ?>
       <div class="flash flash-error" style="position:static; margin-bottom:1.25rem; border-radius:0;">

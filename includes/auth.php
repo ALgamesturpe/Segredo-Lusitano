@@ -32,9 +32,33 @@ function auth_user(): ?array {
     }
     static $cache = null;
     if ($cache) return $cache;
-    $st = db()->prepare('SELECT * FROM utilizadores WHERE id = ? AND ativo = 1');
+
+    // Buscar sem filtro ativo para distinguir suspensão de conta inexistente
+    $st = db()->prepare('SELECT * FROM utilizadores WHERE id = ? AND role != "[deleted]"');
     $st->execute([$_SESSION['user_id']]);
-    $cache = $st->fetch() ?: null;
+    $user = $st->fetch() ?: null;
+
+    if (!$user) {
+        // Conta banida/eliminada — limpar sessão silenciosamente
+        $_SESSION = [];
+        session_destroy();
+        return null;
+    }
+
+    if (!$user['ativo']) {
+        // Conta suspensa — notificar e redirecionar para login
+        $_SESSION = [];
+        session_destroy();
+        session_start();
+        flash('error', 'A tua conta foi suspensa pelo administrador.');
+        if (!headers_sent()) {
+            header('Location: ' . SITE_URL . '/pages/login.php');
+            exit;
+        }
+        return null;
+    }
+
+    $cache = $user;
     return $cache;
 }
 
