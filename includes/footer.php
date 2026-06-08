@@ -61,6 +61,7 @@ function fecharAvisoLogin() {
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="<?= SITE_URL ?>/assets/js/main.js?v=<?= filemtime(dirname(__DIR__).'/assets/js/main.js') ?>"></script>
 <?= $extra_scripts ?? '' ?>
+<?php endif; ?>
 <!-- Script botões seguir nos cards -->
 <script>
 (function() {
