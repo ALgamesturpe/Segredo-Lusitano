@@ -154,7 +154,7 @@ $flash_error   = flash('error');
       </div>
 
       <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;margin-top:.5rem;">
-        <i class="fas fa-key"></i> Definir Nova Palavra-passe
+        Definir Nova Palavra-passe
       </button>
     </form>
 
