@@ -59,7 +59,7 @@ main { flex: 1; }
   background: rgba(26,58,42,.97);
   backdrop-filter: blur(12px);
   z-index: 1000;
-  border-bottom: 2px solid var(--dourado);
+  border-bottom: 2px solid var(--dourado); /*grussura da linha da borda (de cor dourada que separa a linha verde do header)*/
   transition: box-shadow var(--transition);
   overflow: visible;
 }
