@@ -21,6 +21,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if (!$user) {
             $erro = 'Este email ainda não possui conta associada. Cria conta primeiro.';
+        } elseif (in_array($user['tipo_auth'] ?? 'email', ['google', 'github'])) {
+            $provedor = ucfirst($user['tipo_auth']);
+            $erro = "Esta conta foi criada com {$provedor}. Para iniciar sessão, usa o botão \"Entrar com {$provedor}\" na página de login.";
         } elseif (!$user['ativo']) {
             $erro = 'Esta conta está suspensa. Não é possível recuperar a palavra-passe.';
         } elseif (!class_exists('PHPMailer\PHPMailer\PHPMailer')) {
@@ -62,6 +65,8 @@ include dirname(__DIR__) . '/includes/header.php';
         <i class="fas fa-exclamation-circle"></i> <?= h($erro) ?>
         <?php if (str_contains($erro, 'ainda não possui conta')): ?>
           &nbsp;<a href="<?= SITE_URL ?>/pages/registo.php" style="color:#c0392b;font-weight:700;text-decoration:underline;">Criar conta</a>
+        <?php elseif (str_contains($erro, 'foi criada com')): ?>
+          &nbsp;<a href="<?= SITE_URL ?>/pages/login.php" style="color:#c0392b;font-weight:700;text-decoration:underline;">Ir para o login</a>
         <?php endif; ?>
       </div>
     <?php endif; ?>
