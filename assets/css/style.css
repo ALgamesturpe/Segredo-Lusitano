@@ -371,7 +371,7 @@ main { flex: 1; }
 /* ============================================================
    PERFIL / RANKING
    ============================================================ */
-.perfil-hero { background: var(--verde-escuro); padding: calc(var(--nav-h) + 0.5rem) 1.5rem 2rem; text-align: left; }
+.perfil-hero { background: var(--verde-escuro); padding: calc(var(--nav-h) + 0.1rem) 1.5rem 1.5rem; text-align: left; }/*formatação da linha verde do perfil*/
 .perfil-hero > .container { max-width: 1200px; margin: 0 auto; }
 .perfil-avatar { width: 90px; height: 90px; border-radius: 50%; border: 4px solid var(--dourado); margin: 0 0 1rem; overflow: hidden; background: var(--verde-claro); display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: 700; color: #fff; }
 .perfil-avatar img { width: 100%; height: 100%; object-fit: cover; object-position: center; }
