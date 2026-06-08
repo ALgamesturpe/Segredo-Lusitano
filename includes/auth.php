@@ -34,7 +34,6 @@ function auth_user(): ?array {
     } catch (\Exception $e) {
         // app_meta pode não existir em bases de dados antigas
     }
-    static $cache = null;
     if ($cache) return $cache;
 
     // Buscar sem filtro ativo para distinguir suspensão de conta inexistente
