@@ -28,7 +28,8 @@
       "Bash(Sort-Object)",
       "Bash(git merge *)",
       "Bash(git checkout *)",
-      "Bash(git push *)"
+      "Bash(git push *)",
+      "Bash(git stash *)"
     ]
   }
 }

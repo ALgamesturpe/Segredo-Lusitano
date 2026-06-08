@@ -315,7 +315,7 @@ function render_top_user(?array $u, string $valor_label): string {
       <?php $max_reg = $dist_regioes ? max(array_column($dist_regioes, 'total')) : 1; ?>
       <div style="background:var(--verde-escuro);border-radius:var(--radius-lg);padding:1.25rem 1.4rem;color:#fff;">
         <div style="font-size:.68rem;letter-spacing:.1em;color:rgba(201,168,76,.7);text-transform:uppercase;margin-bottom:.15rem;">REGIÕES MAIS ACTIVAS</div>
-        <h3 style="font-family:'Playfair Display',serif;font-size:1.3rem;color:#fff;margin-bottom:1rem;font-style:italic;">Por distrito</h3>
+        <h3 style="font-family:'Playfair Display',serif;font-size:1.3rem;color:#fff;margin-bottom:1rem;font-style:italic;">Por Região</h3>
         <?php foreach ($dist_regioes as $reg): ?>
           <?php $pct = $max_reg > 0 ? round(($reg['total'] / $max_reg) * 100) : 0; ?>
           <div style="margin-bottom:.65rem;">

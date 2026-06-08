@@ -48,8 +48,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if (!isset($tipos[$mime_real])) {
             $erros['foto'] = 'Formato inválido. Usa JPG, PNG ou WebP. (As fotos de iPhone em HEIC não são suportadas — muda para "Mais Compatível" nas definições da câmara.)';
-        } elseif ($f['size'] > 15 * 1024 * 1024) {
-            $erros['foto'] = 'Ficheiro demasiado grande (máx. 15MB).';
         } else {
             // Usar a extensão correta com base no tipo real, não no nome do ficheiro
             $ext  = $tipos[$mime_real];
@@ -184,7 +182,7 @@ include dirname(__DIR__) . '/includes/header.php';
             <div class="upload-area" data-input-id="foto_capa" style="padding:1.25rem;">
               <i class="fas fa-image upload-icon" style="font-size:2rem;color:var(--verde-claro);margin-bottom:.5rem;display:block;"></i>
               <p class="upload-label" style="font-weight:500;margin:0 0 .2rem;">Clica ou arrasta a foto aqui</p>
-              <small style="color:var(--texto-muted);">JPG, PNG ou WebP &middot; Máx. 5MB</small>
+              <small style="color:var(--texto-muted);">JPG, PNG ou WebP</small>
             </div>
             <input type="file" id="foto_capa" name="foto_capa" accept="image/*" style="display:none;">
             <?php if (isset($erros['foto'])): ?><div class="form-error"><?= h($erros['foto']) ?></div><?php endif; ?>
@@ -196,7 +194,7 @@ include dirname(__DIR__) . '/includes/header.php';
             <div class="upload-area" data-input-id="fotos_galeria" style="padding:1.25rem;">
               <i class="fas fa-images upload-icon" style="font-size:2rem;color:var(--verde-claro);margin-bottom:.5rem;display:block;"></i>
               <p class="upload-label" style="font-weight:500;margin:0 0 .2rem;">Clica ou arrasta as fotos aqui</p>
-              <small style="color:var(--texto-muted);">JPG, PNG ou WebP &middot; Várias fotos permitidas &middot; Máx. 10MB cada</small>
+              <small style="color:var(--texto-muted);">JPG, PNG ou WebP &middot; Várias fotos permitidas</small>
             </div>
             <input type="file" id="fotos_galeria" name="fotos_galeria[]" accept="image/*" multiple style="display:none;">
             <div id="galeria-preview" style="display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.5rem;"></div>

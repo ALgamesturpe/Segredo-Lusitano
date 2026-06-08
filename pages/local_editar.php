@@ -40,8 +40,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $allowed = ['image/jpeg','image/png','image/webp'];
         if (!in_array($f['type'], $allowed)) {
             $erros['foto'] = 'Formato inválido. Usa JPG, PNG ou WebP.';
-        } elseif ($f['size'] > 5 * 1024 * 1024) {
-            $erros['foto'] = 'Ficheiro demasiado grande (máx. 5MB).';
         } else {
             $ext  = pathinfo($f['name'], PATHINFO_EXTENSION);
             $nome = uniqid('capa_') . '.' . $ext;
@@ -159,7 +157,7 @@ include dirname(__DIR__) . '/includes/header.php';
             <div class="upload-area" data-input-id="foto_capa" style="padding:1.25rem;">
               <i class="fas fa-image upload-icon" style="font-size:2rem;color:var(--verde-claro);margin-bottom:.5rem;display:block;"></i>
               <p class="upload-label" style="font-weight:500;margin:0 0 .2rem;">Clica ou arrasta a foto aqui</p>
-              <small style="color:var(--texto-muted);">JPG, PNG ou WebP &middot; Máx. 5MB</small>
+              <small style="color:var(--texto-muted);">JPG, PNG ou WebP</small>
             </div>
             <input type="file" id="foto_capa" name="foto_capa" accept="image/*" style="display:none;">
             <?php if (isset($erros['foto'])): ?><div class="form-error"><?= h($erros['foto']) ?></div><?php endif; ?>

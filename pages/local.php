@@ -313,7 +313,7 @@ include dirname(__DIR__) . '/includes/header.php';
                      style="width:130px;height:130px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.35rem;padding:.5rem;border-radius:var(--radius);position:relative;overflow:hidden;">
                   <i class="fas fa-plus upload-icon" style="font-size:1.4rem;color:var(--verde-claro);"></i>
                   <p class="upload-label" style="font-size:.75rem;font-weight:500;margin:0;text-align:center;line-height:1.3;">Adicionar fotos</p>
-                  <small style="color:var(--texto-muted);font-size:.68rem;text-align:center;">JPG · PNG · WebP<br>máx. 5MB</small>
+                  <small style="color:var(--texto-muted);font-size:.68rem;text-align:center;">JPG · PNG · WebP</small>
                 </div>
                 <input type="file" id="fotos" name="fotos[]" multiple accept="image/*" style="display:none;">
                 <button type="submit" class="btn btn-sm btn-verde" style="margin-top:.5rem;width:100%;font-size:.78rem;">
