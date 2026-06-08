@@ -217,7 +217,7 @@ CREATE TABLE codigos_verificacao (
     id INT AUTO_INCREMENT PRIMARY KEY,
     utilizador_id INT NOT NULL,
     codigo VARCHAR(6) NOT NULL,
-    tipo ENUM('registo','login') DEFAULT 'registo',
+    tipo ENUM('registo','login','recuperar') DEFAULT 'registo',
     expira_em DATETIME NOT NULL,
     usado TINYINT(1) DEFAULT 0,
     criado_em DATETIME DEFAULT CURRENT_TIMESTAMP,

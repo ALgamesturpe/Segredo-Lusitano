@@ -10,8 +10,9 @@ if (empty($_SESSION['recuperar_id'])) {
     exit;
 }
 
-$uid  = (int)$_SESSION['recuperar_id'];
-$erro = '';
+$uid           = (int)$_SESSION['recuperar_id'];
+$erro          = '';
+$codigo_prefill = '';
 
 // Reenviar código
 if (isset($_POST['reenviar'])) {
@@ -32,9 +33,10 @@ if (isset($_POST['reenviar'])) {
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['codigo'])) {
     verificar_csrf();
-    $codigo   = trim(preg_replace('/\D/', '', $_POST['codigo'] ?? ''));
-    $password = trim($_POST['password'] ?? '');
-    $confirm  = trim($_POST['confirm']  ?? '');
+    $codigo         = trim(preg_replace('/\D/', '', $_POST['codigo'] ?? ''));
+    $codigo_prefill = $codigo;
+    $password       = trim($_POST['password'] ?? '');
+    $confirm        = trim($_POST['confirm']  ?? '');
 
     if (strlen($codigo) !== 6) {
         $erro = 'O código deve ter 6 dígitos.';
@@ -114,6 +116,7 @@ $flash_error   = flash('error');
         <label for="codigo" style="text-align:center;display:block;">Código de Verificação</label>
         <input type="text" id="codigo" name="codigo"
                placeholder="000000"
+               value="<?= h($codigo_prefill) ?>"
                maxlength="6"
                autocomplete="one-time-code"
                inputmode="numeric"
