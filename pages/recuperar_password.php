@@ -15,7 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $erro = 'Introduz um endereço de email válido.';
     } else {
-        $st = db()->prepare('SELECT id, nome, ativo FROM utilizadores WHERE email = ? AND role != "[deleted]"');
+        $st = db()->prepare('SELECT id, nome, ativo, tipo_auth FROM utilizadores WHERE email = ? AND role != "[deleted]"');
         $st->execute([$email]);
         $user = $st->fetch();
 
