@@ -10,7 +10,16 @@ if (empty($_SESSION['recuperar_id'])) {
     exit;
 }
 
-$uid           = (int)$_SESSION['recuperar_id'];
+$uid = (int)$_SESSION['recuperar_id'];
+
+// Se a BD foi reiniciada o utilizador já não existe — limpar sessão
+$_check = db()->prepare('SELECT id FROM utilizadores WHERE id = ?');
+$_check->execute([$uid]);
+if (!$_check->fetch()) {
+    unset($_SESSION['recuperar_id']);
+    header('Location: ' . SITE_URL . '/pages/recuperar_password.php');
+    exit;
+}
 $erro          = '';
 $codigo_prefill = '';
 
