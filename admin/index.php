@@ -281,7 +281,7 @@ function render_top_user(?array $u, string $valor_label): string {
         </a>
         <a href="<?= SITE_URL ?>/admin/locais.php?bloqueado=1" style="text-decoration:none;">
           <div class="admin-stat-card">
-            <div class="card-header"><div class="lbl">Locais Bloqueados</div></div>
+            <div class="card-header"><div class="lbl">Locais Banidos</div></div>
             <div class="num" style="color:#7d0000;"><?= $total_bloqueados ?></div>
           </div>
         </a>
