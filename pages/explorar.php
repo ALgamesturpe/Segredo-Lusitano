@@ -12,12 +12,17 @@ $pagina     = max(1, (int)($_GET['pagina'] ?? 1));
 $offset     = ($pagina - 1) * $por_pagina;
 $stories    = [];
 
+$filtro_lat = (float)($_GET['lat'] ?? 0);
+$filtro_lng = (float)($_GET['lng'] ?? 0);
+
 $filtros = [
     'regiao'      => $_GET['regiao']      ?? '',
     'categoria'   => $_GET['categoria']   ?? '',
     'dificuldade' => $_GET['dificuldade'] ?? '',
     'pesquisa'    => $_GET['pesquisa']    ?? '',
     'ordem'       => $_GET['ordem']       ?? 'recente',
+    'lat'         => $filtro_lat,
+    'lng'         => $filtro_lng,
 ];
 
 $locais     = get_locais($filtros, $por_pagina, $offset);
