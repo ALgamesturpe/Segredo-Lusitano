@@ -242,14 +242,22 @@ function togglePertoDeMimMapa() {
   btn.disabled  = true;
   btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
   navigator.geolocation.getCurrentPosition(pos => {
+    const precisao = pos.coords.accuracy; // metros
+
+    btn.disabled  = false;
+    btn.innerHTML = '<i class="fas fa-location-crosshairs"></i> <span class="d-none d-sm-inline">Perto de mim</span>';
+
+    if (precisao > 5000) {
+      _mostrarAvisoPrecisao(precisao);
+      return;
+    }
+
     _userLatMapa = pos.coords.latitude;
     _userLngMapa = pos.coords.longitude;
     _pertoDeMimAtivo = true;
-    btn.disabled  = false;
     btn.style.background  = 'var(--dourado)';
     btn.style.color       = 'var(--verde-escuro)';
     btn.style.borderColor = 'var(--dourado)';
-    btn.innerHTML = '<i class="fas fa-location-crosshairs"></i> <span class="d-none d-sm-inline">Perto de mim</span>';
     raioWrap.style.display = 'flex';
     if (window._mapaInstance) {
       window._mapaInstance.setView([_userLatMapa, _userLngMapa], 10);
@@ -271,7 +279,7 @@ function togglePertoDeMimMapa() {
   }, () => {
     btn.disabled  = false;
     btn.innerHTML = '<i class="fas fa-location-crosshairs"></i> <span class="d-none d-sm-inline">Perto de mim</span>';
-    alert('Ativa o GPS e tenta novamente.');
+    _mostrarAvisoPrecisao(null);
   }, { enableHighAccuracy: true, timeout: 10000 });
 }
 </script>
