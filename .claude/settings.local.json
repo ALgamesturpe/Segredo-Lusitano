@@ -38,7 +38,8 @@
       "PowerShell(& \"C:\\\\wamp64\\\\bin\\\\php\\\\php8.3.28\\\\php.exe\" \"C:\\\\wamp64\\\\www\\\\Segredo-Lusitano\\\\insert_trilhos.php\")",
       "Bash(git checkout *)",
       "Bash(git commit -m ' *)",
-      "Bash(git push *)"
+      "Bash(git push *)",
+      "Bash(git add *)"
     ]
   }
 }
