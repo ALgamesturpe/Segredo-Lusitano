@@ -113,9 +113,11 @@ function enviar_codigo_verificacao(string $email, string $nome, string $codigo, 
         $mail->addAddress($email, $nome);
 
         // Assunto
-        $assunto = $tipo === 'login'
-            ? 'O teu código de acesso — Segredo Lusitano'
-            : 'Confirma a tua conta — Segredo Lusitano';
+        $assunto = match($tipo) {
+            'login'     => 'O teu código de acesso — Segredo Lusitano',
+            'recuperar' => 'Recupera a tua palavra-passe — Segredo Lusitano',
+            default     => 'Confirma a tua conta — Segredo Lusitano',
+        };
         $mail->Subject = $assunto;
 
         // Corpo do email em HTML
@@ -145,11 +147,7 @@ function gerar_e_guardar_codigo(int $utilizador_id, string $tipo = 'registo'): s
     db()->prepare('UPDATE codigos_verificacao SET usado = 1 WHERE utilizador_id = ? AND tipo = ? AND usado = 0')
          ->execute([$utilizador_id, $tipo]);
 
-    // Gerar código de 6 dígitos
     $codigo = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
-
-    // Expira em 60 minutos
-    $expira = date('Y-m-d H:i:s', strtotime('+15 minutes'));
 
     db()->prepare('INSERT INTO codigos_verificacao (utilizador_id, codigo, tipo, expira_em) VALUES (?,?,?, DATE_ADD(NOW(), INTERVAL 15 MINUTE))')
      ->execute([$utilizador_id, $codigo, $tipo]);

@@ -14,9 +14,17 @@ if (empty($_SESSION['verificar_id']) || empty($_SESSION['verificar_tipo'])) {
 }
 
 $uid  = (int) $_SESSION['verificar_id'];
-$tipo = $_SESSION['verificar_tipo']; // 'registo' ou 'login'
+$tipo = $_SESSION['verificar_tipo'];
 $erro = '';
 $sucesso = false;
+
+$_check = db()->prepare('SELECT id FROM utilizadores WHERE id = ?');
+$_check->execute([$uid]);
+if (!$_check->fetch()) {
+    unset($_SESSION['verificar_id'], $_SESSION['verificar_tipo']);
+    header('Location: ' . SITE_URL . '/pages/login.php');
+    exit;
+}
 
 // Reenviar código
 if (isset($_POST['reenviar'])) {
@@ -85,11 +93,8 @@ $flash_success = flash('success');
 <div class="page-content" style="display:flex;align-items:center;justify-content:center;padding:2rem;min-height:calc(100vh - 72px);">
   <div class="form-container" style="max-width:460px;width:100%;">
 
-    <!-- Ícone -->
-    <div style="text-align:center;margin-bottom:1.5rem;">
-      <div style="width:80px;height:80px;background:#1a3a2a;border:3px solid #c9a84c;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:2rem;">
-        📧
-      </div>
+    <div style="display:flex;justify-content:center;margin-bottom:2rem;">
+      <img src="<?= SITE_URL ?>/assets/images/logo_icon.png" alt="Segredo Lusitano" style="height:80px;width:80px;object-fit:contain;filter:drop-shadow(0 0 10px rgba(201,168,76,.5));">
     </div>
 
     <h1 class="form-title" style="text-align:center;">Verifica o teu Email</h1>
@@ -154,12 +159,8 @@ $flash_success = flash('success');
 </div>
 
 <script>
-// Auto-submit quando 6 dígitos inseridos
 document.getElementById('codigo').addEventListener('input', function() {
   this.value = this.value.replace(/\D/g, ''); // só números
-  if (this.value.length === 6) {
-    this.closest('form').submit();
-  }
 });
 </script>
 
