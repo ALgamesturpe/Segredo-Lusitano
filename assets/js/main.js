@@ -333,11 +333,11 @@ function initMainMap(locais) {
     try {
       const lat = parseFloat(l.latitude);
       const lng = parseFloat(l.longitude);
-      if (isNaN(lat) || isNaN(lng)) return;
+      if (isNaN(lat) || isNaN(lng) || (lat === 0 && lng === 0)) return;
       const m = L.marker([lat, lng], { icon: makeIcon(l.icone, l.categoria_nome) });
-      m.addTo(map);
       const img = l.foto_capa ? `<img src="${SITE_URL}/uploads/locais/${l.foto_capa}" alt="" style="width:100%;height:90px;object-fit:cover;border-radius:4px;margin-bottom:.5rem;">` : '';
       m.bindPopup(`<div style="min-width:200px;font-family:'Outfit',sans-serif;">${img}<div style="font-family:'Playfair Display',serif;font-weight:700;font-size:1rem;color:#1a3a2a;">${l.nome}</div><div style="font-size:.8rem;color:#6b7280;margin:.2rem 0 .6rem;">${l.categoria_nome} &middot; ${l.regiao_nome}</div><a href="${SITE_URL}/pages/local.php?id=${l.id}" style="display:inline-flex;align-items:center;gap:.35rem;color:#2d6a4f;font-size:.85rem;font-weight:700;">Ver local <i class="fas fa-arrow-right"></i></a></div>`);
+      clusterGroup.addLayer(m);
       allMarkers.push({ marker: m, local: l, onMap: true });
       if (abrirId && l.id === abrirId) m.openPopup();
     } catch(e) {
@@ -347,7 +347,23 @@ function initMainMap(locais) {
 
   map.addLayer(clusterGroup);
 
+  // Atualizar count com os locais que têm coordenadas válidas
+  const countEl = document.getElementById('mapa-count');
+  if (countEl) countEl.textContent = allMarkers.length + ' locais';
+
+  let _raioCircle = null;
+
   window._mapFilterLocais = function(filtros) {
+    // Desenhar círculo de raio se filtro de proximidade ativo
+    if (_raioCircle) { _raioCircle.remove(); _raioCircle = null; }
+    if (filtros.lat && filtros.lng && filtros.raio) {
+      _raioCircle = L.circle([filtros.lat, filtros.lng], {
+        radius: filtros.raio * 1000,
+        color: '#c9a84c', weight: 1.5, opacity: 0.7,
+        fillColor: '#c9a84c', fillOpacity: 0.06,
+      }).addTo(map);
+    }
+
     let visiveis = 0;
     allMarkers.forEach(function(entry) {
       const okFiltros =
@@ -367,7 +383,6 @@ function initMainMap(locais) {
         if (entry.onMap) { clusterGroup.removeLayer(entry.marker); entry.onMap = false; }
       }
     });
-    const countEl = document.getElementById('mapa-count');
     if (countEl) countEl.textContent = visiveis + ' locais';
   };
 

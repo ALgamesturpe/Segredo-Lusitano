@@ -136,6 +136,21 @@ include dirname(__DIR__) . '/includes/header.php';
         </select>
       </div>
 
+      <button type="button" id="btn-perto-mim-mapa" onclick="togglePertoDeMimMapa()"
+              style="background:rgba(255,255,255,.1);color:var(--creme);border:1px solid rgba(201,168,76,.3);border-radius:0;padding:.2rem .55rem;font-size:.75rem;cursor:pointer;display:flex;align-items:center;gap:.3rem;white-space:nowrap;align-self:flex-end;transition:all .2s;"
+              title="Mostrar locais perto de mim">
+        <i class="fas fa-location-crosshairs"></i> <span class="d-none d-sm-inline">Perto de mim</span>
+      </button>
+      <div id="raio-wrap" style="display:none;flex-direction:column;align-self:flex-end;">
+        <label class="mapa-filtro-label">Raio</label>
+        <select id="select-raio" class="mapa-select" onchange="aplicarRaio()" style="min-width:72px;">
+          <option value="10">10 km</option>
+          <option value="25">25 km</option>
+          <option value="50" selected>50 km</option>
+          <option value="100">100 km</option>
+          <option value="200">200 km</option>
+        </select>
+      </div>
       <button type="submit" style="background:var(--dourado);color:var(--verde-escuro);border:none;border-radius:0;padding:.2rem .55rem;font-size:.75rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:.3rem;white-space:nowrap;align-self:flex-end;">
         <i class="fas fa-search"></i> Filtrar
       </button>
@@ -143,11 +158,6 @@ include dirname(__DIR__) . '/includes/header.php';
          style="display:<?= $tem_filtros ? 'flex' : 'none' ?>;color:rgba(245,239,230,.5);font-size:.75rem;text-decoration:none;padding:.2rem .4rem;border:1px solid rgba(245,239,230,.15);border-radius:0;align-items:center;align-self:flex-end;" title="Limpar filtros">
         <i class="fas fa-times"></i>
       </a>
-      <button type="button" id="btn-perto-mim-mapa" onclick="togglePertoDeMimMapa()"
-              style="background:rgba(255,255,255,.1);color:var(--creme);border:1px solid rgba(201,168,76,.3);border-radius:0;padding:.2rem .55rem;font-size:.75rem;cursor:pointer;display:flex;align-items:center;gap:.3rem;white-space:nowrap;align-self:flex-end;transition:all .2s;"
-              title="Mostrar locais perto de mim">
-        <i class="fas fa-location-crosshairs"></i> <span class="d-none d-sm-inline">Perto de mim</span>
-      </button>
     </form>
 
   </div>
@@ -158,6 +168,7 @@ include dirname(__DIR__) . '/includes/header.php';
 
 <!-- Scripts sem footer visual -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script src="<?= SITE_URL ?>/assets/js/main.js?v=<?= filemtime(dirname(__DIR__).'/assets/js/main.js') ?>"></script>
 <script>
 initMainMap(<?= $locais_json ?>);
@@ -191,28 +202,44 @@ function limparFiltrosMapa() {
   window._mapFilterLocais({ categoria: '', regiao: '', dificuldade: '' });
 }
 
+function aplicarRaio() {
+  if (!_pertoDeMimAtivo || _userLatMapa === null) return;
+  const form = document.getElementById('form-filtro-mapa');
+  const raio = parseInt(document.getElementById('select-raio').value);
+  window._mapFilterLocais({
+    categoria:   form.categoria.value,
+    regiao:      form.regiao.value,
+    dificuldade: form.dificuldade.value,
+    lat:  _userLatMapa,
+    lng:  _userLngMapa,
+    raio: raio,
+  });
+}
+
 let _pertoDeMimAtivo = false;
 let _userMarkerMapa  = null;
 let _userLatMapa     = null;
 let _userLngMapa     = null;
 
 function togglePertoDeMimMapa() {
-  const btn = document.getElementById('btn-perto-mim-mapa');
+  const btn      = document.getElementById('btn-perto-mim-mapa');
+  const raioWrap = document.getElementById('raio-wrap');
   if (_pertoDeMimAtivo) {
     _pertoDeMimAtivo = false;
     _userLatMapa = null;
     _userLngMapa = null;
     if (_userMarkerMapa) { _userMarkerMapa.remove(); _userMarkerMapa = null; }
-    btn.style.background = 'rgba(255,255,255,.1)';
-    btn.style.color      = 'var(--creme)';
+    btn.style.background  = 'rgba(255,255,255,.1)';
+    btn.style.color       = 'var(--creme)';
     btn.style.borderColor = 'rgba(201,168,76,.3)';
     btn.innerHTML = '<i class="fas fa-location-crosshairs"></i> <span class="d-none d-sm-inline">Perto de mim</span>';
+    raioWrap.style.display = 'none';
     const form = document.getElementById('form-filtro-mapa');
     window._mapFilterLocais({ categoria: form.categoria.value, regiao: form.regiao.value, dificuldade: form.dificuldade.value });
     return;
   }
   if (!navigator.geolocation) { alert('O teu browser não suporta geolocalização.'); return; }
-  btn.disabled = true;
+  btn.disabled  = true;
   btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
   navigator.geolocation.getCurrentPosition(pos => {
     _userLatMapa = pos.coords.latitude;
@@ -223,24 +250,26 @@ function togglePertoDeMimMapa() {
     btn.style.color       = 'var(--verde-escuro)';
     btn.style.borderColor = 'var(--dourado)';
     btn.innerHTML = '<i class="fas fa-location-crosshairs"></i> <span class="d-none d-sm-inline">Perto de mim</span>';
+    raioWrap.style.display = 'flex';
     if (window._mapaInstance) {
-      window._mapaInstance.setView([_userLatMapa, _userLngMapa], 12);
+      window._mapaInstance.setView([_userLatMapa, _userLngMapa], 10);
       if (_userMarkerMapa) _userMarkerMapa.remove();
       _userMarkerMapa = L.circleMarker([_userLatMapa, _userLngMapa], {
         radius: 8, fillColor: '#2d6a4f', fillOpacity: 1, color: '#fff', weight: 2
       }).addTo(window._mapaInstance).bindPopup('<strong>A tua localização</strong>').openPopup();
     }
-    const form = document.getElementById('form-filtro-mapa');
+    const form  = document.getElementById('form-filtro-mapa');
+    const raio  = parseInt(document.getElementById('select-raio').value);
     window._mapFilterLocais({
       categoria:   form.categoria.value,
       regiao:      form.regiao.value,
       dificuldade: form.dificuldade.value,
       lat:  _userLatMapa,
       lng:  _userLngMapa,
-      raio: 50,
+      raio: raio,
     });
   }, () => {
-    btn.disabled = false;
+    btn.disabled  = false;
     btn.innerHTML = '<i class="fas fa-location-crosshairs"></i> <span class="d-none d-sm-inline">Perto de mim</span>';
     alert('Ativa o GPS e tenta novamente.');
   }, { enableHighAccuracy: true, timeout: 10000 });
