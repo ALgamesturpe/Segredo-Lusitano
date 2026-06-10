@@ -159,12 +159,8 @@ $flash_success = flash('success');
 </div>
 
 <script>
-// Auto-submit quando 6 dígitos inseridos
 document.getElementById('codigo').addEventListener('input', function() {
   this.value = this.value.replace(/\D/g, ''); // só números
-  if (this.value.length === 6) {
-    this.closest('form').submit();
-  }
 });
 </script>
 

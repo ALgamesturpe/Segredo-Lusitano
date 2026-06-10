@@ -132,7 +132,7 @@ $flash_error   = flash('error');
             <i class="fas fa-clock"></i> Expira em 15 minutos
           </small>
         </div>
-        <button type="submit" name="codigo" class="btn btn-primary" style="width:100%;justify-content:center;margin-top:.5rem;">
+        <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;margin-top:.5rem;">
           <i class="fas fa-arrow-right"></i> Confirmar Código
         </button>
       </form>
@@ -203,7 +203,7 @@ $flash_error   = flash('error');
         </div>
 
         <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;margin-top:.5rem;">
-          <i class="fas fa-key"></i> Definir Nova Palavra-passe
+          Definir Nova Palavra-passe
         </button>
       </form>
 
