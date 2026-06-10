@@ -202,6 +202,24 @@ function limparFiltrosMapa() {
   window._mapFilterLocais({ categoria: '', regiao: '', dificuldade: '' });
 }
 
+function _mostrarAvisoPrecisao(precisao) {
+  const km = precisao ? Math.round(precisao / 1000) : null;
+  const msg = km
+    ? `Localização demasiado imprecisa (±${km} km). Ativa o GPS no teu dispositivo e tenta novamente.`
+    : 'Não foi possível obter a tua localização. Ativa o GPS e tenta novamente.';
+  let toast = document.getElementById('mapa-toast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'mapa-toast';
+    toast.style.cssText = 'position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:#7f1d1d;color:#fca5a5;border:1px solid #b91c1c;border-radius:4px;padding:.65rem 1.1rem;font-size:.82rem;z-index:9999;max-width:340px;text-align:center;box-shadow:0 4px 16px rgba(0,0,0,.4);';
+    document.body.appendChild(toast);
+  }
+  toast.textContent = msg;
+  toast.style.display = 'block';
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => { toast.style.display = 'none'; }, 5000);
+}
+
 function aplicarRaio() {
   if (!_pertoDeMimAtivo || _userLatMapa === null) return;
   const form = document.getElementById('form-filtro-mapa');
