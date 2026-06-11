@@ -195,18 +195,18 @@ include dirname(__DIR__) . '/includes/header.php';
 
       <!-- Botão de login com GitHub -->
       <div style="display:flex;justify-content:center;">
-        <a href="<?= SITE_URL ?>/pages/github_redirect.php"
+        <button type="button" onclick="iniciarGithub()"
            style="display:flex;align-items:center;justify-content:space-between;
                   width:300px;padding:.65rem 1rem;border:1.5px solid #d0d5dd;
                   border-radius:0;background:#fff;color:#1e1e1e;
                   font-size:.9rem;font-weight:500;text-decoration:none;
-                  transition:background .2s;">
+                  cursor:pointer;transition:background .2s;">
           <div style="display:flex;align-items:center;gap:.65rem;">
             <i class="fab fa-github" style="font-size:1.1rem;color:#24292e;"></i>
             <span>Iniciar sessão com GitHub</span>
           </div>
           <i class="fab fa-github" style="font-size:1.1rem;color:#24292e;"></i>
-        </a>
+        </button>
       </div>
 
     </div>
@@ -219,7 +219,7 @@ include dirname(__DIR__) . '/includes/header.php';
   </div>
 </div>
 
-<!-- Modal Termos e Condições (para novos utilizadores via Google) -->
+<!-- Modal Termos e Condições (novos utilizadores via Google ou GitHub) -->
 <input type="hidden" id="termos-aceites-em" value="">
 <div id="modal-termos" style="display:none;position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.55);align-items:center;justify-content:center;padding:1rem;">
   <div style="background:#fff;width:100%;max-width:600px;max-height:88vh;display:flex;flex-direction:column;box-shadow:0 8px 32px rgba(0,0,0,.2);">
@@ -228,7 +228,7 @@ include dirname(__DIR__) . '/includes/header.php';
       <button onclick="document.getElementById('modal-termos').style.display='none'" style="background:none;border:none;font-size:1.1rem;cursor:pointer;color:#9ca3af;padding:.2rem .4rem;">&#x2715;</button>
     </div>
     <div style="overflow-y:auto;flex:1;padding:1.5rem 1.75rem;font-size:.85rem;line-height:1.75;color:#374151;">
-      <p style="margin:0 0 1rem;color:#6b7280;">Ao criares conta através do Google no Segredo Lusitano, declaras ter lido e aceite os presentes Termos e a nossa Política de Privacidade.</p>
+      <p style="margin:0 0 1rem;color:#6b7280;">Ao criares conta através do Google ou GitHub no Segredo Lusitano, declaras ter lido e aceite os presentes Termos e a nossa Política de Privacidade.</p>
       <p style="font-weight:700;margin:0 0 .3rem;">Responsabilidade</p>
       <p style="margin:0 0 1rem;">O utilizador é exclusivamente responsável pela visita a locais partilhados. Muitos podem situar-se em propriedade privada. O Segredo Lusitano não se responsabiliza por acidentes, lesões ou infrações.</p>
       <p style="font-weight:700;margin:0 0 .3rem;">Dados Pessoais (RGPD)</p>
@@ -247,6 +247,34 @@ include dirname(__DIR__) . '/includes/header.php';
     </div>
   </div>
 </div>
+
+<!-- Modal: lógica comum (Google + GitHub) -->
+<script>
+let _githubPendente = false;
+
+function iniciarGithub() {
+  _githubPendente = true;
+  document.getElementById('modal-termos').style.display = 'flex';
+}
+
+function aceitarTermos() {
+  document.getElementById('modal-termos').style.display = 'none';
+  const now = new Date();
+  const pad = n => String(n).padStart(2, '0');
+  const dt = now.getFullYear() + '-' + pad(now.getMonth()+1) + '-' + pad(now.getDate())
+           + ' ' + pad(now.getHours()) + ':' + pad(now.getMinutes()) + ':' + pad(now.getSeconds());
+  document.getElementById('termos-aceites-em').value = dt;
+  if (_githubPendente) {
+    _githubPendente = false;
+    window.location.href = '<?= SITE_URL ?>/pages/Github_redirect.php?termos_aceites_em=' + encodeURIComponent(dt);
+    return;
+  }
+  if (window._pendingGoogleResponse && typeof _executarGoogleLogin === 'function') {
+    _executarGoogleLogin(window._pendingGoogleResponse);
+    window._pendingGoogleResponse = null;
+  }
+}
+</script>
 
 <!-- Biblioteca Google Identity Services -->
 <?php if (GOOGLE_CLIENT_ID && GOOGLE_CLIENT_ID !== ''): ?>
@@ -282,19 +310,6 @@ function _executarGoogleLogin(response) {
     msg.textContent = 'Erro de ligação. Tenta novamente.';
     msg.style.display = 'block';
   });
-}
-
-function aceitarTermos() {
-  document.getElementById('modal-termos').style.display = 'none';
-  const now = new Date();
-  const pad = n => String(n).padStart(2, '0');
-  const dt = now.getFullYear() + '-' + pad(now.getMonth()+1) + '-' + pad(now.getDate())
-           + ' ' + pad(now.getHours()) + ':' + pad(now.getMinutes()) + ':' + pad(now.getSeconds());
-  document.getElementById('termos-aceites-em').value = dt;
-  if (window._pendingGoogleResponse) {
-    _executarGoogleLogin(window._pendingGoogleResponse);
-    window._pendingGoogleResponse = null;
-  }
 }
 </script>
 <?php endif; ?>
