@@ -16,7 +16,9 @@ $st->execute([$uid]);
 $user = $st->fetch();
 
 if (!$user) {
-    echo json_encode(['ok' => false, 'motivo' => 'banido']);
+    // Utilizador não existe na BD (sessão desatualizada após reset/eliminação) — terminar sessão
+    session_destroy();
+    echo json_encode(['ok' => false, 'motivo' => 'sessao_invalida']);
 } elseif (!$user['ativo']) {
     echo json_encode(['ok' => false, 'motivo' => 'suspenso']);
 } else {

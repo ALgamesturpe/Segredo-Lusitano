@@ -191,7 +191,10 @@ setInterval(async () => {
     try {
       const res  = await fetch(`${SITE_URL}/pages/estado_conta_api.php`);
       const data = await res.json();
-      if (!data.ok) _mostrarBloqueio(data.motivo);
+      if (!data.ok) {
+        if (data.motivo === 'sessao_invalida') { window.location.href = SITE_URL + '/pages/login.php'; return; }
+        _mostrarBloqueio(data.motivo);
+      }
     } catch (_) {}
   }, 8000);
 })();
