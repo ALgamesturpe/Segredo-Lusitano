@@ -78,18 +78,6 @@ $_card_segue = in_array($local_utilizador_id, $GLOBALS['_card_seguindo_ids']);
            style="color:var(--verde);font-weight:600;font-size:.82rem;">
           @<?= h($local_username) ?>
         </a>
-        <?php if ($_card_user && !$_card_e_proprio && empty($ocultar_btn_seguir)): ?>
-          <button class="btn-seguir-card"
-                  data-id="<?= $local_utilizador_id ?>"
-                  data-seguindo="<?= $_card_segue ? '1' : '0' ?>"
-                  style="background:none;border:1px solid <?= $_card_segue ? 'var(--creme-escuro)' : 'var(--verde)' ?>;
-                         color:<?= $_card_segue ? 'var(--texto-muted)' : 'var(--verde)' ?>;
-                         border-radius:50px;padding:.1rem .55rem;font-size:.72rem;cursor:pointer;
-                         display:inline-flex;align-items:center;gap:.25rem;transition:all .15s;">
-            <i class="fas <?= $_card_segue ? 'fa-user-check' : 'fa-user-plus' ?>"></i>
-            <?= $_card_segue ? 'A seguir' : 'Seguir' ?>
-          </button>
-        <?php endif; ?>
       </div>
       <div class="card-meta-stats">
         <span><i class="fas fa-heart"></i> <?= $local_total_likes ?></span>
