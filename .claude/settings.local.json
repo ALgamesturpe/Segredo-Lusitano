@@ -31,7 +31,8 @@
       "Bash(git push *)",
       "Bash(git stash *)",
       "Bash(git add *)",
-      "Bash(git commit -m ' *)"
+      "Bash(git commit -m ' *)",
+      "Bash(Get-ChildItem -Path \"C:\\\\wamp64\\\\www\\\\Segredo-Lusitano\" -Recurse -Filter \"*.js\" -ErrorAction SilentlyContinue)"
     ]
   }
 }
