@@ -26,9 +26,12 @@ if ($user) {
 <link rel="icon" type="image/x-icon" href="<?= SITE_URL ?>/favicon.ico">
 <link rel="icon" type="image/png" sizes="32x32" href="<?= SITE_URL ?>/assets/images/favicon-32.png">
 
-<!-- Fontes -->
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=Outfit:wght@300;400;600&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+<!-- Fontes: preload das mais críticas -->
+<link rel="preload" href="<?= SITE_URL ?>/assets/fonts/outfit-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="<?= SITE_URL ?>/assets/fonts/outfit-latin-ext.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="<?= SITE_URL ?>/assets/fonts/playfair-700-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="<?= SITE_URL ?>/assets/fonts/playfair-700-latin-ext.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="<?= SITE_URL ?>/assets/css/fonts.css">
 
 <!-- Ícones -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
