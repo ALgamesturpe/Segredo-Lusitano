@@ -518,13 +518,14 @@ main { flex: 1; }
     gap: 2px !important;
     margin-left: 0 !important;
     transform: translateX(100%) !important;
-    transition: transform var(--transition) !important;
+    visibility: hidden !important;
+    transition: transform var(--transition), visibility var(--transition) !important;
     z-index: 999 !important;
     overflow-y: auto !important;
     box-shadow: -4px 0 20px rgba(0,0,0,.5) !important;
     border-bottom-left-radius: var(--radius) !important;
   }
-  .nav-links.open { transform: translateX(0) !important; }
+  .nav-links.open { transform: translateX(0) !important; visibility: visible !important; }
 
   .nav-links li { width: 100% !important; display: block !important; }
 
