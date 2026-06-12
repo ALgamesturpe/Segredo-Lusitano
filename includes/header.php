@@ -31,7 +31,6 @@ if ($user) {
 <link rel="preload" href="<?= SITE_URL ?>/assets/fonts/outfit-latin-ext.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="<?= SITE_URL ?>/assets/fonts/playfair-700-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="<?= SITE_URL ?>/assets/fonts/playfair-700-latin-ext.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="<?= SITE_URL ?>/assets/css/fonts.css">
 
 <!-- Ícones -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
