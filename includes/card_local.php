@@ -41,7 +41,15 @@ $dif_label = [
 ][$local_dif] ?? 'Médio';
 
 $_card_user = auth_user();
-// Guardados carregados uma única vez por request (evita N+1 queries)
+// Likes e guardados carregados uma única vez por request (evita N+1 queries)
+if (!isset($GLOBALS['_card_liked_ids'])) {
+    $GLOBALS['_card_liked_ids'] = [];
+    if ($_card_user) {
+        $__stL = db()->prepare('SELECT local_id FROM likes WHERE utilizador_id = ?');
+        $__stL->execute([$_card_user['id']]);
+        $GLOBALS['_card_liked_ids'] = array_column($__stL->fetchAll(), 'local_id');
+    }
+}
 if (!isset($GLOBALS['_card_guardados_ids'])) {
     $GLOBALS['_card_guardados_ids'] = [];
     if ($_card_user) {
@@ -51,6 +59,7 @@ if (!isset($GLOBALS['_card_guardados_ids'])) {
         $GLOBALS['_card_guardados_ids'] = array_column($__stF->fetchAll(), 'local_id');
     }
 }
+$_card_liked   = in_array($local_id, $GLOBALS['_card_liked_ids']);
 $_card_guardou = in_array($local_id, $GLOBALS['_card_guardados_ids']);
 ?>
 <div class="card">
@@ -80,7 +89,18 @@ $_card_guardou = in_array($local_id, $GLOBALS['_card_guardados_ids']);
         </a>
       </div>
       <div class="card-meta-stats">
-        <span><i class="fas fa-heart"></i> <?= $local_total_likes ?></span>
+        <?php if ($_card_user): ?>
+          <button class="btn-like-card <?= $_card_liked ? 'liked' : '' ?>"
+                  data-id="<?= $local_id ?>"
+                  onclick="toggleLikeCard(this)"
+                  title="<?= $_card_liked ? 'Remover like' : 'Dar like' ?>"
+                  style="background:none;border:none;cursor:pointer;padding:0;display:inline-flex;align-items:center;gap:.25rem;color:<?= $_card_liked ? '#e74c3c' : 'var(--texto-muted)' ?>;font-size:.82rem;">
+            <i class="<?= $_card_liked ? 'fas' : 'far' ?> fa-heart"></i>
+            <span class="likes-count"><?= $local_total_likes ?></span>
+          </button>
+        <?php else: ?>
+          <span style="color:var(--texto-muted);font-size:.82rem;"><i class="fas fa-heart"></i> <?= $local_total_likes ?></span>
+        <?php endif; ?>
         <span><i class="fas fa-comment"></i> <?= $local_total_comentarios ?></span>
         <?php if ($_card_user): ?>
           <button class="btn-guardar-card"

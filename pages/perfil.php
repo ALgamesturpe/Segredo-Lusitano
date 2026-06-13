@@ -54,6 +54,28 @@ if ($total_checkins > 0) {
     $checkin_locais_mapa = $stChk->fetchAll();
 }
 
+// Locais guardados (só para o próprio utilizador)
+$locais_guardados = [];
+if ($is_own) {
+    _migrar_favoritos();
+    $stG = db()->prepare(
+        'SELECT l.*, c.nome AS categoria_nome, c.icone AS categoria_icone, r.nome AS regiao_nome,
+                u.username,
+                (SELECT COUNT(*) FROM likes     WHERE local_id = l.id) AS total_likes,
+                (SELECT COUNT(*) FROM comentarios WHERE local_id = l.id) AS total_comentarios,
+                (SELECT COUNT(*) FROM favoritos  WHERE local_id = l.id) AS total_guardados
+         FROM favoritos f
+         JOIN locais l ON l.id = f.local_id
+         JOIN categorias c ON c.id = l.categoria_id
+         JOIN regioes r    ON r.id = l.regiao_id
+         JOIN utilizadores u ON u.id = l.utilizador_id
+         WHERE f.utilizador_id = ? AND l.estado = "aprovado" AND l.apagado_em IS NULL AND l.bloqueado = 0
+         ORDER BY f.criado_em DESC'
+    );
+    $stG->execute([$id]);
+    $locais_guardados = $stG->fetchAll();
+}
+
 // Numeração de utilizadores domo se fosse um número de processo
 $st3 = db()->prepare('SELECT COUNT(*) FROM utilizadores WHERE id <= ? AND ativo = 1 AND role = "user"');
 $st3->execute([$id]);
@@ -249,6 +271,32 @@ include dirname(__DIR__) . '/includes/header.php';
       </div>
     <?php endif; ?>
 
+
+    <!-- LOCAIS GUARDADOS (só visível para o próprio) -->
+    <?php if ($is_own): ?>
+    <div style="margin-top:3.5rem;">
+      <h2 style="margin-bottom:1.5rem;display:flex;align-items:center;gap:.6rem;">
+        <i class="fas fa-bookmark" style="color:var(--dourado);font-size:1.1rem;"></i> Locais Guardados
+        <?php if ($locais_guardados): ?>
+          <span style="font-size:.85rem;font-weight:400;color:var(--texto-muted);">(<?= count($locais_guardados) ?>)</span>
+        <?php endif; ?>
+      </h2>
+      <?php if ($locais_guardados): ?>
+        <div class="cards-grid" style="grid-template-columns:repeat(auto-fill,minmax(260px,300px));">
+          <?php foreach ($locais_guardados as $local): ?>
+            <?php include dirname(__DIR__) . '/includes/card_local.php'; ?>
+          <?php endforeach; ?>
+        </div>
+      <?php else: ?>
+        <div class="empty-state" style="padding:2rem 0;">
+          <i class="far fa-bookmark" style="font-size:2rem;opacity:.3;"></i>
+          <h3 style="margin-top:.75rem;">Nenhum local guardado</h3>
+          <p style="font-size:.9rem;">Guarda locais para os encontrares aqui mais tarde.</p>
+          <a href="<?= SITE_URL ?>/pages/explorar.php" class="btn btn-primary" style="margin-top:1rem;">Explorar Locais</a>
+        </div>
+      <?php endif; ?>
+    </div>
+    <?php endif; ?>
 
     <!-- MAPA PESSOAL -->
     <?php

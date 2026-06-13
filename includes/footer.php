@@ -93,8 +93,29 @@ function fecharAvisoLogin() {
   });
 })();
 </script>
-<!-- Script botão guardar nos cards -->
+<!-- Scripts like e guardar nos cards -->
 <script>
+function toggleLikeCard(btn) {
+  const localId = btn.dataset.id;
+  fetch(`${SITE_URL}/pages/like.php`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRF-Token': CSRF_TOKEN },
+    body: `local_id=${localId}`
+  }).then(r => {
+    if (r.status === 401) { mostrarAvisoLogin('Inicia sessão para dar like.', `${SITE_URL}/pages/login.php`); return null; }
+    return r.json();
+  }).then(data => {
+    if (!data) return;
+    const liked = data.liked;
+    btn.classList.toggle('liked', liked);
+    btn.title = liked ? 'Remover like' : 'Dar like';
+    btn.style.color = liked ? '#e74c3c' : 'var(--texto-muted)';
+    btn.querySelector('i').className = (liked ? 'fas' : 'far') + ' fa-heart';
+    const countEl = btn.querySelector('.likes-count');
+    if (countEl) countEl.textContent = data.total;
+  });
+}
+
 function toggleGuardar(btn) {
   const localId = btn.dataset.id;
   fetch(`${SITE_URL}/pages/guardar.php`, {
