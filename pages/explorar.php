@@ -234,13 +234,22 @@ $extra_head = '<style>
   /* Modal */
   #story-modal { display:none; }
   #story-modal.aberto { display:flex !important; }
-  #story-modal-inner { scrollbar-width:thin; }
+  #story-modal-inner { scrollbar-width:thin; overflow:hidden; }
   .modal-story-content { padding:1.25rem; }
-  .modal-story-foto { width:100%; max-height:55vh; object-fit:cover; border-radius:var(--radius) var(--radius) 0 0; display:block; }
-  .modal-progress { display:flex; gap:3px; padding:.5rem .75rem 0; }
-  .modal-progress-bar { height:3px; flex:1; background:rgba(255,255,255,.25); border-radius:2px; }
-  .modal-progress-bar.done { background:var(--dourado); }
-  .modal-progress-bar.active { background:#fff; }
+  .modal-story-foto { width:100%; max-height:55vh; object-fit:cover; display:block; }
+  .modal-progress { display:flex; gap:3px; padding:.65rem .75rem .4rem; position:absolute; top:0; left:0; right:0; z-index:3; }
+  .modal-progress-bar { height:3px; flex:1; background:rgba(255,255,255,.25); border-radius:2px; overflow:hidden; position:relative; }
+  .modal-progress-bar.done { background:rgba(255,255,255,.85); }
+  .modal-progress-fill {
+    position:absolute; left:0; top:0; bottom:0; width:0; background:#fff;
+    animation: bar-fill var(--dur,5s) linear forwards;
+  }
+  @keyframes bar-fill { to { width:100%; } }
+  /* Slide vertical */
+  @keyframes slideFromBottom { from{transform:translateY(60px);opacity:0;} to{transform:translateY(0);opacity:1;} }
+  @keyframes slideFromTop    { from{transform:translateY(-60px);opacity:0;} to{transform:translateY(0);opacity:1;} }
+  .slide-from-bottom { animation:slideFromBottom .3s cubic-bezier(.22,1,.36,1) forwards; }
+  .slide-from-top    { animation:slideFromTop .3s cubic-bezier(.22,1,.36,1) forwards; }
 </style>';
 
 include dirname(__DIR__) . '/includes/header.php';
@@ -520,11 +529,12 @@ include dirname(__DIR__) . '/includes/header.php';
     </div>
 
     <!-- ── MODAL VIEWER ────────────────────────────────────── -->
-    <div id="story-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.92);display:none;align-items:center;justify-content:center;">
-      <button onclick="fecharModal()" style="position:absolute;top:1rem;right:1rem;background:rgba(255,255,255,.15);border:none;color:#fff;width:40px;height:40px;border-radius:50%;font-size:1.2rem;cursor:pointer;z-index:2;"><i class="fas fa-times"></i></button>
-      <button id="modal-prev" onclick="modalNav(-1)" style="position:absolute;left:.75rem;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.15);border:none;color:#fff;width:40px;height:40px;border-radius:50%;font-size:1rem;cursor:pointer;z-index:2;display:none;"><i class="fas fa-chevron-left"></i></button>
-      <button id="modal-next" onclick="modalNav(1)"  style="position:absolute;right:.75rem;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.15);border:none;color:#fff;width:40px;height:40px;border-radius:50%;font-size:1rem;cursor:pointer;z-index:2;display:none;"><i class="fas fa-chevron-right"></i></button>
-      <div id="story-modal-inner" style="max-width:520px;width:100%;max-height:90vh;overflow-y:auto;border-radius:var(--radius);background:#1a1a1a;position:relative;">
+    <div id="story-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.92);align-items:center;justify-content:center;">
+      <button onclick="fecharModal()" style="position:absolute;top:1rem;right:1rem;background:rgba(255,255,255,.15);border:none;color:#fff;width:40px;height:40px;border-radius:50%;font-size:1.2rem;cursor:pointer;z-index:10;"><i class="fas fa-times"></i></button>
+      <div style="position:absolute;bottom:1rem;left:50%;transform:translateX(-50%);color:rgba(255,255,255,.45);font-size:.72rem;pointer-events:none;white-space:nowrap;">
+        <i class="fas fa-arrows-up-down" style="margin-right:.3rem;"></i>scroll para navegar
+      </div>
+      <div id="story-modal-inner" style="max-width:520px;width:100%;max-height:90vh;border-radius:var(--radius);background:#1a1a1a;position:relative;overflow:hidden;">
         <!-- preenchido via JS -->
       </div>
     </div>
@@ -815,94 +825,136 @@ document.getElementById('story-texto')?.addEventListener('input', function() {
 })();
 
 // ── Modal viewer ─────────────────────────────────────────────
+const STORY_DUR = 5000;
+let _modalTimer = null;
+
+function _stopTimer() { if (_modalTimer) { clearTimeout(_modalTimer); _modalTimer = null; } }
+
+function _startTimer() {
+  _stopTimer();
+  _modalTimer = setTimeout(() => {
+    if (modalIdx < modalStories.length - 1) { modalIdx++; renderModalStory('next'); }
+    else fecharModal();
+  }, STORY_DUR);
+}
+
 async function abrirModalStories(userId) {
   const modal = document.getElementById('story-modal');
   modal.classList.add('aberto');
-  document.getElementById('story-modal-inner').innerHTML = '<div style="padding:2rem;text-align:center;color:#fff;"><i class="fas fa-spinner fa-spin"></i></div>';
+  document.getElementById('story-modal-inner').innerHTML =
+    '<div style="padding:3rem;text-align:center;color:#fff;"><i class="fas fa-spinner fa-spin fa-lg"></i></div>';
   document.body.style.overflow = 'hidden';
   const r = await fetch(`${SITE_URL}/pages/stories_api.php?acao=stories_user&user_id=${userId}`);
   const d = await r.json();
   if (!d.ok || !d.stories.length) { fecharModal(); return; }
   modalStories = d.stories;
   modalIdx = 0;
-  renderModalStory();
+  renderModalStory('next');
 }
 
 async function abrirModalStoriesPorId(storyId, userId) {
   await abrirModalStories(userId);
-  // Navegar para o story específico
   const idx = modalStories.findIndex(s => s.id == storyId);
-  if (idx >= 0) { modalIdx = idx; renderModalStory(); }
+  if (idx >= 0 && idx !== 0) { modalIdx = idx; renderModalStory('next'); }
 }
 
-function renderModalStory() {
+function renderModalStory(dir) {
+  _stopTimer();
   const s = modalStories[modalIdx];
   const inner = document.getElementById('story-modal-inner');
-  const prevBtn = document.getElementById('modal-prev');
-  const nextBtn = document.getElementById('modal-next');
-  prevBtn.style.display = modalIdx > 0 ? '' : 'none';
-  nextBtn.style.display = modalIdx < modalStories.length - 1 ? '' : 'none';
 
-  // Progress bars
-  const bars = modalStories.map((_, i) =>
-    `<div class="modal-progress-bar ${i < modalIdx ? 'done' : i === modalIdx ? 'active' : ''}"></div>`
-  ).join('');
+  // Barra de progresso (animated fill na barra activa)
+  const bars = modalStories.map((_, i) => {
+    if (i < modalIdx) return `<div class="modal-progress-bar done"></div>`;
+    if (i === modalIdx) return `<div class="modal-progress-bar"><div class="modal-progress-fill" style="--dur:${STORY_DUR}ms;"></div></div>`;
+    return `<div class="modal-progress-bar"></div>`;
+  }).join('');
 
   const foto = s.foto
-    ? `<img src="${SITE_URL}/uploads/stories/${s.foto}" alt="" class="modal-story-foto" loading="lazy">`
+    ? `<img src="${SITE_URL}/uploads/stories/${escHtml(s.foto)}" alt="" class="modal-story-foto" loading="lazy">`
     : '';
 
   const reacoesBtns = ['❤️','👍','😮','🔥'].map(e => {
-    const count = (s.reacoes || []).filter(r => r.emoji === e).reduce((a, r) => a + parseInt(r.total), 0);
+    const cnt = (s.reacoes || []).find(r => r.emoji === e);
     const ativo = s.minha_reacao === e ? 'ativo' : '';
-    return `<button class="story-reacao-btn ${ativo}" data-story="${s.id}" data-emoji="${e}" onclick="reagir(this)" style="border-color:#444;background:#222;color:#ddd;">${e}<span class="reacao-count">${count || ''}</span></button>`;
+    return `<button class="story-reacao-btn ${ativo}" data-story="${s.id}" data-emoji="${e}" onclick="reagir(this)" style="border-color:#444;background:#222;color:#ddd;">${e}<span class="reacao-count">${cnt ? cnt.total : ''}</span></button>`;
   }).join('');
+
+  const slideClass = dir === 'next' ? 'slide-from-bottom' : 'slide-from-top';
 
   inner.innerHTML = `
     <div class="modal-progress">${bars}</div>
-    ${foto}
-    <div class="modal-story-content">
-      <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.75rem;">
-        <a href="${SITE_URL}/pages/perfil.php?id=${s.utilizador_id}" style="text-decoration:none;display:flex;align-items:center;gap:.6rem;flex:1;">
-          <div class="story-avatar" style="background:var(--verde-escuro);">
-            ${s.autor_avatar ? `<img src="${SITE_URL}/uploads/locais/${s.autor_avatar}" alt="">` : s.username.charAt(0).toUpperCase()}
-          </div>
-          <div>
-            <div style="font-weight:700;font-size:.9rem;color:#fff;">${escHtml(s.autor_nome)}</div>
-            <div style="font-size:.72rem;color:#aaa;">@${escHtml(s.username)}</div>
-          </div>
-        </a>
-        <button onclick="copiarLinkStory(${s.id})" style="background:none;border:none;color:#aaa;font-size:.85rem;cursor:pointer;" title="Copiar link"><i class="fas fa-share-nodes"></i></button>
+    <div class="${slideClass}">
+      ${foto}
+      <div class="modal-story-content">
+        <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.75rem;margin-top:${foto ? '0' : '2rem'};">
+          <a href="${SITE_URL}/pages/perfil.php?id=${s.utilizador_id}" style="text-decoration:none;display:flex;align-items:center;gap:.6rem;flex:1;">
+            <div class="story-avatar">
+              ${s.autor_avatar ? `<img src="${SITE_URL}/uploads/locais/${escHtml(s.autor_avatar)}" alt="">` : escHtml(s.username.charAt(0).toUpperCase())}
+            </div>
+            <div>
+              <div style="font-weight:700;font-size:.9rem;color:#fff;">${escHtml(s.autor_nome)}</div>
+              <div style="font-size:.72rem;color:#aaa;">@${escHtml(s.username)}</div>
+            </div>
+          </a>
+          <button onclick="copiarLinkStory(${s.id})" style="background:none;border:none;color:#aaa;font-size:.85rem;cursor:pointer;" title="Copiar link"><i class="fas fa-share-nodes"></i></button>
+        </div>
+        ${s.texto ? `<p style="margin:0 0 .75rem;font-size:.92rem;line-height:1.7;color:#e0e0e0;word-break:break-word;">${escHtml(s.texto).replace(/\n/g,'<br>')}</p>` : ''}
+        ${s.local_nome ? `<div style="font-size:.78rem;color:var(--dourado);margin-bottom:.75rem;"><i class="fas fa-map-marker-alt"></i> ${escHtml(s.local_nome)}</div>` : ''}
+        <div style="display:flex;gap:.35rem;flex-wrap:wrap;">${reacoesBtns}</div>
       </div>
-      ${s.texto ? `<p style="margin:0 0 .75rem;font-size:.92rem;line-height:1.7;color:#e0e0e0;word-break:break-word;">${escHtml(s.texto).replace(/\n/g,'<br>')}</p>` : ''}
-      ${s.local_nome ? `<div style="font-size:.78rem;color:var(--dourado);margin-bottom:.75rem;"><i class="fas fa-map-marker-alt"></i> ${escHtml(s.local_nome)}</div>` : ''}
-      <div style="display:flex;gap:.35rem;flex-wrap:wrap;">${reacoesBtns}</div>
     </div>`;
+
+  _startTimer();
 }
 
 function modalNav(dir) {
-  modalIdx = Math.max(0, Math.min(modalStories.length - 1, modalIdx + dir));
-  renderModalStory();
+  const next = modalIdx + dir;
+  if (next < 0 || next >= modalStories.length) return;
+  modalIdx = next;
+  renderModalStory(dir > 0 ? 'next' : 'prev');
 }
 
 function fecharModal() {
+  _stopTimer();
   document.getElementById('story-modal').classList.remove('aberto');
   document.body.style.overflow = '';
   modalStories = [];
 }
 
-// Fechar ao clicar fora do conteúdo
+// Fechar ao clicar no backdrop
 document.getElementById('story-modal').addEventListener('click', function(e) {
   if (e.target === this) fecharModal();
 });
 
-// Teclas ← → Esc
+// Scroll do rato → navegar (baixo = próximo, cima = anterior)
+let _wheelCooldown = false;
+document.getElementById('story-modal').addEventListener('wheel', e => {
+  e.preventDefault();
+  if (_wheelCooldown) return;
+  _wheelCooldown = true;
+  setTimeout(() => { _wheelCooldown = false; }, 500);
+  modalNav(e.deltaY > 0 ? 1 : -1);
+}, { passive: false });
+
+// Teclado: ↑↓ Esc
 document.addEventListener('keydown', e => {
   if (!document.getElementById('story-modal').classList.contains('aberto')) return;
-  if (e.key === 'ArrowLeft')  modalNav(-1);
-  if (e.key === 'ArrowRight') modalNav(1);
-  if (e.key === 'Escape')     fecharModal();
+  if (e.key === 'ArrowDown' || e.key === 'ArrowRight') modalNav(1);
+  if (e.key === 'ArrowUp'   || e.key === 'ArrowLeft')  modalNav(-1);
+  if (e.key === 'Escape') fecharModal();
 });
+
+// Touch swipe vertical no modal
+(function() {
+  let startY = 0;
+  const el = document.getElementById('story-modal');
+  el.addEventListener('touchstart', e => { startY = e.touches[0].clientY; }, { passive:true });
+  el.addEventListener('touchend', e => {
+    const diff = startY - e.changedTouches[0].clientY;
+    if (Math.abs(diff) > 40) modalNav(diff > 0 ? 1 : -1);
+  }, { passive:true });
+})();
 
 // ── Reações ──────────────────────────────────────────────────
 async function reagir(btn) {
