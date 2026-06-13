@@ -128,6 +128,29 @@ function toggleGuardar(btn) {
   }).then(data => {
     if (!data) return;
     const guardou = data.guardado;
+
+    // Se estiver na grelha de guardados do perfil e removeu, apagar o card
+    if (!guardou) {
+      const grid = document.getElementById('guardados-grid');
+      if (grid) {
+        const card = btn.closest('.card');
+        if (card && grid.contains(card)) {
+          card.style.transition = 'opacity .25s, transform .25s';
+          card.style.opacity = '0';
+          card.style.transform = 'scale(.95)';
+          setTimeout(() => {
+            card.remove();
+            if (!grid.querySelector('.card')) {
+              grid.style.display = 'none';
+              const empty = document.getElementById('guardados-empty');
+              if (empty) empty.style.display = '';
+            }
+          }, 250);
+          return;
+        }
+      }
+    }
+
     btn.dataset.guardou = guardou ? '1' : '0';
     btn.title = guardou ? 'Remover dos guardados' : 'Guardar local';
     btn.style.color = guardou ? 'var(--dourado)' : 'var(--texto-muted)';

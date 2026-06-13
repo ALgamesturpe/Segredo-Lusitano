@@ -281,20 +281,17 @@ include dirname(__DIR__) . '/includes/header.php';
           <span style="font-size:.85rem;font-weight:400;color:var(--texto-muted);">(<?= count($locais_guardados) ?>)</span>
         <?php endif; ?>
       </h2>
-      <?php if ($locais_guardados): ?>
-        <div class="cards-grid" style="grid-template-columns:repeat(auto-fill,minmax(260px,300px));">
-          <?php foreach ($locais_guardados as $local): ?>
-            <?php include dirname(__DIR__) . '/includes/card_local.php'; ?>
-          <?php endforeach; ?>
-        </div>
-      <?php else: ?>
-        <div class="empty-state" style="padding:2rem 0;">
-          <i class="far fa-bookmark" style="font-size:2rem;opacity:.3;"></i>
-          <h3 style="margin-top:.75rem;">Nenhum local guardado</h3>
-          <p style="font-size:.9rem;">Guarda locais para os encontrares aqui mais tarde.</p>
-          <a href="<?= SITE_URL ?>/pages/explorar.php" class="btn btn-primary" style="margin-top:1rem;">Explorar Locais</a>
-        </div>
-      <?php endif; ?>
+      <div id="guardados-grid" <?= $locais_guardados ? '' : 'style="display:none;"' ?> class="cards-grid" style="grid-template-columns:repeat(auto-fill,minmax(260px,300px));">
+        <?php foreach ($locais_guardados as $local): ?>
+          <?php include dirname(__DIR__) . '/includes/card_local.php'; ?>
+        <?php endforeach; ?>
+      </div>
+      <div id="guardados-empty" <?= $locais_guardados ? 'style="display:none;"' : '' ?> class="empty-state" style="padding:2rem 0;">
+        <i class="far fa-bookmark" style="font-size:2rem;opacity:.3;"></i>
+        <h3 style="margin-top:.75rem;">Nenhum local guardado</h3>
+        <p style="font-size:.9rem;">Guarda locais para os encontrares aqui mais tarde.</p>
+        <a href="<?= SITE_URL ?>/pages/explorar.php" class="btn btn-primary" style="margin-top:1rem;">Explorar Locais</a>
+      </div>
     </div>
     <?php endif; ?>
 
