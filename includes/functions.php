@@ -617,9 +617,12 @@ function _migrar_stories(): void {
 
 function get_stories(int $limite = 20, int $offset = 0): array {
     _migrar_stories();
+    _migrar_story_interacoes();
     $st = db()->prepare(
         'SELECT s.*, u.username, u.nome AS autor_nome, u.avatar AS autor_avatar,
-                l.nome AS local_nome
+                l.nome AS local_nome,
+                (SELECT COUNT(*) FROM story_reacoes WHERE story_id = s.id) AS total_reacoes,
+                (SELECT COUNT(*) FROM story_comentarios WHERE story_id = s.id) AS total_comentarios_count
          FROM stories s
          JOIN utilizadores u ON u.id = s.utilizador_id
          LEFT JOIN locais l ON l.id = s.local_id
@@ -644,6 +647,125 @@ function add_story(int $user_id, string $texto, ?int $local_id, ?string $foto): 
     );
     $st->execute([$user_id, $local_id, $texto, $foto]);
     return (int)db()->lastInsertId();
+}
+
+// ---------- STORY INTERAÇÕES (reações + comentários) ----------
+function _migrar_story_interacoes(): void {
+    static $done = false;
+    if ($done) return;
+    $done = true;
+    _migrar_stories();
+    db()->exec('
+        CREATE TABLE IF NOT EXISTS story_reacoes (
+            story_id INT NOT NULL,
+            utilizador_id INT NOT NULL,
+            emoji VARCHAR(10) NOT NULL DEFAULT "❤️",
+            criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (story_id, utilizador_id),
+            FOREIGN KEY (story_id) REFERENCES stories(id) ON DELETE CASCADE,
+            FOREIGN KEY (utilizador_id) REFERENCES utilizadores(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    ');
+    db()->exec('
+        CREATE TABLE IF NOT EXISTS story_comentarios (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            story_id INT NOT NULL,
+            utilizador_id INT NOT NULL,
+            texto VARCHAR(500) NOT NULL,
+            criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (story_id) REFERENCES stories(id) ON DELETE CASCADE,
+            FOREIGN KEY (utilizador_id) REFERENCES utilizadores(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    ');
+}
+
+function get_story_bubbles(): array {
+    _migrar_stories();
+    $st = db()->query(
+        'SELECT u.id, u.username, u.nome, u.avatar,
+                COUNT(s.id) AS total,
+                MAX(s.criado_em) AS ultimo_story
+         FROM stories s
+         JOIN utilizadores u ON u.id = s.utilizador_id
+         WHERE s.expira_em > NOW()
+         GROUP BY u.id, u.username, u.nome, u.avatar
+         ORDER BY MAX(s.criado_em) DESC
+         LIMIT 30'
+    );
+    return $st->fetchAll();
+}
+
+function get_stories_por_user(int $user_id): array {
+    _migrar_stories();
+    $st = db()->prepare(
+        'SELECT s.*, u.username, u.nome AS autor_nome, u.avatar AS autor_avatar, l.nome AS local_nome
+         FROM stories s
+         JOIN utilizadores u ON u.id = s.utilizador_id
+         LEFT JOIN locais l ON l.id = s.local_id
+         WHERE s.utilizador_id = ? AND s.expira_em > NOW()
+         ORDER BY s.criado_em DESC'
+    );
+    $st->execute([$user_id]);
+    return $st->fetchAll();
+}
+
+function get_story_reacoes(int $story_id): array {
+    _migrar_story_interacoes();
+    $st = db()->prepare('SELECT emoji, COUNT(*) AS total FROM story_reacoes WHERE story_id = ? GROUP BY emoji ORDER BY total DESC');
+    $st->execute([$story_id]);
+    return $st->fetchAll();
+}
+
+function get_minha_reacao_story(int $story_id, int $user_id): ?string {
+    _migrar_story_interacoes();
+    $st = db()->prepare('SELECT emoji FROM story_reacoes WHERE story_id = ? AND utilizador_id = ?');
+    $st->execute([$story_id, $user_id]);
+    $row = $st->fetch();
+    return $row ? $row['emoji'] : null;
+}
+
+function toggle_story_reacao(int $story_id, int $user_id, string $emoji): array {
+    $validos = ['❤️', '👍', '😮', '🔥'];
+    if (!in_array($emoji, $validos, true)) return ['ok' => false];
+    $atual = get_minha_reacao_story($story_id, $user_id);
+    if ($atual === $emoji) {
+        db()->prepare('DELETE FROM story_reacoes WHERE story_id = ? AND utilizador_id = ?')->execute([$story_id, $user_id]);
+        $reagiu = false;
+        $emoji_ativo = null;
+    } else {
+        db()->prepare('INSERT INTO story_reacoes (story_id, utilizador_id, emoji) VALUES (?,?,?) ON DUPLICATE KEY UPDATE emoji=?')
+            ->execute([$story_id, $user_id, $emoji, $emoji]);
+        $reagiu = true;
+        $emoji_ativo = $emoji;
+    }
+    return ['ok' => true, 'reagiu' => $reagiu, 'emoji' => $emoji_ativo, 'reacoes' => get_story_reacoes($story_id)];
+}
+
+function get_story_comentarios(int $story_id): array {
+    _migrar_story_interacoes();
+    $st = db()->prepare(
+        'SELECT c.*, u.username, u.nome, u.avatar
+         FROM story_comentarios c
+         JOIN utilizadores u ON u.id = c.utilizador_id
+         WHERE c.story_id = ?
+         ORDER BY c.criado_em ASC LIMIT 50'
+    );
+    $st->execute([$story_id]);
+    return $st->fetchAll();
+}
+
+function add_story_comentario(int $story_id, int $user_id, string $texto): array {
+    _migrar_story_interacoes();
+    $texto = trim($texto);
+    if (strlen($texto) < 1 || strlen($texto) > 500) return ['ok' => false, 'erro' => 'Texto inválido'];
+    $st = db()->prepare('SELECT id FROM stories WHERE id = ? AND expira_em > NOW()');
+    $st->execute([$story_id]);
+    if (!$st->fetch()) return ['ok' => false, 'erro' => 'Story não encontrado'];
+    db()->prepare('INSERT INTO story_comentarios (story_id, utilizador_id, texto) VALUES (?,?,?)')->execute([$story_id, $user_id, $texto]);
+    $id = (int)db()->lastInsertId();
+    $c = db()->prepare('SELECT c.*, u.username, u.nome, u.avatar FROM story_comentarios c JOIN utilizadores u ON u.id = c.utilizador_id WHERE c.id = ?');
+    $c->execute([$id]);
+    return ['ok' => true, 'comentario' => $c->fetch()];
 }
 
 // ---------- ATUALIZAÇÕES DE LOCAL ----------

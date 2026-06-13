@@ -40,7 +40,18 @@
       "Bash(git commit -m ' *)",
       "Bash(git push *)",
       "Bash(git add *)",
-      "Bash(git cherry-pick *)"
+      "Bash(git cherry-pick *)",
+      "Bash(ls pages/stories*)",
+      "Bash(ls pages/*api*)",
+      "Bash(php -l pages/explorar.php)",
+      "Bash(php -l pages/stories_api.php)",
+      "Bash(php -l includes/functions.php)",
+      "PowerShell(php -l \"c:\\\\wamp64\\\\www\\\\Segredo-Lusitano\\\\pages\\\\explorar.php\")",
+      "PowerShell(php -l \"c:\\\\wamp64\\\\www\\\\Segredo-Lusitano\\\\pages\\\\stories_api.php\")",
+      "PowerShell(php -l \"c:\\\\wamp64\\\\www\\\\Segredo-Lusitano\\\\includes\\\\functions.php\")",
+      "PowerShell(& \"C:\\\\wamp64\\\\bin\\\\php\\\\php8.2.28\\\\php.exe\" -l \"c:\\\\wamp64\\\\www\\\\Segredo-Lusitano\\\\pages\\\\explorar.php\")",
+      "PowerShell(& \"C:\\\\wamp64\\\\bin\\\\php\\\\php8.2.28\\\\php.exe\" -l \"c:\\\\wamp64\\\\www\\\\Segredo-Lusitano\\\\pages\\\\stories_api.php\")",
+      "PowerShell(& \"C:\\\\wamp64\\\\bin\\\\php\\\\php8.2.28\\\\php.exe\" -l \"c:\\\\wamp64\\\\www\\\\Segredo-Lusitano\\\\includes\\\\functions.php\")"
     ]
   }
 }

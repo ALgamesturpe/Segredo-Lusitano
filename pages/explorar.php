@@ -130,14 +130,22 @@ if ($tipo === 'utilizadores') {
 } elseif ($tipo === 'stories') {
     if (!$auth_user) { header('Location: ' . SITE_URL . '/pages/login.php'); exit; }
     _migrar_stories();
-    $stories    = get_stories($por_pagina, $offset);
-    $total      = count_stories();
-    $total_pag  = (int)ceil($total / $por_pagina);
-    $locais     = [];
-    $utilizadores = [];
-    $filtros    = [];
-    $categorias = [];
-    $regioes    = [];
+    _migrar_story_interacoes();
+    $stories       = get_stories(10, 0);
+    $total         = count_stories();
+    $total_pag     = (int)ceil($total / 10);
+    $story_bubbles = get_story_bubbles();
+    $locais        = [];
+    $utilizadores  = [];
+    $filtros       = [];
+    $categorias    = [];
+    $regioes       = [];
+    // Pre-load reactions for initial stories
+    foreach ($stories as &$s) {
+        $s['reacoes']      = get_story_reacoes((int)$s['id']);
+        $s['minha_reacao'] = get_minha_reacao_story((int)$s['id'], $auth_user['id']);
+    }
+    unset($s);
 }
 
 $qs = http_build_query(array_filter(array_diff_key($_GET, ['pagina' => ''])));
@@ -170,23 +178,69 @@ $extra_head = '<style>
   .card-user .user-stats { display:flex; justify-content:center; gap:1.5rem; margin-bottom:.85rem; font-size:.82rem; }
   .btn-seguir-user {
     border-radius:50px; padding:.3rem 1rem; font-size:.8rem; font-weight:600;
-    cursor:pointer; display:inline-flex; align-items:center; gap:.3rem;
-    transition:all .15s;
+    cursor:pointer; display:inline-flex; align-items:center; gap:.3rem; transition:all .15s;
   }
-  /* Stories */
+
+  /* ── Stories ── */
+  .stories-bubbles-wrap {
+    display:flex; gap:.75rem; overflow-x:auto; padding:.25rem .1rem 1rem;
+    scrollbar-width:none; margin-bottom:1.25rem;
+  }
+  .stories-bubbles-wrap::-webkit-scrollbar { display:none; }
+  .story-bubble {
+    display:flex; flex-direction:column; align-items:center; gap:.3rem;
+    background:none; border:none; cursor:pointer; flex-shrink:0; padding:0;
+  }
+  .story-bubble-avatar {
+    width:58px; height:58px; border-radius:50%; overflow:hidden;
+    display:flex; align-items:center; justify-content:center;
+    font-size:1.4rem; font-weight:700; color:#fff; background:var(--verde-escuro);
+  }
+  .story-bubble-avatar img { width:100%; height:100%; object-fit:cover; }
+  .story-bubble > span { font-size:.7rem; color:var(--texto-muted); max-width:62px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .story-bubble-novo { box-shadow:0 0 0 3px var(--dourado); }
+  .story-bubble-visto { box-shadow:0 0 0 3px var(--creme-escuro); }
+
   .story-card {
-    background:#fff;border:1.5px solid var(--creme-escuro);border-radius:var(--radius);
-    padding:1rem 1.25rem;margin-bottom:1rem;
+    background:#fff; border:1.5px solid var(--creme-escuro); border-radius:var(--radius);
+    padding:1rem 1.25rem; margin-bottom:1rem;
   }
-  .story-card-header { display:flex;align-items:center;gap:.65rem;margin-bottom:.65rem; }
+  .story-card-header { display:flex; align-items:center; gap:.65rem; margin-bottom:.65rem; }
   .story-avatar {
-    width:38px;height:38px;border-radius:50%;background:var(--verde-escuro);
-    color:var(--dourado);font-weight:700;font-size:1rem;flex-shrink:0;overflow:hidden;
-    display:flex;align-items:center;justify-content:center;
+    width:38px; height:38px; border-radius:50%; background:var(--verde-escuro);
+    color:var(--dourado); font-weight:700; font-size:1rem; flex-shrink:0; overflow:hidden;
+    display:flex; align-items:center; justify-content:center;
   }
-  .story-avatar img { width:100%;height:100%;object-fit:cover; }
-  .story-card img.story-foto { width:100%;max-height:400px;object-fit:cover;border-radius:var(--radius);margin:.65rem 0; }
-  .story-form { background:var(--creme);border:1.5px solid var(--creme-escuro);border-radius:var(--radius);padding:1.25rem;margin-bottom:1.5rem; }
+  .story-avatar img { width:100%; height:100%; object-fit:cover; }
+  .story-card img.story-foto { width:100%; max-height:420px; object-fit:cover; border-radius:var(--radius); margin:.65rem 0; }
+
+  .story-reacao-btn {
+    background:var(--creme); border:1.5px solid var(--creme-escuro); border-radius:50px;
+    padding:.2rem .55rem; font-size:.88rem; cursor:pointer; display:inline-flex;
+    align-items:center; gap:.25rem; transition:all .15s; color:var(--texto-muted);
+  }
+  .story-reacao-btn .reacao-count { font-size:.75rem; font-weight:600; }
+  .story-reacao-btn.ativo { border-color:var(--dourado); background:rgba(212,175,55,.12); color:var(--texto); }
+  .story-reacao-btn:hover { border-color:var(--verde); }
+
+  .story-comentario { display:flex; gap:.5rem; margin-bottom:.5rem; font-size:.82rem; }
+  .story-comentario .sc-avatar {
+    width:26px; height:26px; border-radius:50%; background:var(--verde-escuro);
+    color:var(--dourado); font-weight:700; font-size:.7rem; flex-shrink:0; overflow:hidden;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .story-comentario .sc-avatar img { width:100%; height:100%; object-fit:cover; }
+
+  /* Modal */
+  #story-modal { display:none; }
+  #story-modal.aberto { display:flex !important; }
+  #story-modal-inner { scrollbar-width:thin; }
+  .modal-story-content { padding:1.25rem; }
+  .modal-story-foto { width:100%; max-height:55vh; object-fit:cover; border-radius:var(--radius) var(--radius) 0 0; display:block; }
+  .modal-progress { display:flex; gap:3px; padding:.5rem .75rem 0; }
+  .modal-progress-bar { height:3px; flex:1; background:rgba(255,255,255,.25); border-radius:2px; }
+  .modal-progress-bar.done { background:var(--dourado); }
+  .modal-progress-bar.active { background:#fff; }
 </style>';
 
 include dirname(__DIR__) . '/includes/header.php';
@@ -439,19 +493,68 @@ include dirname(__DIR__) . '/includes/header.php';
 
     <?php elseif ($tipo === 'stories'): ?>
 
-      <!-- FORMULÁRIO PUBLICAR STORY -->
-      <?php if ($auth_user): ?>
-      <form method="POST" enctype="multipart/form-data" class="story-form">
+    <!-- ── BUBBLES ROW ─────────────────────────────────────── -->
+    <div class="stories-bubbles-wrap">
+      <!-- Bubble: publicar novo story -->
+      <button class="story-bubble story-bubble-add" onclick="abrirFormStory()" title="Publicar story">
+        <div class="story-bubble-avatar" style="background:var(--verde);border:2.5px dashed var(--dourado);">
+          <i class="fas fa-plus" style="color:var(--dourado);font-size:1.1rem;"></i>
+        </div>
+        <span>Novo</span>
+      </button>
+      <?php foreach ($story_bubbles as $b):
+        $e_novo = strtotime($b['ultimo_story']) > (time() - 86400);
+        $inicial = mb_strtoupper(mb_substr($b['username'], 0, 1));
+      ?>
+      <button class="story-bubble" onclick="abrirModalStories(<?= $b['id'] ?>)" title="<?= h($b['nome']) ?>">
+        <div class="story-bubble-avatar <?= $e_novo ? 'story-bubble-novo' : 'story-bubble-visto' ?>">
+          <?php if ($b['avatar']): ?>
+            <img src="<?= SITE_URL ?>/uploads/locais/<?= h($b['avatar']) ?>" alt="">
+          <?php else: ?>
+            <span><?= $inicial ?></span>
+          <?php endif; ?>
+        </div>
+        <span><?= h(mb_substr($b['username'], 0, 10)) ?></span>
+      </button>
+      <?php endforeach; ?>
+    </div>
+
+    <!-- ── MODAL VIEWER ────────────────────────────────────── -->
+    <div id="story-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.92);display:none;align-items:center;justify-content:center;">
+      <button onclick="fecharModal()" style="position:absolute;top:1rem;right:1rem;background:rgba(255,255,255,.15);border:none;color:#fff;width:40px;height:40px;border-radius:50%;font-size:1.2rem;cursor:pointer;z-index:2;"><i class="fas fa-times"></i></button>
+      <button id="modal-prev" onclick="modalNav(-1)" style="position:absolute;left:.75rem;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.15);border:none;color:#fff;width:40px;height:40px;border-radius:50%;font-size:1rem;cursor:pointer;z-index:2;display:none;"><i class="fas fa-chevron-left"></i></button>
+      <button id="modal-next" onclick="modalNav(1)"  style="position:absolute;right:.75rem;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.15);border:none;color:#fff;width:40px;height:40px;border-radius:50%;font-size:1rem;cursor:pointer;z-index:2;display:none;"><i class="fas fa-chevron-right"></i></button>
+      <div id="story-modal-inner" style="max-width:520px;width:100%;max-height:90vh;overflow-y:auto;border-radius:var(--radius);background:#1a1a1a;position:relative;">
+        <!-- preenchido via JS -->
+      </div>
+    </div>
+
+    <!-- ── FORM PUBLICAR (painel deslizante) ───────────────── -->
+    <div id="story-form-panel" style="display:none;background:var(--creme);border:1.5px solid var(--creme-escuro);border-radius:var(--radius);padding:1.25rem;margin-bottom:1.5rem;">
+      <form method="POST" enctype="multipart/form-data" id="story-form-el">
         <input type="hidden" name="add_story" value="1">
-        <h3 style="font-size:.9rem;margin:0 0 .75rem;color:var(--verde-escuro);font-weight:600;">
-          <i class="fas fa-pen"></i> Publicar Story
-          <span style="font-weight:400;color:var(--texto-muted);font-size:.78rem;">&nbsp;&middot; visivel 7 dias</span>
-        </h3>
-        <textarea name="story_texto" id="story-texto" maxlength="500" data-maxlength="500" rows="3"
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem;">
+          <h3 style="font-size:.9rem;margin:0;color:var(--verde-escuro);font-weight:600;">
+            <i class="fas fa-pen"></i> Publicar Story
+            <span style="font-weight:400;color:var(--texto-muted);font-size:.78rem;">&nbsp;&middot; visível 7 dias</span>
+          </h3>
+          <button type="button" onclick="fecharFormStory()" style="background:none;border:none;color:var(--texto-muted);font-size:1rem;cursor:pointer;"><i class="fas fa-times"></i></button>
+        </div>
+        <textarea name="story_texto" id="story-texto" maxlength="500" rows="3"
                   placeholder="Partilha um momento, uma descoberta, uma dica..."
                   style="width:100%;border:1.5px solid var(--creme-escuro);border-radius:var(--radius);padding:.6rem .85rem;font-size:.9rem;resize:vertical;box-sizing:border-box;background:#fff;"></textarea>
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:.5rem;gap:.75rem;flex-wrap:wrap;">
-          <span style="font-size:.75rem;color:var(--texto-muted);" data-counter-for="story-texto">0/500</span>
+
+        <!-- Autocomplete de local -->
+        <div style="position:relative;margin-top:.5rem;">
+          <input type="text" id="story-local-search" placeholder="Associar local (opcional)..."
+                 autocomplete="off"
+                 style="width:100%;border:1.5px solid var(--creme-escuro);border-radius:var(--radius);padding:.5rem .85rem;font-size:.85rem;box-sizing:border-box;background:#fff;">
+          <input type="hidden" name="story_local_id" id="story-local-id">
+          <div id="story-local-dropdown" style="display:none;position:absolute;left:0;right:0;background:#fff;border:1.5px solid var(--creme-escuro);border-top:none;border-radius:0 0 var(--radius) var(--radius);z-index:100;max-height:180px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,.1);"></div>
+        </div>
+
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:.65rem;gap:.75rem;flex-wrap:wrap;">
+          <span style="font-size:.75rem;color:var(--texto-muted);" id="story-counter">0/500</span>
           <div style="display:flex;align-items:center;gap:.5rem;">
             <label style="cursor:pointer;display:inline-flex;align-items:center;gap:.35rem;font-size:.82rem;color:var(--verde);font-weight:600;padding:.3rem .65rem;border:1.5px solid var(--verde);border-radius:var(--radius);">
               <i class="fas fa-image"></i> Foto
@@ -462,29 +565,21 @@ include dirname(__DIR__) . '/includes/header.php';
         </div>
         <div id="story-foto-preview" style="display:none;margin-top:.6rem;position:relative;">
           <img id="story-foto-img" src="" alt="" style="max-height:200px;border-radius:var(--radius);border:1.5px solid var(--creme-escuro);">
-          <button type="button" onclick="removerStoryFoto()" style="position:absolute;top:4px;left:4px;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:50%;width:22px;height:22px;font-size:.75rem;cursor:pointer;display:flex;align-items:center;justify-content:center;">
-            <i class="fas fa-times"></i>
-          </button>
+          <button type="button" onclick="removerStoryFoto()" style="position:absolute;top:4px;left:4px;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:50%;width:22px;height:22px;font-size:.75rem;cursor:pointer;display:flex;align-items:center;justify-content:center;"><i class="fas fa-times"></i></button>
         </div>
       </form>
-      <?php else: ?>
-      <div style="background:var(--creme);border:1.5px solid var(--creme-escuro);border-radius:var(--radius);padding:1.25rem;margin-bottom:1.5rem;text-align:center;">
-        <p style="margin:0;font-size:.9rem;color:var(--texto-muted);">
-          <a href="<?= SITE_URL ?>/pages/login.php" style="color:var(--verde);font-weight:600;">Inicia sessao</a> para publicar um story.
-        </p>
-      </div>
-      <?php endif; ?>
+    </div>
 
-      <!-- FEED DE STORIES -->
+    <!-- ── FEED DE STORIES ─────────────────────────────────── -->
+    <div id="stories-feed" style="max-width:680px;">
       <?php if (!empty($stories)): ?>
-      <div style="max-width:680px;">
         <?php foreach ($stories as $s): ?>
-        <div class="story-card">
+        <div class="story-card" id="story-<?= $s['id'] ?>" data-id="<?= $s['id'] ?>">
           <div class="story-card-header">
-            <a href="<?= SITE_URL ?>/pages/perfil.php?id=<?= $s['utilizador_id'] ?>" style="text-decoration:none;display:contents;">
+            <a href="<?= SITE_URL ?>/pages/perfil.php?id=<?= $s['utilizador_id'] ?>" style="text-decoration:none;">
               <div class="story-avatar">
                 <?php if ($s['autor_avatar']): ?>
-                  <img src="<?= SITE_URL ?>/uploads/locais/<?= h($s['autor_avatar']) ?>" alt="">
+                  <img src="<?= SITE_URL ?>/uploads/locais/<?= h($s['autor_avatar']) ?>" alt="" loading="lazy">
                 <?php else: ?>
                   <?= mb_strtoupper(mb_substr($s['username'], 0, 1)) ?>
                 <?php endif; ?>
@@ -494,33 +589,84 @@ include dirname(__DIR__) . '/includes/header.php';
               <a href="<?= SITE_URL ?>/pages/perfil.php?id=<?= $s['utilizador_id'] ?>" style="font-weight:700;font-size:.9rem;color:var(--texto);text-decoration:none;"><?= h($s['autor_nome']) ?></a>
               <div style="font-size:.75rem;color:var(--texto-muted);">@<?= h($s['username']) ?> &middot; <?= tempo_atras($s['criado_em']) ?></div>
             </div>
-            <?php if ($auth_user && ((int)$auth_user['id'] === (int)$s['utilizador_id'] || is_admin())): ?>
-            <a href="?tipo=stories&apagar_story=<?= $s['id'] ?>"
-               onclick="return confirm('Remover este story?')"
-               style="color:var(--texto-muted);font-size:.8rem;padding:.2rem .4rem;text-decoration:none;" title="Remover">
-              <i class="fas fa-trash"></i>
-            </a>
-            <?php endif; ?>
+            <div style="display:flex;align-items:center;gap:.5rem;">
+              <!-- Partilhar -->
+              <button onclick="copiarLinkStory(<?= $s['id'] ?>)"
+                      style="background:none;border:none;color:var(--texto-muted);font-size:.8rem;padding:.2rem .4rem;cursor:pointer;" title="Copiar link">
+                <i class="fas fa-share-nodes"></i>
+              </button>
+              <!-- Apagar (próprio ou admin) -->
+              <?php if ($auth_user && ((int)$auth_user['id'] === (int)$s['utilizador_id'] || is_admin())): ?>
+              <a href="?tipo=stories&apagar_story=<?= $s['id'] ?>"
+                 onclick="return confirm('Remover este story?')"
+                 style="color:var(--texto-muted);font-size:.8rem;padding:.2rem .4rem;text-decoration:none;" title="Remover">
+                <i class="fas fa-trash"></i>
+              </a>
+              <?php endif; ?>
+            </div>
           </div>
+
           <?php if ($s['foto']): ?>
-            <img src="<?= SITE_URL ?>/uploads/stories/<?= h($s['foto']) ?>" alt="" class="story-foto">
+            <img src="<?= SITE_URL ?>/uploads/stories/<?= h($s['foto']) ?>" alt="" class="story-foto" loading="lazy"
+                 onclick="abrirModalStoriesPorId(<?= $s['id'] ?>, <?= $s['utilizador_id'] ?>)" style="cursor:pointer;">
           <?php endif; ?>
+
           <?php if (trim($s['texto'])): ?>
             <p style="margin:0;font-size:.92rem;line-height:1.7;color:var(--texto);word-break:break-word;"><?= nl2br(h($s['texto'])) ?></p>
           <?php endif; ?>
+
           <?php if ($s['local_nome']): ?>
-            <div style="margin-top:.5rem;font-size:.78rem;color:var(--verde);"><i class="fas fa-map-marker-alt"></i> <?= h($s['local_nome']) ?></div>
+            <div style="margin-top:.4rem;font-size:.78rem;color:var(--verde);"><i class="fas fa-map-marker-alt"></i> <?= h($s['local_nome']) ?></div>
           <?php endif; ?>
+
+          <!-- Barra de reações -->
+          <div class="story-reacoes-bar" style="display:flex;align-items:center;gap:.35rem;margin-top:.65rem;flex-wrap:wrap;">
+            <?php foreach (['❤️','👍','😮','🔥'] as $emoji): ?>
+            <button class="story-reacao-btn <?= $s['minha_reacao'] === $emoji ? 'ativo' : '' ?>"
+                    data-story="<?= $s['id'] ?>" data-emoji="<?= h($emoji) ?>"
+                    onclick="reagir(this)">
+              <?= $emoji ?>
+              <span class="reacao-count">
+                <?= array_sum(array_column(array_filter($s['reacoes'], fn($r) => $r['emoji'] === $emoji), 'total')) ?: '' ?>
+              </span>
+            </button>
+            <?php endforeach; ?>
+            <!-- Comentários toggle -->
+            <button class="story-comentarios-toggle" data-story="<?= $s['id'] ?>"
+                    onclick="toggleComentarios(this)"
+                    style="margin-left:auto;background:none;border:none;color:var(--texto-muted);font-size:.8rem;cursor:pointer;display:flex;align-items:center;gap:.3rem;">
+              <i class="fas fa-comment"></i>
+              <span class="coment-count"><?= (int)$s['total_comentarios_count'] ?></span>
+            </button>
+          </div>
+
+          <!-- Secção de comentários (colapsável) -->
+          <div class="story-comentarios-section" data-story="<?= $s['id'] ?>" style="display:none;margin-top:.65rem;border-top:1px solid var(--creme-escuro);padding-top:.65rem;">
+            <div class="story-comentarios-lista"></div>
+            <form class="story-comment-form" data-story="<?= $s['id'] ?>" onsubmit="enviarComentario(event,this)" style="display:flex;gap:.4rem;margin-top:.5rem;">
+              <input type="text" name="texto" placeholder="Adiciona um comentário..."
+                     style="flex:1;border:1.5px solid var(--creme-escuro);border-radius:50px;padding:.35rem .75rem;font-size:.82rem;background:#fff;" maxlength="500">
+              <button type="submit" style="background:var(--verde);color:#fff;border:none;border-radius:50px;padding:.35rem .85rem;font-size:.82rem;cursor:pointer;"><i class="fas fa-paper-plane"></i></button>
+            </form>
+          </div>
         </div>
         <?php endforeach; ?>
-      </div>
       <?php else: ?>
-      <div class="empty-state">
-        <i class="fas fa-camera" style="font-size:2.5rem;opacity:.3;"></i>
-        <h3 style="margin-top:.75rem;">Ainda sem stories</h3>
-        <p style="font-size:.9rem;">Sê o primeiro a partilhar um momento.</p>
-      </div>
+        <div class="empty-state" id="stories-empty">
+          <i class="fas fa-camera" style="font-size:2.5rem;opacity:.3;"></i>
+          <h3 style="margin-top:.75rem;">Ainda sem stories</h3>
+          <p style="font-size:.9rem;">Sê o primeiro a partilhar um momento.</p>
+        </div>
       <?php endif; ?>
+    </div>
+
+    <!-- Sentinel para infinite scroll -->
+    <div id="stories-sentinel" style="height:1px;"></div>
+    <?php if ($total > 10): ?>
+    <div id="stories-loading" style="text-align:center;padding:1rem;color:var(--texto-muted);font-size:.85rem;display:none;">
+      <i class="fas fa-spinner fa-spin"></i> A carregar mais...
+    </div>
+    <?php endif; ?>
 
     <?php endif; /* fim tabs */ ?>
 
@@ -596,6 +742,22 @@ function filtrarPertoDeMim() {
 
 <?php if ($tipo === 'stories'): ?>
 <script>
+const STORIES_TOTAL = <?= $total ?>;
+const USER_LOGADO   = <?= $auth_user ? 'true' : 'false' ?>;
+let storiesOffset   = <?= count($stories) ?>;
+let storiesLoading  = false;
+let modalStories    = [];
+let modalIdx        = 0;
+
+// ── Formulário ──────────────────────────────────────────────
+function abrirFormStory() {
+  const p = document.getElementById('story-form-panel');
+  p.style.display = p.style.display === 'none' ? 'block' : 'none';
+  if (p.style.display === 'block') document.getElementById('story-texto').focus();
+}
+function fecharFormStory() { document.getElementById('story-form-panel').style.display = 'none'; }
+
+// Preview foto
 function previewStoryFoto(input) {
   if (!input.files || !input.files[0]) return;
   const reader = new FileReader();
@@ -610,6 +772,331 @@ function removerStoryFoto() {
   document.getElementById('story-foto-preview').style.display = 'none';
   document.getElementById('story-foto-img').src = '';
 }
+
+// Contador de caracteres
+document.getElementById('story-texto')?.addEventListener('input', function() {
+  document.getElementById('story-counter').textContent = this.value.length + '/500';
+});
+
+// ── Autocomplete de local ────────────────────────────────────
+(function() {
+  const input    = document.getElementById('story-local-search');
+  const hiddenId = document.getElementById('story-local-id');
+  const dropdown = document.getElementById('story-local-dropdown');
+  if (!input) return;
+  let timer;
+  input.addEventListener('input', function() {
+    clearTimeout(timer);
+    hiddenId.value = '';
+    const q = this.value.trim();
+    if (q.length < 2) { dropdown.style.display = 'none'; return; }
+    timer = setTimeout(async () => {
+      const r = await fetch(`${SITE_URL}/pages/stories_api.php?acao=pesquisa_locais&q=` + encodeURIComponent(q));
+      const d = await r.json();
+      dropdown.innerHTML = '';
+      if (!d.locais.length) { dropdown.style.display = 'none'; return; }
+      d.locais.forEach(l => {
+        const div = document.createElement('div');
+        div.textContent = l.nome;
+        div.style.cssText = 'padding:.5rem .85rem;cursor:pointer;font-size:.85rem;border-bottom:1px solid var(--creme-escuro);';
+        div.onmouseenter = () => div.style.background = 'var(--creme)';
+        div.onmouseleave = () => div.style.background = '';
+        div.onclick = () => {
+          input.value = l.nome;
+          hiddenId.value = l.id;
+          dropdown.style.display = 'none';
+        };
+        dropdown.appendChild(div);
+      });
+      dropdown.style.display = 'block';
+    }, 300);
+  });
+  document.addEventListener('click', e => { if (!input.contains(e.target)) dropdown.style.display = 'none'; });
+})();
+
+// ── Modal viewer ─────────────────────────────────────────────
+async function abrirModalStories(userId) {
+  const modal = document.getElementById('story-modal');
+  modal.classList.add('aberto');
+  document.getElementById('story-modal-inner').innerHTML = '<div style="padding:2rem;text-align:center;color:#fff;"><i class="fas fa-spinner fa-spin"></i></div>';
+  document.body.style.overflow = 'hidden';
+  const r = await fetch(`${SITE_URL}/pages/stories_api.php?acao=stories_user&user_id=${userId}`);
+  const d = await r.json();
+  if (!d.ok || !d.stories.length) { fecharModal(); return; }
+  modalStories = d.stories;
+  modalIdx = 0;
+  renderModalStory();
+}
+
+async function abrirModalStoriesPorId(storyId, userId) {
+  await abrirModalStories(userId);
+  // Navegar para o story específico
+  const idx = modalStories.findIndex(s => s.id == storyId);
+  if (idx >= 0) { modalIdx = idx; renderModalStory(); }
+}
+
+function renderModalStory() {
+  const s = modalStories[modalIdx];
+  const inner = document.getElementById('story-modal-inner');
+  const prevBtn = document.getElementById('modal-prev');
+  const nextBtn = document.getElementById('modal-next');
+  prevBtn.style.display = modalIdx > 0 ? '' : 'none';
+  nextBtn.style.display = modalIdx < modalStories.length - 1 ? '' : 'none';
+
+  // Progress bars
+  const bars = modalStories.map((_, i) =>
+    `<div class="modal-progress-bar ${i < modalIdx ? 'done' : i === modalIdx ? 'active' : ''}"></div>`
+  ).join('');
+
+  const foto = s.foto
+    ? `<img src="${SITE_URL}/uploads/stories/${s.foto}" alt="" class="modal-story-foto" loading="lazy">`
+    : '';
+
+  const reacoesBtns = ['❤️','👍','😮','🔥'].map(e => {
+    const count = (s.reacoes || []).filter(r => r.emoji === e).reduce((a, r) => a + parseInt(r.total), 0);
+    const ativo = s.minha_reacao === e ? 'ativo' : '';
+    return `<button class="story-reacao-btn ${ativo}" data-story="${s.id}" data-emoji="${e}" onclick="reagir(this)" style="border-color:#444;background:#222;color:#ddd;">${e}<span class="reacao-count">${count || ''}</span></button>`;
+  }).join('');
+
+  inner.innerHTML = `
+    <div class="modal-progress">${bars}</div>
+    ${foto}
+    <div class="modal-story-content">
+      <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.75rem;">
+        <a href="${SITE_URL}/pages/perfil.php?id=${s.utilizador_id}" style="text-decoration:none;display:flex;align-items:center;gap:.6rem;flex:1;">
+          <div class="story-avatar" style="background:var(--verde-escuro);">
+            ${s.autor_avatar ? `<img src="${SITE_URL}/uploads/locais/${s.autor_avatar}" alt="">` : s.username.charAt(0).toUpperCase()}
+          </div>
+          <div>
+            <div style="font-weight:700;font-size:.9rem;color:#fff;">${escHtml(s.autor_nome)}</div>
+            <div style="font-size:.72rem;color:#aaa;">@${escHtml(s.username)}</div>
+          </div>
+        </a>
+        <button onclick="copiarLinkStory(${s.id})" style="background:none;border:none;color:#aaa;font-size:.85rem;cursor:pointer;" title="Copiar link"><i class="fas fa-share-nodes"></i></button>
+      </div>
+      ${s.texto ? `<p style="margin:0 0 .75rem;font-size:.92rem;line-height:1.7;color:#e0e0e0;word-break:break-word;">${escHtml(s.texto).replace(/\n/g,'<br>')}</p>` : ''}
+      ${s.local_nome ? `<div style="font-size:.78rem;color:var(--dourado);margin-bottom:.75rem;"><i class="fas fa-map-marker-alt"></i> ${escHtml(s.local_nome)}</div>` : ''}
+      <div style="display:flex;gap:.35rem;flex-wrap:wrap;">${reacoesBtns}</div>
+    </div>`;
+}
+
+function modalNav(dir) {
+  modalIdx = Math.max(0, Math.min(modalStories.length - 1, modalIdx + dir));
+  renderModalStory();
+}
+
+function fecharModal() {
+  document.getElementById('story-modal').classList.remove('aberto');
+  document.body.style.overflow = '';
+  modalStories = [];
+}
+
+// Fechar ao clicar fora do conteúdo
+document.getElementById('story-modal').addEventListener('click', function(e) {
+  if (e.target === this) fecharModal();
+});
+
+// Teclas ← → Esc
+document.addEventListener('keydown', e => {
+  if (!document.getElementById('story-modal').classList.contains('aberto')) return;
+  if (e.key === 'ArrowLeft')  modalNav(-1);
+  if (e.key === 'ArrowRight') modalNav(1);
+  if (e.key === 'Escape')     fecharModal();
+});
+
+// ── Reações ──────────────────────────────────────────────────
+async function reagir(btn) {
+  if (!USER_LOGADO) { mostrarAvisoLogin('Inicia sessão para reagir.', `${SITE_URL}/pages/login.php`); return; }
+  const storyId = btn.dataset.story;
+  const emoji   = btn.dataset.emoji;
+  const form    = new FormData();
+  form.append('story_id', storyId);
+  form.append('emoji', emoji);
+  const r = await fetch(`${SITE_URL}/pages/stories_api.php?acao=reagir`, {
+    method: 'POST',
+    headers: { 'X-CSRF-Token': CSRF_TOKEN },
+    body: form
+  });
+  const d = await r.json();
+  if (!d.ok) return;
+
+  // Atualizar todos os botões deste story (feed + modal)
+  document.querySelectorAll(`.story-reacao-btn[data-story="${storyId}"]`).forEach(b => {
+    b.classList.remove('ativo');
+    const cnt = (d.reacoes || []).find(re => re.emoji === b.dataset.emoji);
+    b.querySelector('.reacao-count').textContent = cnt ? cnt.total : '';
+    if (d.reagiu && d.emoji === b.dataset.emoji) b.classList.add('ativo');
+  });
+  // Actualizar no array do modal
+  const ms = modalStories.find(s => s.id == storyId);
+  if (ms) { ms.reacoes = d.reacoes; ms.minha_reacao = d.emoji; }
+}
+
+// ── Comentários ──────────────────────────────────────────────
+async function toggleComentarios(btn) {
+  const storyId = btn.dataset.story;
+  const section = document.querySelector(`.story-comentarios-section[data-story="${storyId}"]`);
+  if (section.style.display === 'none') {
+    section.style.display = 'block';
+    if (!section.dataset.loaded) {
+      section.dataset.loaded = '1';
+      await carregarComentarios(storyId, section.querySelector('.story-comentarios-lista'));
+    }
+  } else {
+    section.style.display = 'none';
+  }
+}
+
+async function carregarComentarios(storyId, lista) {
+  lista.innerHTML = '<div style="color:var(--texto-muted);font-size:.8rem;"><i class="fas fa-spinner fa-spin"></i></div>';
+  const r = await fetch(`${SITE_URL}/pages/stories_api.php?acao=comentarios&story_id=${storyId}`);
+  const d = await r.json();
+  lista.innerHTML = '';
+  if (!d.comentarios.length) {
+    lista.innerHTML = '<div style="font-size:.8rem;color:var(--texto-muted);margin-bottom:.5rem;">Sem comentários ainda.</div>';
+    return;
+  }
+  d.comentarios.forEach(c => lista.appendChild(renderComentario(c)));
+}
+
+function renderComentario(c) {
+  const div = document.createElement('div');
+  div.className = 'story-comentario';
+  const inicial = c.username ? c.username.charAt(0).toUpperCase() : '?';
+  div.innerHTML = `
+    <div class="sc-avatar">${c.avatar ? `<img src="${SITE_URL}/uploads/locais/${escHtml(c.avatar)}" alt="">` : inicial}</div>
+    <div style="flex:1;min-width:0;">
+      <a href="${SITE_URL}/pages/perfil.php?id=${c.utilizador_id}" style="font-weight:600;color:var(--verde);text-decoration:none;">${escHtml(c.username)}</a>
+      <span style="color:var(--texto);word-break:break-word;"> ${escHtml(c.texto)}</span>
+      <div style="font-size:.7rem;color:var(--texto-muted);margin-top:.1rem;">${escHtml(c.criado_em?.slice(0,16).replace('T',' ') || '')}</div>
+    </div>`;
+  return div;
+}
+
+async function enviarComentario(e, form) {
+  e.preventDefault();
+  if (!USER_LOGADO) { mostrarAvisoLogin('Inicia sessão para comentar.', `${SITE_URL}/pages/login.php`); return; }
+  const storyId = form.dataset.story;
+  const input   = form.querySelector('input[name="texto"]');
+  const texto   = input.value.trim();
+  if (!texto) return;
+  const fd = new FormData(form);
+  fd.append('story_id', storyId);
+  const r = await fetch(`${SITE_URL}/pages/stories_api.php?acao=comentar`, {
+    method: 'POST',
+    headers: { 'X-CSRF-Token': CSRF_TOKEN },
+    body: fd
+  });
+  const d = await r.json();
+  if (!d.ok) return;
+  input.value = '';
+  const lista = form.previousElementSibling;
+  const placeholder = lista.querySelector('div');
+  if (placeholder && placeholder.textContent.includes('Sem comentários')) placeholder.remove();
+  lista.appendChild(renderComentario(d.comentario));
+  // Atualizar contagem
+  const badge = document.querySelector(`.story-comentarios-toggle[data-story="${storyId}"] .coment-count`);
+  if (badge) badge.textContent = parseInt(badge.textContent || 0) + 1;
+}
+
+// ── Partilhar link ───────────────────────────────────────────
+function copiarLinkStory(storyId) {
+  const url = `${SITE_URL}/pages/explorar.php?tipo=stories#story-${storyId}`;
+  navigator.clipboard.writeText(url).then(() => {
+    // Mini toast
+    const t = document.createElement('div');
+    t.textContent = 'Link copiado!';
+    t.style.cssText = 'position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:var(--verde);color:#fff;padding:.5rem 1.25rem;border-radius:50px;font-size:.85rem;z-index:99999;pointer-events:none;';
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 2000);
+  });
+}
+
+// ── Infinite scroll ──────────────────────────────────────────
+if (STORIES_TOTAL > storiesOffset) {
+  const sentinel = document.getElementById('stories-sentinel');
+  const loading  = document.getElementById('stories-loading');
+  const feed     = document.getElementById('stories-feed');
+
+  const obs = new IntersectionObserver(async entries => {
+    if (!entries[0].isIntersecting || storiesLoading) return;
+    if (storiesOffset >= STORIES_TOTAL) { obs.disconnect(); return; }
+    storiesLoading = true;
+    if (loading) loading.style.display = 'block';
+
+    const r = await fetch(`${SITE_URL}/pages/stories_api.php?acao=mais&offset=${storiesOffset}`);
+    const d = await r.json();
+    if (loading) loading.style.display = 'none';
+    storiesLoading = false;
+    if (!d.ok) return;
+
+    d.stories.forEach(s => feed.appendChild(buildStoryCard(s)));
+    storiesOffset += d.stories.length;
+    if (storiesOffset >= d.total) obs.disconnect();
+  }, { rootMargin: '300px' });
+
+  obs.observe(sentinel);
+}
+
+function buildStoryCard(s) {
+  const wrap = document.createElement('div');
+  wrap.className = 'story-card';
+  wrap.dataset.id = s.id;
+
+  const isOwner = USER_LOGADO && <?= $auth_user ? 'window.__MY_ID === s.utilizador_id' : 'false' ?>;
+
+  const foto = s.foto
+    ? `<img src="${SITE_URL}/uploads/stories/${escHtml(s.foto)}" alt="" class="story-foto" loading="lazy" onclick="abrirModalStoriesPorId(${s.id},${s.utilizador_id})" style="cursor:pointer;">`
+    : '';
+
+  const reacoesBtns = ['❤️','👍','😮','🔥'].map(e => {
+    const cnt = (s.reacoes||[]).find(r=>r.emoji===e);
+    const ativo = s.minha_reacao === e ? 'ativo' : '';
+    return `<button class="story-reacao-btn ${ativo}" data-story="${s.id}" data-emoji="${e}" onclick="reagir(this)">${e}<span class="reacao-count">${cnt?cnt.total:''}</span></button>`;
+  }).join('');
+
+  wrap.innerHTML = `
+    <div class="story-card-header">
+      <a href="${SITE_URL}/pages/perfil.php?id=${s.utilizador_id}" style="text-decoration:none;">
+        <div class="story-avatar">
+          ${s.autor_avatar ? `<img src="${SITE_URL}/uploads/locais/${escHtml(s.autor_avatar)}" alt="" loading="lazy">` : escHtml(s.username.charAt(0).toUpperCase())}
+        </div>
+      </a>
+      <div style="flex:1;min-width:0;">
+        <a href="${SITE_URL}/pages/perfil.php?id=${s.utilizador_id}" style="font-weight:700;font-size:.9rem;color:var(--texto);text-decoration:none;">${escHtml(s.autor_nome)}</a>
+        <div style="font-size:.75rem;color:var(--texto-muted);">@${escHtml(s.username)}</div>
+      </div>
+      <button onclick="copiarLinkStory(${s.id})" style="background:none;border:none;color:var(--texto-muted);font-size:.8rem;padding:.2rem .4rem;cursor:pointer;" title="Copiar link"><i class="fas fa-share-nodes"></i></button>
+    </div>
+    ${foto}
+    ${s.texto ? `<p style="margin:0;font-size:.92rem;line-height:1.7;color:var(--texto);word-break:break-word;">${escHtml(s.texto).replace(/\n/g,'<br>')}</p>` : ''}
+    ${s.local_nome ? `<div style="margin-top:.4rem;font-size:.78rem;color:var(--verde);"><i class="fas fa-map-marker-alt"></i> ${escHtml(s.local_nome)}</div>` : ''}
+    <div class="story-reacoes-bar" style="display:flex;align-items:center;gap:.35rem;margin-top:.65rem;flex-wrap:wrap;">
+      ${reacoesBtns}
+      <button class="story-comentarios-toggle" data-story="${s.id}" onclick="toggleComentarios(this)"
+              style="margin-left:auto;background:none;border:none;color:var(--texto-muted);font-size:.8rem;cursor:pointer;display:flex;align-items:center;gap:.3rem;">
+        <i class="fas fa-comment"></i><span class="coment-count">${s.total_comentarios_count||0}</span>
+      </button>
+    </div>
+    <div class="story-comentarios-section" data-story="${s.id}" style="display:none;margin-top:.65rem;border-top:1px solid var(--creme-escuro);padding-top:.65rem;">
+      <div class="story-comentarios-lista"></div>
+      <form class="story-comment-form" data-story="${s.id}" onsubmit="enviarComentario(event,this)" style="display:flex;gap:.4rem;margin-top:.5rem;">
+        <input type="text" name="texto" placeholder="Adiciona um comentário..." maxlength="500"
+               style="flex:1;border:1.5px solid var(--creme-escuro);border-radius:50px;padding:.35rem .75rem;font-size:.82rem;background:#fff;">
+        <button type="submit" style="background:var(--verde);color:#fff;border:none;border-radius:50px;padding:.35rem .85rem;font-size:.82rem;cursor:pointer;"><i class="fas fa-paper-plane"></i></button>
+      </form>
+    </div>`;
+  return wrap;
+}
+
+// Util
+function escHtml(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+<?php if ($auth_user): ?>
+window.__MY_ID = <?= (int)$auth_user['id'] ?>;
+<?php endif; ?>
 </script>
 <?php endif; ?>
 
