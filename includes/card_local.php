@@ -40,18 +40,18 @@ $dif_label = [
     'dificil' => 'Difícil',
 ][$local_dif] ?? 'Médio';
 
-// Seguidos carregados uma única vez por request (evita N+1 queries)
 $_card_user = auth_user();
-$_card_e_proprio = $_card_user && $_card_user['id'] == $local_utilizador_id;
-if (!isset($GLOBALS['_card_seguindo_ids'])) {
-    $GLOBALS['_card_seguindo_ids'] = [];
+// Guardados carregados uma única vez por request (evita N+1 queries)
+if (!isset($GLOBALS['_card_guardados_ids'])) {
+    $GLOBALS['_card_guardados_ids'] = [];
     if ($_card_user) {
-        $__st2 = db()->prepare('SELECT seguido_id FROM seguidores WHERE seguidor_id = ?');
-        $__st2->execute([$_card_user['id']]);
-        $GLOBALS['_card_seguindo_ids'] = array_column($__st2->fetchAll(), 'seguido_id');
+        _migrar_favoritos();
+        $__stF = db()->prepare('SELECT local_id FROM favoritos WHERE utilizador_id = ?');
+        $__stF->execute([$_card_user['id']]);
+        $GLOBALS['_card_guardados_ids'] = array_column($__stF->fetchAll(), 'local_id');
     }
 }
-$_card_segue = in_array($local_utilizador_id, $GLOBALS['_card_seguindo_ids']);
+$_card_guardou = in_array($local_id, $GLOBALS['_card_guardados_ids']);
 ?>
 <div class="card">
   <a href="<?= SITE_URL ?>/pages/local.php?id=<?= $local_id ?>" class="card-img" style="display:block;">
@@ -82,7 +82,21 @@ $_card_segue = in_array($local_utilizador_id, $GLOBALS['_card_seguindo_ids']);
       <div class="card-meta-stats">
         <span><i class="fas fa-heart"></i> <?= $local_total_likes ?></span>
         <span><i class="fas fa-comment"></i> <?= $local_total_comentarios ?></span>
-        <span><i class="fas fa-bookmark"></i> <?= $local_total_guardados ?></span>
+        <?php if ($_card_user): ?>
+          <button class="btn-guardar-card"
+                  data-id="<?= $local_id ?>"
+                  data-guardou="<?= $_card_guardou ? '1' : '0' ?>"
+                  onclick="toggleGuardar(this)"
+                  title="<?= $_card_guardou ? 'Remover dos guardados' : 'Guardar local' ?>"
+                  style="background:none;border:none;cursor:pointer;padding:0;display:inline-flex;align-items:center;gap:.25rem;color:<?= $_card_guardou ? 'var(--dourado)' : 'var(--texto-muted)' ?>;font-size:.82rem;">
+            <i class="<?= $_card_guardou ? 'fas' : 'far' ?> fa-bookmark"></i>
+            <span class="guardados-count"><?= $local_total_guardados ?></span>
+          </button>
+        <?php else: ?>
+          <span style="color:var(--texto-muted);font-size:.82rem;">
+            <i class="far fa-bookmark"></i> <?= $local_total_guardados ?>
+          </span>
+        <?php endif; ?>
       </div>
     </div>
   </div>

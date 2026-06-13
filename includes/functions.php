@@ -583,6 +583,29 @@ function _migrar_favoritos(): void {
     ');
 }
 
+function toggle_favorito(int $local_id, int $user_id): array {
+    _migrar_favoritos();
+    $st = db()->prepare('SELECT id FROM favoritos WHERE local_id=? AND utilizador_id=?');
+    $st->execute([$local_id, $user_id]);
+    if ($st->fetch()) {
+        db()->prepare('DELETE FROM favoritos WHERE local_id=? AND utilizador_id=?')->execute([$local_id, $user_id]);
+        $guardado = false;
+    } else {
+        db()->prepare('INSERT INTO favoritos (local_id,utilizador_id) VALUES (?,?)')->execute([$local_id, $user_id]);
+        $guardado = true;
+    }
+    $st2 = db()->prepare('SELECT COUNT(*) FROM favoritos WHERE local_id=?');
+    $st2->execute([$local_id]);
+    return ['guardado' => $guardado, 'total' => (int)$st2->fetchColumn()];
+}
+
+function user_guardou(int $local_id, int $user_id): bool {
+    _migrar_favoritos();
+    $st = db()->prepare('SELECT id FROM favoritos WHERE local_id=? AND utilizador_id=?');
+    $st->execute([$local_id, $user_id]);
+    return (bool)$st->fetch();
+}
+
 // ---------- UTILITÁRIOS DE DATA ----------
 function tempo_atras(string $data): string {
     $diff = time() - strtotime($data);

@@ -93,6 +93,29 @@ function fecharAvisoLogin() {
   });
 })();
 </script>
+<!-- Script botão guardar nos cards -->
+<script>
+function toggleGuardar(btn) {
+  const localId = btn.dataset.id;
+  fetch(`${SITE_URL}/pages/guardar.php`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRF-Token': CSRF_TOKEN },
+    body: `local_id=${localId}`
+  }).then(r => {
+    if (r.status === 401) { mostrarAvisoLogin('Inicia sessão para guardar locais.', `${SITE_URL}/pages/login.php`); return null; }
+    return r.json();
+  }).then(data => {
+    if (!data) return;
+    const guardou = data.guardado;
+    btn.dataset.guardou = guardou ? '1' : '0';
+    btn.title = guardou ? 'Remover dos guardados' : 'Guardar local';
+    btn.style.color = guardou ? 'var(--dourado)' : 'var(--texto-muted)';
+    btn.querySelector('i').className = (guardou ? 'fas' : 'far') + ' fa-bookmark';
+    const countEl = btn.querySelector('.guardados-count');
+    if (countEl) countEl.textContent = data.total;
+  });
+}
+</script>
 <!-- Toast offline -->
 <div id="offline-toast" style="display:none;position:fixed;bottom:1.25rem;left:50%;transform:translateX(-50%);background:#1a3a2a;color:#f5efe6;padding:.55rem 1.25rem;border-radius:var(--radius);font-size:.85rem;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.35);border:1px solid rgba(201,168,76,.35);white-space:nowrap;">
   <i class="fas fa-wifi-slash" style="color:#c9a84c;margin-right:.4rem;"></i> Sem ligação à internet

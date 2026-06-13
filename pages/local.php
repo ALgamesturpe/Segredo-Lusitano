@@ -16,6 +16,7 @@ $user            = auth_user();
 $comentarios     = get_comentarios($id);
 $fotos           = get_fotos($id);
 $liked           = $user ? user_liked($id, $user['id']) : false;
+$guardou         = $user ? user_guardou($id, $user['id']) : false;
 $motivos_denuncia = motivos_denuncia();
 $local_bloqueado  = ((int)($local['bloqueado'] ?? 0) === 1);
 
@@ -322,6 +323,18 @@ include dirname(__DIR__) . '/includes/header.php';
               <i class="fas fa-map"></i> Ver no Mapa
             </a>
           <?php endif; ?>
+          <!-- Guardar -->
+          <button id="guardar-btn"
+                  onclick="toggleGuardarLocal(this)"
+                  data-id="<?= $id ?>"
+                  data-guardou="<?= $guardou ? '1' : '0' ?>"
+                  class="btn btn-sm btn-outline"
+                  style="color:<?= $guardou ? 'var(--dourado)' : 'var(--texto-muted)' ?>;border-color:<?= $guardou ? 'var(--dourado)' : 'var(--creme-escuro)' ?>;"
+                  title="<?= $guardou ? 'Remover dos guardados' : 'Guardar local' ?>">
+            <i class="<?= $guardou ? 'fas' : 'far' ?> fa-bookmark"></i>
+            <span id="guardar-count"><?= (int)($local['total_guardados'] ?? 0) ?></span>
+          </button>
+
           <?php if ($user): ?>
             <button onclick="abrirModalRecomendar()" class="btn btn-sm btn-outline" style="color:var(--verde);border-color:var(--verde);">
               <i class="fas fa-share-alt"></i> Recomendar
@@ -1387,4 +1400,27 @@ document.addEventListener('DOMContentLoaded', function() {
 </div>
 <?php endif; ?>
 
+<script>
+function toggleGuardarLocal(btn) {
+  <?php if (!$user): ?>
+  mostrarAvisoLogin('Inicia sessão para guardar locais.', '<?= SITE_URL ?>/pages/login.php');
+  return;
+  <?php endif; ?>
+  const localId = btn.dataset.id;
+  fetch(`${SITE_URL}/pages/guardar.php`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRF-Token': CSRF_TOKEN },
+    body: `local_id=${localId}`
+  }).then(r => r.json()).then(data => {
+    const guardou = data.guardado;
+    btn.dataset.guardou = guardou ? '1' : '0';
+    btn.title = guardou ? 'Remover dos guardados' : 'Guardar local';
+    btn.style.color = guardou ? 'var(--dourado)' : 'var(--texto-muted)';
+    btn.style.borderColor = guardou ? 'var(--dourado)' : 'var(--creme-escuro)';
+    btn.querySelector('i').className = (guardou ? 'fas' : 'far') + ' fa-bookmark';
+    const countEl = document.getElementById('guardar-count');
+    if (countEl) countEl.textContent = data.total;
+  });
+}
+</script>
 <?php include dirname(__DIR__) . '/includes/footer.php'; ?>
