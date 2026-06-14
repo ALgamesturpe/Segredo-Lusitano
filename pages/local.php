@@ -774,7 +774,7 @@ include dirname(__DIR__) . '/includes/header.php';
           <!-- Coordenadas GPS -->
           <div style="margin-top:.85rem;padding-top:.85rem;border-top:1px solid var(--creme-escuro);">
             <div style="font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-muted);margin-bottom:.5rem;">
-              <i class="fas fa-crosshairs" style="margin-right:.3rem;color:var(--verde);"></i>Coordenadas GPS
+              <i style="margin-right:.3rem;color:var(--verde);"></i>Coordenadas GPS <i class="fa-solid fa-location-dot"></i>
             </div>
             <?php if ($user): ?>
               <a href="https://www.google.com/maps/dir/?api=1&destination=<?= $local['latitude'] ?>,<?= $local['longitude'] ?>"
