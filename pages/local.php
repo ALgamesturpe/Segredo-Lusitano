@@ -860,6 +860,14 @@ function _renderGrelha() {
     }
   }
 
+  // Botão "···" (partilha nativa do dispositivo) — só aparece se suportado
+  if (navigator.share) {
+    html += `<button onclick="_nativeShare()" style="${itemStyle}border:none;background:none;cursor:pointer;" onmouseover="${hoverOn}" onmouseout="${hoverOff}">
+      <span style="width:42px;height:42px;border-radius:50%;background:#607d8b;display:flex;align-items:center;justify-content:center;"><i class="fas fa-ellipsis-h" style="color:#fff;font-size:1.05rem;"></i></span>
+      <span style="font-size:.7rem;font-weight:600;color:var(--texto);">Outros</span>
+    </button>`;
+  }
+
   // Botão "+"
   html += `<button onclick="shareAbrirMais()" style="${itemStyle}border:none;background:none;cursor:pointer;" onmouseover="${hoverOn}" onmouseout="${hoverOff}">
     <span style="width:42px;height:42px;border-radius:50%;background:var(--creme-escuro);display:flex;align-items:center;justify-content:center;"><i class="fas fa-plus" style="color:var(--texto);font-size:1.1rem;"></i></span>
@@ -880,6 +888,14 @@ function _renderMaisApps() {
       <button id="share-toggle-${app.id}" onclick="_toggleApp('${app.id}')" style="${btnStyle}">${ativa ? 'Remover' : 'Adicionar'}</button>
     </div>`;
   }).join('');
+}
+
+function _nativeShare() {
+  navigator.share({
+    title: _NOME_LOCAL + ' — Segredo Lusitano',
+    text: 'Descobre este local incrível em Portugal! 📍 ' + _NOME_LOCAL,
+    url: _URL_LOCAL
+  }).catch(() => {});
 }
 
 function _acaoAppShare(id) {
