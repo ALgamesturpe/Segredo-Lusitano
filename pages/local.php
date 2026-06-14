@@ -803,15 +803,56 @@ function toggleDropPartilhar(e) {
   if (d.style.display === 'none' || !d.style.display) {
     _carregarApps();
     _renderGrelha();
-    shareVoltarGrelha(); // garante que abre sempre na vista grelha
+    shareVoltarGrelha();
+    if (window.innerWidth < 640) {
+      // Bottom sheet no mobile
+      d.style.position   = 'fixed';
+      d.style.bottom     = '0';
+      d.style.left       = '0';
+      d.style.right      = '0';
+      d.style.top        = 'auto';
+      d.style.width      = '100%';
+      d.style.maxWidth   = '';
+      d.style.borderRadius = '18px 18px 0 0';
+      d.style.maxHeight  = '75vh';
+      d.style.overflowY  = 'auto';
+      d.style.zIndex     = '2000';
+    } else {
+      // Dropdown normal no desktop
+      d.style.position   = 'absolute';
+      d.style.bottom     = '';
+      d.style.left       = '';
+      d.style.right      = '0';
+      d.style.top        = '';
+      d.style.width      = '268px';
+      d.style.maxWidth   = '';
+      d.style.borderRadius = '14px';
+      d.style.maxHeight  = '';
+      d.style.overflowY  = '';
+      d.style.zIndex     = '300';
+    }
     d.style.display = 'block';
+    // Overlay escuro só no mobile
+    if (window.innerWidth < 640) {
+      let ov = document.getElementById('share-overlay');
+      if (!ov) {
+        ov = document.createElement('div');
+        ov.id = 'share-overlay';
+        ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1999;';
+        ov.addEventListener('click', fecharDropPartilhar);
+        document.body.appendChild(ov);
+      }
+      ov.style.display = 'block';
+    }
   } else {
-    d.style.display = 'none';
+    fecharDropPartilhar();
   }
 }
 function fecharDropPartilhar() {
-  const d = document.getElementById('drop-partilhar');
-  if (d) d.style.display = 'none';
+  const d  = document.getElementById('drop-partilhar');
+  const ov = document.getElementById('share-overlay');
+  if (d)  d.style.display  = 'none';
+  if (ov) ov.style.display = 'none';
 }
 document.addEventListener('click', fecharDropPartilhar);
 
