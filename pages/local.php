@@ -344,65 +344,79 @@ include dirname(__DIR__) . '/includes/header.php';
             <button onclick="toggleDropPartilhar(event)" class="btn btn-sm btn-outline" style="color:var(--verde);border-color:var(--verde);" title="Partilhar">
               <i class="fas fa-share-alt"></i> Partilhar
             </button>
-            <div id="drop-partilhar" style="display:none;position:absolute;top:calc(100% + 8px);right:0;background:#fff;border:1px solid var(--creme-escuro);border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,.13);z-index:300;width:260px;padding:1rem;">
+            <!-- onclick="event.stopPropagation()" impede que cliques dentro fechem o dropdown -->
+            <div id="drop-partilhar" onclick="event.stopPropagation()" style="display:none;position:absolute;top:calc(100% + 8px);right:0;background:#fff;border:1px solid var(--creme-escuro);border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,.13);z-index:300;width:260px;padding:1rem;">
 
               <p style="margin:0 0 .85rem;font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--texto-muted);text-align:center;">Partilhar local</p>
 
-              <!-- Grelha de plataformas -->
+              <!-- Grelha de plataformas: WhatsApp · X · Discord · + -->
               <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem;margin-bottom:.85rem;">
+
+                <!-- WhatsApp -->
                 <a href="https://api.whatsapp.com/send?text=<?= $texto_partilha ?>%20<?= $url_partilha ?>" target="_blank" rel="noopener"
-                   style="display:flex;flex-direction:column;align-items:center;gap:.35rem;text-decoration:none;padding:.5rem .25rem;border-radius:10px;transition:background .15s;"
+                   style="display:flex;flex-direction:column;align-items:center;gap:.35rem;text-decoration:none;padding:.5rem .25rem;border-radius:10px;"
                    onmouseover="this.style.background='var(--creme)'" onmouseout="this.style.background='none'">
                   <span style="width:42px;height:42px;border-radius:50%;background:#25d366;display:flex;align-items:center;justify-content:center;">
                     <i class="fab fa-whatsapp" style="color:#fff;font-size:1.2rem;"></i>
                   </span>
-                  <span style="font-size:.7rem;font-weight:600;color:var(--texto);text-align:center;">WhatsApp</span>
+                  <span style="font-size:.7rem;font-weight:600;color:var(--texto);">WhatsApp</span>
                 </a>
-                <a href="https://t.me/share/url?url=<?= $url_partilha ?>&text=<?= $texto_partilha ?>" target="_blank" rel="noopener"
-                   style="display:flex;flex-direction:column;align-items:center;gap:.35rem;text-decoration:none;padding:.5rem .25rem;border-radius:10px;transition:background .15s;"
-                   onmouseover="this.style.background='var(--creme)'" onmouseout="this.style.background='none'">
-                  <span style="width:42px;height:42px;border-radius:50%;background:#2ca5e0;display:flex;align-items:center;justify-content:center;">
-                    <i class="fab fa-telegram-plane" style="color:#fff;font-size:1.2rem;"></i>
-                  </span>
-                  <span style="font-size:.7rem;font-weight:600;color:var(--texto);text-align:center;">Telegram</span>
-                </a>
+
+                <!-- X (Twitter) -->
                 <a href="https://twitter.com/intent/tweet?url=<?= $url_partilha ?>&text=<?= $texto_partilha ?>" target="_blank" rel="noopener"
-                   style="display:flex;flex-direction:column;align-items:center;gap:.35rem;text-decoration:none;padding:.5rem .25rem;border-radius:10px;transition:background .15s;"
+                   style="display:flex;flex-direction:column;align-items:center;gap:.35rem;text-decoration:none;padding:.5rem .25rem;border-radius:10px;"
                    onmouseover="this.style.background='var(--creme)'" onmouseout="this.style.background='none'">
                   <span style="width:42px;height:42px;border-radius:50%;background:#000;display:flex;align-items:center;justify-content:center;">
                     <i class="fab fa-x-twitter" style="color:#fff;font-size:1.1rem;"></i>
                   </span>
-                  <span style="font-size:.7rem;font-weight:600;color:var(--texto);text-align:center;">X</span>
+                  <span style="font-size:.7rem;font-weight:600;color:var(--texto);">X</span>
                 </a>
-                <?php if ($user): ?>
-                <button onclick="fecharDropPartilhar();abrirModalRecomendar();"
-                   style="display:flex;flex-direction:column;align-items:center;gap:.35rem;border:none;background:none;padding:.5rem .25rem;border-radius:10px;cursor:pointer;transition:background .15s;"
+
+                <!-- Discord (copia link + abre Discord) -->
+                <button onclick="partilharDiscord()"
+                   style="display:flex;flex-direction:column;align-items:center;gap:.35rem;border:none;background:none;padding:.5rem .25rem;border-radius:10px;cursor:pointer;"
                    onmouseover="this.style.background='var(--creme)'" onmouseout="this.style.background='none'">
-                  <span style="width:42px;height:42px;border-radius:50%;background:var(--verde);display:flex;align-items:center;justify-content:center;">
-                    <i class="fas fa-user-friends" style="color:#fff;font-size:1.05rem;"></i>
+                  <span style="width:42px;height:42px;border-radius:50%;background:#5865f2;display:flex;align-items:center;justify-content:center;">
+                    <i class="fab fa-discord" style="color:#fff;font-size:1.2rem;"></i>
                   </span>
-                  <span style="font-size:.7rem;font-weight:600;color:var(--texto);text-align:center;">Amigo</span>
+                  <span id="discord-label" style="font-size:.7rem;font-weight:600;color:var(--texto);">Discord</span>
                 </button>
-                <?php else: ?>
-                <button onclick="fecharDropPartilhar();mostrarAvisoLogin('Inicia sessão para recomendar este local a um amigo.','<?= SITE_URL ?>/pages/login.php');"
-                   style="display:flex;flex-direction:column;align-items:center;gap:.35rem;border:none;background:none;padding:.5rem .25rem;border-radius:10px;cursor:pointer;transition:background .15s;"
+
+                <!-- + Mais (share nativo do sistema ou mais opções) -->
+                <button onclick="partilharMais()"
+                   style="display:flex;flex-direction:column;align-items:center;gap:.35rem;border:none;background:none;padding:.5rem .25rem;border-radius:10px;cursor:pointer;"
                    onmouseover="this.style.background='var(--creme)'" onmouseout="this.style.background='none'">
                   <span style="width:42px;height:42px;border-radius:50%;background:var(--creme-escuro);display:flex;align-items:center;justify-content:center;">
-                    <i class="fas fa-user-friends" style="color:var(--texto-muted);font-size:1.05rem;"></i>
+                    <i class="fas fa-plus" style="color:var(--texto);font-size:1.1rem;"></i>
                   </span>
-                  <span style="font-size:.7rem;font-weight:600;color:var(--texto-muted);text-align:center;">Amigo</span>
+                  <span style="font-size:.7rem;font-weight:600;color:var(--texto);">Mais</span>
                 </button>
-                <?php endif; ?>
+
               </div>
 
-              <!-- Copiar link -->
-              <div style="border-top:1px solid var(--creme-escuro);padding-top:.75rem;">
+              <!-- Copiar link + Recomendar -->
+              <div style="border-top:1px solid var(--creme-escuro);padding-top:.75rem;display:flex;flex-direction:column;gap:.5rem;">
                 <button id="btn-copiar-link" onclick="copiarLinkLocal()"
                    style="display:flex;align-items:center;gap:.75rem;width:100%;padding:.6rem .75rem;border:1.5px solid var(--creme-escuro);border-radius:10px;background:var(--creme);cursor:pointer;font-size:.85rem;font-weight:600;color:var(--texto);"
                    onmouseover="this.style.borderColor='var(--verde)'" onmouseout="this.style.borderColor='var(--creme-escuro)'">
                   <i class="fas fa-link" style="color:var(--verde);font-size:.95rem;"></i>
                   Copiar link
                 </button>
+                <?php if ($user): ?>
+                <button onclick="fecharDropPartilhar();abrirModalRecomendar();"
+                   style="display:flex;align-items:center;gap:.75rem;width:100%;padding:.6rem .75rem;border:1.5px solid var(--creme-escuro);border-radius:10px;background:var(--creme);cursor:pointer;font-size:.85rem;font-weight:600;color:var(--verde);"
+                   onmouseover="this.style.borderColor='var(--verde)'" onmouseout="this.style.borderColor='var(--creme-escuro)'">
+                  <i class="fas fa-user-friends" style="font-size:.95rem;"></i>
+                  Recomendar a amigo
+                </button>
+                <?php else: ?>
+                <button onclick="fecharDropPartilhar();mostrarAvisoLogin('Inicia sessão para recomendar este local a um amigo.','<?= SITE_URL ?>/pages/login.php');"
+                   style="display:flex;align-items:center;gap:.75rem;width:100%;padding:.6rem .75rem;border:1.5px solid var(--creme-escuro);border-radius:10px;background:var(--creme);cursor:pointer;font-size:.85rem;font-weight:600;color:var(--texto-muted);"
+                   onmouseover="this.style.borderColor='var(--creme-escuro)'" onmouseout="this.style.borderColor='var(--creme-escuro)'">
+                  <i class="fas fa-user-friends" style="font-size:.95rem;"></i>
+                  Recomendar a amigo <i class="fas fa-lock" style="font-size:.75rem;margin-left:auto;"></i>
+                </button>
+                <?php endif; ?>
               </div>
 
             </div>
@@ -826,14 +840,37 @@ function fecharDropPartilhar() {
 }
 document.addEventListener('click', fecharDropPartilhar);
 
+const _URL_LOCAL = '<?= SITE_URL ?>/pages/local.php?id=<?= $id ?>';
+const _NOME_LOCAL = <?= json_encode(local_nome_publico($local)) ?>;
+
 function copiarLinkLocal() {
-  const url = '<?= SITE_URL ?>/pages/local.php?id=<?= $id ?>';
   const btn = document.getElementById('btn-copiar-link');
-  navigator.clipboard.writeText(url).then(() => {
+  navigator.clipboard.writeText(_URL_LOCAL).then(() => {
     const orig = btn.innerHTML;
-    btn.innerHTML = '<i class="fas fa-check" style="width:18px;text-align:center;color:var(--verde);"></i> Copiado!';
-    setTimeout(() => { btn.innerHTML = orig; fecharDropPartilhar(); }, 1800);
-  }).catch(() => { fecharDropPartilhar(); });
+    btn.innerHTML = '<i class="fas fa-check" style="color:var(--verde);"></i> Copiado!';
+    setTimeout(() => { btn.innerHTML = orig; }, 1800);
+  }).catch(() => {});
+}
+
+function partilharDiscord() {
+  const lbl = document.getElementById('discord-label');
+  navigator.clipboard.writeText(_URL_LOCAL).then(() => {
+    const orig = lbl.textContent;
+    lbl.textContent = 'Copiado!';
+    setTimeout(() => { lbl.textContent = orig; }, 1800);
+  }).catch(() => {});
+}
+
+function partilharMais() {
+  if (navigator.share) {
+    navigator.share({
+      title: _NOME_LOCAL + ' — Segredo Lusitano',
+      text:  'Descobre este local incrível em Portugal!',
+      url:   _URL_LOCAL
+    }).catch(() => {});
+  } else {
+    copiarLinkLocal();
+  }
 }
 </script>
 
