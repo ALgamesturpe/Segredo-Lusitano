@@ -3,7 +3,7 @@ require_once dirname(__DIR__) . '/includes/functions.php';
 require_login();
 
 $user = auth_user();
-$uid  = $user['id'];
+$uid  = (int)$user['id'];
 $conversa_id = isset($_GET['com']) ? (int)$_GET['com'] : 0;
 
 // Marcar como lidas ANTES de carregar a lista (para o badge já sair a zero)

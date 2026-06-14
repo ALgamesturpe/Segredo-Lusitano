@@ -13,7 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 header('Content-Type: application/json');
 $user = auth_user();
-$uid  = $user['id'];
+$uid  = (int)$user['id'];
 $acao = $_GET['acao'] ?? $_POST['acao'] ?? '';
 
 // ── Listar follows mútuos (para modal de recomendação) ────
