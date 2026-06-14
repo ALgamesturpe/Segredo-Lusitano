@@ -803,7 +803,6 @@ function toggleDropPartilhar(e) {
   if (d.style.display === 'none' || !d.style.display) {
     _carregarApps();
     _renderGrelha();
-    shareVoltarGrelha(); // garante que abre sempre na vista grelha
     shareVoltarGrelha();
     if (window.innerWidth < 640) {
       // Bottom sheet no mobile
@@ -846,13 +845,10 @@ function toggleDropPartilhar(e) {
       ov.style.display = 'block';
     }
   } else {
-    d.style.display = 'none';
     fecharDropPartilhar();
   }
 }
 function fecharDropPartilhar() {
-  const d = document.getElementById('drop-partilhar');
-  if (d) d.style.display = 'none';
   const d  = document.getElementById('drop-partilhar');
   const ov = document.getElementById('share-overlay');
   if (d)  d.style.display  = 'none';
