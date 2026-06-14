@@ -904,8 +904,7 @@ function _renderGrelha() {
     const icon = `<span style="width:42px;height:42px;border-radius:50%;background:${app.cor};display:flex;align-items:center;justify-content:center;"><i class="${app.icon}" style="color:#fff;font-size:1.15rem;"></i></span>`;
     const label = `<span style="font-size:.7rem;font-weight:600;color:var(--texto);" id="share-lbl-${app.id}">${app.nome}</span>`;
     if (app.url) {
-      const urlStr = JSON.stringify(app.url());
-      html += `<button onclick="_abrirApp(${urlStr})" style="${itemStyle}border:none;background:none;cursor:pointer;" onmouseover="${hoverOn}" onmouseout="${hoverOff}">${icon}${label}</button>`;
+      html += `<button onclick="_abrirApp('${app.url()}')" style="${itemStyle}border:none;background:none;cursor:pointer;" onmouseover="${hoverOn}" onmouseout="${hoverOff}">${icon}${label}</button>`;
     } else {
       html += `<button onclick="_acaoAppShare('${app.id}')" style="${itemStyle}border:none;background:none;cursor:pointer;" onmouseover="${hoverOn}" onmouseout="${hoverOff}">${icon}${label}</button>`;
     }
@@ -944,6 +943,13 @@ function _renderMaisApps() {
 function _abrirApp(url) {
   fecharDropPartilhar();
   window.open(url, '_blank');
+  const a = document.createElement('a');
+  a.href = url;
+  a.target = '_blank';
+  a.rel = 'noopener noreferrer';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
 }
 
 function _nativeShare() {
