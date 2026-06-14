@@ -870,7 +870,7 @@ const _SHARE_APPS = [
   { id:'facebook', nome:'Facebook', icon:'fab fa-facebook-f',    cor:'#1877f2', url:() => `https://www.facebook.com/sharer/sharer.php?u=${_URL_LOCAL_ENC}` },
   { id:'reddit',   nome:'Reddit',   icon:'fab fa-reddit-alien',  cor:'#ff4500', url:() => `https://reddit.com/submit?url=${_URL_LOCAL_ENC}&title=${encodeURIComponent(_NOME_LOCAL)}` },
   { id:'linkedin', nome:'LinkedIn', icon:'fab fa-linkedin-in',   cor:'#0a66c2', url:() => `https://www.linkedin.com/sharing/share-offsite/?url=${_URL_LOCAL_ENC}` },
-  { id:'outlook',    nome:'Outlook',    icon:'fas fa-envelope',      cor:'#666',    url:() => `mailto:?subject=${encodeURIComponent(_NOME_LOCAL+' — Segredo Lusitano')}&body=${_TEXTO_LOCAL_ENC}%20${_URL_LOCAL_ENC}` },
+  { id:'email',    nome:'Email',    icon:'fas fa-envelope',      cor:'#666',    url:() => `mailto:?subject=${encodeURIComponent(_NOME_LOCAL+' — Segredo Lusitano')}&body=${_TEXTO_LOCAL_ENC}%20${_URL_LOCAL_ENC}` },
 ];
 const _APPS_DEFAULT = ['whatsapp','twitter','discord'];
 let _appsAtivas;
@@ -942,11 +942,15 @@ function _nativeShare() {
 function _acaoAppShare(id) {
   if (id === 'discord') {
     navigator.clipboard.writeText(_URL_LOCAL).then(() => {
+      window.open('https://discord.com/channels/@me', '_blank');
       const lbl = document.getElementById('share-lbl-discord');
       if (!lbl) return;
-      const o = lbl.textContent; lbl.textContent = 'Copiado!';
-      setTimeout(() => lbl.textContent = o, 1800);
-    }).catch(() => {});
+      const o = lbl.textContent;
+      lbl.textContent = 'Copiado!';
+      setTimeout(() => lbl.textContent = o, 2500);
+    }).catch(() => {
+      window.open('https://discord.com/channels/@me', '_blank');
+    });
   }
 }
 
