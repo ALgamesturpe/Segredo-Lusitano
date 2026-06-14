@@ -873,8 +873,8 @@ const _SHARE_APPS = [
   { id:'linkedin',  nome:'LinkedIn',  icon:'fab fa-linkedin-in',     cor:'#0a66c2', url:() => `https://www.linkedin.com/sharing/share-offsite/?url=${_URL_LOCAL_ENC}` },
   { id:'email',     nome:'Email',     icon:'fas fa-envelope',        cor:'#666',    url:() => `mailto:?subject=${encodeURIComponent(_NOME_LOCAL+' — Segredo Lusitano')}&body=${_TEXTO_LOCAL_ENC}%20${_URL_LOCAL_ENC}` },
 ];
-const _APPS_DEFAULT = ['whatsapp','instagram','facebook'];
-const _SHARE_VER    = '3';
+const _APPS_DEFAULT = ['whatsapp','telegram','email'];
+const _SHARE_VER    = '4';
 let _appsAtivas;
 
 function _carregarApps() {
@@ -962,9 +962,9 @@ function _nativeShare() {
 
 function _acaoAppShare(id) {
   if (id === 'instagram') {
-    // Instagram não tem URL de partilha — usa o share nativo do dispositivo
-    if (navigator.share) {
-      fecharDropPartilhar();
+    fecharDropPartilhar();
+    const _igMobile = ('ontouchstart' in window) || navigator.maxTouchPoints > 1;
+    if (_igMobile && navigator.share) {
       navigator.share({
         title: _NOME_LOCAL + ' — Segredo Lusitano',
         text: 'Descobre este local incrível em Portugal! 📍 ' + _NOME_LOCAL,
@@ -972,23 +972,28 @@ function _acaoAppShare(id) {
       }).catch(() => {});
     } else {
       navigator.clipboard.writeText(_URL_LOCAL).then(() => {
-        const lbl = document.getElementById('share-lbl-instagram');
-        if (!lbl) return;
-        const o = lbl.textContent; lbl.textContent = 'Copiado!';
-        setTimeout(() => lbl.textContent = o, 2000);
+        const _t = document.createElement('div');
+        _t.textContent = 'Link copiado! Cola no Instagram.';
+        _t.style.cssText = 'position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:.65rem 1.25rem;border-radius:99px;font-size:.875rem;font-weight:600;z-index:9999;pointer-events:none;';
+        document.body.appendChild(_t);
+        setTimeout(() => _t.remove(), 3000);
       }).catch(() => {});
     }
   } else if (id === 'discord') {
-    navigator.clipboard.writeText(_URL_LOCAL).then(() => {
-      window.open('https://discord.com/channels/@me', '_blank');
-      const lbl = document.getElementById('share-lbl-discord');
-      if (!lbl) return;
-      const o = lbl.textContent;
-      lbl.textContent = 'Copiado!';
-      setTimeout(() => lbl.textContent = o, 2500);
-    }).catch(() => {
-      window.open('https://discord.com/channels/@me', '_blank');
-    });
+    fecharDropPartilhar();
+    navigator.clipboard.writeText(_URL_LOCAL).then(() => {}).catch(() => {});
+    const _dt = document.createElement('div');
+    _dt.textContent = 'Link copiado! Cola no Discord.';
+    _dt.style.cssText = 'position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:.65rem 1.25rem;border-radius:99px;font-size:.875rem;font-weight:600;z-index:9999;pointer-events:none;';
+    document.body.appendChild(_dt);
+    setTimeout(() => _dt.remove(), 3000);
+    const _da = document.createElement('a');
+    _da.href = 'https://discord.com/channels/@me';
+    _da.target = '_blank';
+    _da.rel = 'noopener noreferrer';
+    document.body.appendChild(_da);
+    _da.click();
+    _da.remove();
   }
 }
 
