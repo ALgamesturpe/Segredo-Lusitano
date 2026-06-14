@@ -344,7 +344,7 @@ include dirname(__DIR__) . '/includes/header.php';
             <button onclick="toggleDropPartilhar(event)" class="btn btn-sm btn-outline" style="color:var(--verde);border-color:var(--verde);" title="Partilhar">
               <i class="fas fa-share-alt"></i> Partilhar
             </button>
-            <div id="drop-partilhar" onclick="event.stopPropagation()" style="display:none;position:absolute;top:calc(100% + 8px);right:0;background:#fff;border:1px solid var(--creme-escuro);border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,.13);z-index:300;width:268px;padding:1rem;">
+            <div id="drop-partilhar" onclick="event.stopPropagation()" style="display:none;position:absolute;top:calc(100% + 8px);right:0;background:#fff;border:1px solid var(--creme-escuro);border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,.13);z-index:300;width:308px;padding:1rem 1.25rem;">
 
               <!-- Cabeçalho (muda consoante a vista) -->
               <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.85rem;">
@@ -824,7 +824,7 @@ function toggleDropPartilhar(e) {
       d.style.left       = '';
       d.style.right      = '0';
       d.style.top        = '';
-      d.style.width      = '268px';
+      d.style.width      = '308px';
       d.style.maxWidth   = '';
       d.style.borderRadius = '14px';
       d.style.maxHeight  = '';
