@@ -2,13 +2,19 @@
 // ============================================================
 // SEGREDO LUSITANO - Configuração da Base de Dados
 // ============================================================
-define('DB_HOST', 'localhost');
-define('DB_USER', 'root');
-define('DB_PASS', '123456');
-define('DB_NAME', 'segredo_lusitano');
+$host = "localhost";
+$dbname = "segredol_1";
+$username = "segredol_1";
+$password = "#Segredo-lusitano";
+
+define('DB_HOST', $host);
+define('DB_NAME', $dbname);
+define('DB_USER', $username);
+define('DB_PASS', $password);
+
 define('SITE_NAME', 'Segredo Lusitano');
-define('GITHUB_CLIENT_ID', 'Ov23lioKbY34xSU0fQK1');
-define('GITHUB_CLIENT_SECRET', 'd4f7b6551d3a966a27f4c22358d5df4a08afafb0');
+define('GITHUB_CLIENT_ID', 'Ov23ctMdjdh1VqlMWmgS');
+define('GITHUB_CLIENT_SECRET', 'f659d9ab53b4e98c4d4a9d16f6049ffaa8c82890');
 
 // Automatically detect SITE_URL based on current script location
 if (!defined('SITE_URL')) {
@@ -36,28 +42,26 @@ define('PONTOS_COMENTARIO', 1);
 // GOOGLE SIGN-IN
 // Obtém em: https://console.cloud.google.com → APIs → Credenciais
 // ============================================================
-define('GOOGLE_CLIENT_ID', '912763585849-sh3s7jrhi36toua034jgci2ktp3cge3k.apps.googleusercontent.com');
+define('GOOGLE_CLIENT_ID', '912763585849-13julq7vmr2aepsp9kep35bpaifvisim.apps.googleusercontent.com');
+
 // ============================================================
 // CONFIGURAÇÃO DE EMAIL (SMTP)
-// Preenche com os dados do teu email
 // ============================================================
-define('MAIL_HOST',     'smtp.gmail.com');   // servidor SMTP
-define('MAIL_PORT', 587);                // porta (587 = TLS)
-define('MAIL_USER',     'gvg.pt0123@gmail.com');  // ← o teu email
-define('MAIL_PASS',     'klbg lhoh pwwc tztv');   // ← password de app Gmail
-define('MAIL_FROM',     'gvg.pt0123@gmail.com');  // remetente
-define('MAIL_FROM_NAME','Segredo Lusitano'); // nome do remetente
+define('MAIL_HOST',      'mail.segredolusitano.pt');
+define('MAIL_PORT',      587);
+define('MAIL_USER',      'envio_de_email@segredolusitano.pt');
+define('MAIL_PASS',      'KuxNgWy,iQ0S1pLd');
+define('MAIL_FROM',      'envio_de_email@segredolusitano.pt');
+define('MAIL_FROM_NAME', 'Segredo Lusitano');
 
 // ============================================================
 // CONFIGURAÇÃO DE SMS (Twilio) - OPCIONAL
-// Descarrega: composer require twilio/sdk
-// Obtém em: https://www.twilio.com → Account → API Keys
 // ============================================================
-define('SMS_ENABLED',           false);              // true = ativar SMS
-define('SMS_DEFAULT_COUNTRY',   'PT');               // código país (PT, BR, etc)
-define('TWILIO_ACCOUNT_SID',    'ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'); // ← Seu SID
-define('TWILIO_AUTH_TOKEN',     '0a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p'); // ← Seu Token
-define('TWILIO_PHONE',          '+12345678901');     // ← Seu número Twilio
+define('SMS_ENABLED',        false);
+define('SMS_DEFAULT_COUNTRY','PT');
+define('TWILIO_ACCOUNT_SID', 'ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx');
+define('TWILIO_AUTH_TOKEN',  '0a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p');
+define('TWILIO_PHONE',       '+12345678901');
 
 // Migração: adicionar colunas de localização de registo
 function _migrar_localizacao(): void {
