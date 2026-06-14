@@ -335,15 +335,60 @@ include dirname(__DIR__) . '/includes/header.php';
             <span id="guardar-count"><?= (int)($local['total_guardados'] ?? 0) ?></span>
           </button>
 
-          <?php if ($user): ?>
-            <button onclick="abrirModalRecomendar()" class="btn btn-sm btn-outline" style="color:var(--verde);border-color:var(--verde);">
-              <i class="fas fa-share-alt"></i> Recomendar
+          <!-- Partilhar (externo) -->
+          <?php
+            $url_partilha   = urlencode(SITE_URL . '/pages/local.php?id=' . $id);
+            $texto_partilha = urlencode('Descobre este local incrível em Portugal! 📍 ' . local_nome_publico($local));
+          ?>
+          <div style="position:relative;display:inline-block;">
+            <button onclick="toggleDropPartilhar(event)" class="btn btn-sm btn-outline" style="color:var(--verde);border-color:var(--verde);" title="Partilhar">
+              <i class="fas fa-share-alt"></i> Partilhar
             </button>
-          <?php else: ?>
-            <button onclick="mostrarAvisoLogin('Precisas de iniciar sessão para recomendar este local.', '<?= SITE_URL ?>/pages/login.php')" class="btn btn-sm btn-outline" style="color:var(--verde);border-color:var(--verde);">
-              <i class="fas fa-share-alt"></i> Recomendar
-            </button>
-          <?php endif; ?>
+            <div id="drop-partilhar" onclick="event.stopPropagation()" style="display:none;position:absolute;top:calc(100% + 8px);right:0;background:#fff;border:1px solid var(--creme-escuro);border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,.13);z-index:300;width:268px;padding:1rem;">
+
+              <!-- Cabeçalho (muda consoante a vista) -->
+              <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.85rem;">
+                <button id="share-btn-voltar" onclick="shareVoltarGrelha()" style="display:none;background:none;border:none;cursor:pointer;color:var(--texto-muted);padding:.1rem .3rem;font-size:1rem;line-height:1;">
+                  <i class="fas fa-arrow-left"></i>
+                </button>
+                <p id="share-titulo" style="margin:0;font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--texto-muted);flex:1;text-align:center;">Partilhar local</p>
+              </div>
+
+              <!-- Vista 1: grelha de apps -->
+              <div id="share-vista-grelha">
+                <div id="share-grelha" style="display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem;margin-bottom:.85rem;">
+                  <!-- preenchido por JS -->
+                </div>
+              </div>
+
+              <!-- Vista 2: gerir apps -->
+              <div id="share-vista-mais" style="display:none;max-height:220px;overflow-y:auto;margin-bottom:.85rem;">
+                <div id="share-lista-mais"></div>
+              </div>
+
+              <!-- Rodapé sempre visível -->
+              <div style="border-top:1px solid var(--creme-escuro);padding-top:.75rem;display:flex;flex-direction:column;gap:.5rem;">
+                <button id="btn-copiar-link" onclick="copiarLinkLocal()"
+                   style="display:flex;align-items:center;gap:.75rem;width:100%;padding:.6rem .75rem;border:1.5px solid var(--creme-escuro);border-radius:10px;background:var(--creme);cursor:pointer;font-size:.85rem;font-weight:600;color:var(--texto);"
+                   onmouseover="this.style.borderColor='var(--verde)'" onmouseout="this.style.borderColor='var(--creme-escuro)'">
+                  <i class="fas fa-link" style="color:var(--verde);font-size:.95rem;"></i> Copiar link
+                </button>
+                <?php if ($user): ?>
+                <button onclick="fecharDropPartilhar();abrirModalRecomendar();"
+                   style="display:flex;align-items:center;gap:.75rem;width:100%;padding:.6rem .75rem;border:1.5px solid var(--creme-escuro);border-radius:10px;background:var(--creme);cursor:pointer;font-size:.85rem;font-weight:600;color:var(--verde);"
+                   onmouseover="this.style.borderColor='var(--verde)'" onmouseout="this.style.borderColor='var(--creme-escuro)'">
+                  <i class="fas fa-user-friends" style="font-size:.95rem;"></i> Recomendar a amigo
+                </button>
+                <?php else: ?>
+                <button onclick="fecharDropPartilhar();mostrarAvisoLogin('Inicia sessão para recomendar este local a um amigo.','<?= SITE_URL ?>/pages/login.php');"
+                   style="display:flex;align-items:center;gap:.75rem;width:100%;padding:.6rem .75rem;border:1.5px solid var(--creme-escuro);border-radius:10px;background:var(--creme);cursor:pointer;font-size:.85rem;font-weight:600;color:var(--texto-muted);">
+                  <i class="fas fa-user-friends" style="font-size:.95rem;"></i> Recomendar a amigo <i class="fas fa-lock" style="font-size:.75rem;margin-left:auto;"></i>
+                </button>
+                <?php endif; ?>
+              </div>
+
+            </div>
+          </div>
 
 
           <?php if ($user && ($user['id'] == $local['utilizador_id'] || is_admin())): ?>
@@ -729,7 +774,7 @@ include dirname(__DIR__) . '/includes/header.php';
           <!-- Coordenadas GPS -->
           <div style="margin-top:.85rem;padding-top:.85rem;border-top:1px solid var(--creme-escuro);">
             <div style="font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-muted);margin-bottom:.5rem;">
-              <i class="fas fa-crosshairs" style="margin-right:.3rem;color:var(--verde);"></i>Coordenadas GPS
+              <i style="margin-right:.3rem;color:var(--verde);"></i>Coordenadas GPS <i class="fa-solid fa-location-dot"></i>
             </div>
             <?php if ($user): ?>
               <a href="https://www.google.com/maps/dir/?api=1&destination=<?= $local['latitude'] ?>,<?= $local['longitude'] ?>"
@@ -748,6 +793,199 @@ include dirname(__DIR__) . '/includes/header.php';
     </div>
   </div>
 </section>
+
+<!-- Partilhar: funções disponíveis para todos os utilizadores -->
+<script>
+function toggleDropPartilhar(e) {
+  e.stopPropagation();
+  const d = document.getElementById('drop-partilhar');
+  if (!d) return;
+  if (d.style.display === 'none' || !d.style.display) {
+    _carregarApps();
+    _renderGrelha();
+    shareVoltarGrelha(); // garante que abre sempre na vista grelha
+    shareVoltarGrelha();
+    if (window.innerWidth < 640) {
+      // Bottom sheet no mobile
+      d.style.position   = 'fixed';
+      d.style.bottom     = '0';
+      d.style.left       = '0';
+      d.style.right      = '0';
+      d.style.top        = 'auto';
+      d.style.width      = '100%';
+      d.style.maxWidth   = '';
+      d.style.borderRadius = '18px 18px 0 0';
+      d.style.maxHeight  = '75vh';
+      d.style.overflowY  = 'auto';
+      d.style.zIndex     = '2000';
+    } else {
+      // Dropdown normal no desktop
+      d.style.position   = 'absolute';
+      d.style.bottom     = '';
+      d.style.left       = '';
+      d.style.right      = '0';
+      d.style.top        = '';
+      d.style.width      = '268px';
+      d.style.maxWidth   = '';
+      d.style.borderRadius = '14px';
+      d.style.maxHeight  = '';
+      d.style.overflowY  = '';
+      d.style.zIndex     = '300';
+    }
+    d.style.display = 'block';
+    // Overlay escuro só no mobile
+    if (window.innerWidth < 640) {
+      let ov = document.getElementById('share-overlay');
+      if (!ov) {
+        ov = document.createElement('div');
+        ov.id = 'share-overlay';
+        ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1999;';
+        ov.addEventListener('click', fecharDropPartilhar);
+        document.body.appendChild(ov);
+      }
+      ov.style.display = 'block';
+    }
+  } else {
+    d.style.display = 'none';
+    fecharDropPartilhar();
+  }
+}
+function fecharDropPartilhar() {
+  const d = document.getElementById('drop-partilhar');
+  if (d) d.style.display = 'none';
+  const d  = document.getElementById('drop-partilhar');
+  const ov = document.getElementById('share-overlay');
+  if (d)  d.style.display  = 'none';
+  if (ov) ov.style.display = 'none';
+}
+document.addEventListener('click', fecharDropPartilhar);
+
+const _URL_LOCAL      = '<?= SITE_URL ?>/pages/local.php?id=<?= $id ?>';
+const _URL_LOCAL_ENC  = '<?= $url_partilha ?>';
+const _TEXTO_LOCAL_ENC= '<?= $texto_partilha ?>';
+const _NOME_LOCAL     = <?= json_encode(local_nome_publico($local)) ?>;
+
+// ── Definição de todas as apps disponíveis ────────────────────
+const _SHARE_APPS = [
+  { id:'whatsapp', nome:'WhatsApp', icon:'fab fa-whatsapp',      cor:'#25d366', url:() => `https://api.whatsapp.com/send?text=${_TEXTO_LOCAL_ENC}%20${_URL_LOCAL_ENC}` },
+  { id:'twitter',  nome:'X',        icon:'fab fa-x-twitter',     cor:'#000',    url:() => `https://twitter.com/intent/tweet?url=${_URL_LOCAL_ENC}&text=${_TEXTO_LOCAL_ENC}` },
+  { id:'discord',  nome:'Discord',  icon:'fab fa-discord',       cor:'#5865f2', url:null },
+  { id:'telegram', nome:'Telegram', icon:'fab fa-telegram-plane',cor:'#2ca5e0', url:() => `https://t.me/share/url?url=${_URL_LOCAL_ENC}&text=${_TEXTO_LOCAL_ENC}` },
+  { id:'facebook', nome:'Facebook', icon:'fab fa-facebook-f',    cor:'#1877f2', url:() => `https://www.facebook.com/sharer/sharer.php?u=${_URL_LOCAL_ENC}` },
+  { id:'reddit',   nome:'Reddit',   icon:'fab fa-reddit-alien',  cor:'#ff4500', url:() => `https://reddit.com/submit?url=${_URL_LOCAL_ENC}&title=${encodeURIComponent(_NOME_LOCAL)}` },
+  { id:'linkedin', nome:'LinkedIn', icon:'fab fa-linkedin-in',   cor:'#0a66c2', url:() => `https://www.linkedin.com/sharing/share-offsite/?url=${_URL_LOCAL_ENC}` },
+  { id:'outlook',    nome:'Outlook',    icon:'fas fa-envelope',      cor:'#666',    url:() => `mailto:?subject=${encodeURIComponent(_NOME_LOCAL+' — Segredo Lusitano')}&body=${_TEXTO_LOCAL_ENC}%20${_URL_LOCAL_ENC}` },
+];
+const _APPS_DEFAULT = ['whatsapp','twitter','discord'];
+let _appsAtivas;
+
+function _carregarApps() {
+  try { _appsAtivas = JSON.parse(localStorage.getItem('sl_share_apps')); } catch(e) {}
+  if (!Array.isArray(_appsAtivas) || !_appsAtivas.length) _appsAtivas = [..._APPS_DEFAULT];
+}
+function _guardarApps() { localStorage.setItem('sl_share_apps', JSON.stringify(_appsAtivas)); }
+
+function _renderGrelha() {
+  const el = document.getElementById('share-grelha');
+  const ativas = _appsAtivas;
+  let html = '';
+  const itemStyle = `display:flex;flex-direction:column;align-items:center;gap:.35rem;padding:.5rem .25rem;border-radius:10px;`;
+  const hoverOn  = `this.style.background='var(--creme)'`;
+  const hoverOff = `this.style.background='none'`;
+
+  for (const id of ativas) {
+    const app = _SHARE_APPS.find(a => a.id === id);
+    if (!app) continue;
+    const icon = `<span style="width:42px;height:42px;border-radius:50%;background:${app.cor};display:flex;align-items:center;justify-content:center;"><i class="${app.icon}" style="color:#fff;font-size:1.15rem;"></i></span>`;
+    const label = `<span style="font-size:.7rem;font-weight:600;color:var(--texto);" id="share-lbl-${app.id}">${app.nome}</span>`;
+    if (app.url) {
+      html += `<a href="${app.url()}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="${itemStyle}text-decoration:none;" onmouseover="${hoverOn}" onmouseout="${hoverOff}">${icon}${label}</a>`;
+    } else {
+      html += `<button onclick="_acaoAppShare('${app.id}')" style="${itemStyle}border:none;background:none;cursor:pointer;" onmouseover="${hoverOn}" onmouseout="${hoverOff}">${icon}${label}</button>`;
+    }
+  }
+
+  // Botão "···" (partilha nativa do dispositivo) — só aparece se suportado
+  if (navigator.share) {
+    html += `<button onclick="_nativeShare()" style="${itemStyle}border:none;background:none;cursor:pointer;" onmouseover="${hoverOn}" onmouseout="${hoverOff}">
+      <span style="width:42px;height:42px;border-radius:50%;background:#607d8b;display:flex;align-items:center;justify-content:center;"><i class="fas fa-ellipsis-h" style="color:#fff;font-size:1.05rem;"></i></span>
+      <span style="font-size:.7rem;font-weight:600;color:var(--texto);">Outros</span>
+    </button>`;
+  }
+
+  // Botão "+"
+  html += `<button onclick="shareAbrirMais()" style="${itemStyle}border:none;background:none;cursor:pointer;" onmouseover="${hoverOn}" onmouseout="${hoverOff}">
+    <span style="width:42px;height:42px;border-radius:50%;background:var(--creme-escuro);display:flex;align-items:center;justify-content:center;"><i class="fas fa-plus" style="color:var(--texto);font-size:1.1rem;"></i></span>
+    <span style="font-size:.7rem;font-weight:600;color:var(--texto);">Mais</span>
+  </button>`;
+
+  el.innerHTML = html;
+}
+
+function _renderMaisApps() {
+  const el = document.getElementById('share-lista-mais');
+  el.innerHTML = _SHARE_APPS.map(app => {
+    const ativa = _appsAtivas.includes(app.id);
+    const btnStyle = `padding:.3rem .85rem;border-radius:20px;font-size:.78rem;font-weight:700;cursor:pointer;border:1.5px solid ${ativa ? '#e74c3c' : 'var(--verde)'};background:${ativa ? '#fff5f5' : '#f0faf5'};color:${ativa ? '#e74c3c' : 'var(--verde)'};`;
+    return `<div style="display:flex;align-items:center;gap:.75rem;padding:.55rem 0;border-bottom:1px solid var(--creme-escuro);">
+      <span style="width:34px;height:34px;border-radius:50%;background:${app.cor};display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="${app.icon}" style="color:#fff;font-size:.95rem;"></i></span>
+      <span style="flex:1;font-size:.875rem;font-weight:600;color:var(--texto);">${app.nome}</span>
+      <button id="share-toggle-${app.id}" onclick="_toggleApp('${app.id}')" style="${btnStyle}">${ativa ? 'Remover' : 'Adicionar'}</button>
+    </div>`;
+  }).join('');
+}
+
+function _nativeShare() {
+  navigator.share({
+    title: _NOME_LOCAL + ' — Segredo Lusitano',
+    text: 'Descobre este local incrível em Portugal! 📍 ' + _NOME_LOCAL,
+    url: _URL_LOCAL
+  }).catch(() => {});
+}
+
+function _acaoAppShare(id) {
+  if (id === 'discord') {
+    navigator.clipboard.writeText(_URL_LOCAL).then(() => {
+      const lbl = document.getElementById('share-lbl-discord');
+      if (!lbl) return;
+      const o = lbl.textContent; lbl.textContent = 'Copiado!';
+      setTimeout(() => lbl.textContent = o, 1800);
+    }).catch(() => {});
+  }
+}
+
+function _toggleApp(id) {
+  const idx = _appsAtivas.indexOf(id);
+  if (idx >= 0) _appsAtivas.splice(idx, 1); else _appsAtivas.push(id);
+  _guardarApps();
+  _renderGrelha();
+  _renderMaisApps();
+}
+
+function shareAbrirMais() {
+  document.getElementById('share-vista-grelha').style.display = 'none';
+  document.getElementById('share-vista-mais').style.display = 'block';
+  document.getElementById('share-titulo').textContent = 'Escolher apps';
+  document.getElementById('share-btn-voltar').style.display = 'inline-flex';
+  _renderMaisApps();
+}
+
+function shareVoltarGrelha() {
+  document.getElementById('share-vista-mais').style.display = 'none';
+  document.getElementById('share-vista-grelha').style.display = 'block';
+  document.getElementById('share-titulo').textContent = 'Partilhar local';
+  document.getElementById('share-btn-voltar').style.display = 'none';
+}
+
+function copiarLinkLocal() {
+  const btn = document.getElementById('btn-copiar-link');
+  navigator.clipboard.writeText(_URL_LOCAL).then(() => {
+    const orig = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-check" style="color:var(--verde);"></i> Copiado!';
+    setTimeout(() => { btn.innerHTML = orig; }, 1800);
+  }).catch(() => {});
+}
+</script>
 
 <?php if ($user): ?>
 <!-- MODAL RECOMENDAR LOCAL -->
@@ -819,43 +1057,6 @@ const SITE_URL_RECOMENDAR = '<?= SITE_URL ?>';
 
 let _followsMutuos = [];
 let _followsCarregados = false;
-
-function toggleDropPartilhar(e) {
-  e.stopPropagation();
-  const d = document.getElementById('drop-partilhar');
-  if (!d) return;
-  d.style.display = d.style.display === 'none' ? 'block' : 'none';
-}
-function fecharDropPartilhar() {
-  const d = document.getElementById('drop-partilhar');
-  if (d) d.style.display = 'none';
-}
-document.addEventListener('click', fecharDropPartilhar);
-
-function partilharLocal() {
-  if (!IS_LOGGED_IN) {
-    mostrarAvisoLogin('Precisas de iniciar sessão para partilhar este local.', '<?= SITE_URL ?>/pages/login.php');
-    return;
-  }
-  const url  = '<?= SITE_URL ?>/pages/local.php?id=<?= $id ?>';
-  const nome = <?= json_encode(local_nome_publico($local)) ?>;
-  if (navigator.share) {
-    navigator.share({
-      title: nome + ' — Segredo Lusitano',
-      text:  'Descobre este local incrível em Portugal!',
-      url:   url
-    }).catch(() => {});
-  } else {
-    navigator.clipboard.writeText(url).then(() => {
-      const btn = event.currentTarget;
-      const orig = btn.innerHTML;
-      btn.innerHTML = '<i class="fas fa-check"></i> Link copiado!';
-      setTimeout(() => { btn.innerHTML = orig; }, 2000);
-    }).catch(() => {
-      abrirModalRecomendar();
-    });
-  }
-}
 
 function abrirModalRecomendar() {
   document.getElementById('modal-recomendar').style.display = 'flex';
