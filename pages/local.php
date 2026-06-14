@@ -942,7 +942,13 @@ function _renderMaisApps() {
 
 function _abrirApp(url) {
   fecharDropPartilhar();
-  window.open(url, '_blank');
+  const a = document.createElement('a');
+  a.href = url;
+  a.target = '_blank';
+  a.rel = 'noopener noreferrer';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
 }
 
 function _nativeShare() {
