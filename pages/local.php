@@ -863,21 +863,30 @@ const _NOME_LOCAL     = <?= json_encode(local_nome_publico($local)) ?>;
 
 // ── Definição de todas as apps disponíveis ────────────────────
 const _SHARE_APPS = [
-  { id:'whatsapp', nome:'WhatsApp', icon:'fab fa-whatsapp',      cor:'#25d366', url:() => `https://api.whatsapp.com/send?text=${_TEXTO_LOCAL_ENC}%20${_URL_LOCAL_ENC}` },
-  { id:'twitter',  nome:'X',        icon:'fab fa-x-twitter',     cor:'#000',    url:() => `https://twitter.com/intent/tweet?url=${_URL_LOCAL_ENC}&text=${_TEXTO_LOCAL_ENC}` },
-  { id:'discord',  nome:'Discord',  icon:'fab fa-discord',       cor:'#5865f2', url:null },
-  { id:'telegram', nome:'Telegram', icon:'fab fa-telegram-plane',cor:'#2ca5e0', url:() => `https://t.me/share/url?url=${_URL_LOCAL_ENC}&text=${_TEXTO_LOCAL_ENC}` },
-  { id:'facebook', nome:'Facebook', icon:'fab fa-facebook-f',    cor:'#1877f2', url:() => `https://www.facebook.com/sharer/sharer.php?u=${_URL_LOCAL_ENC}` },
-  { id:'reddit',   nome:'Reddit',   icon:'fab fa-reddit-alien',  cor:'#ff4500', url:() => `https://reddit.com/submit?url=${_URL_LOCAL_ENC}&title=${encodeURIComponent(_NOME_LOCAL)}` },
-  { id:'linkedin', nome:'LinkedIn', icon:'fab fa-linkedin-in',   cor:'#0a66c2', url:() => `https://www.linkedin.com/sharing/share-offsite/?url=${_URL_LOCAL_ENC}` },
-  { id:'outlook',    nome:'Outlook',    icon:'fas fa-envelope',      cor:'#666',    url:() => `mailto:?subject=${encodeURIComponent(_NOME_LOCAL+' — Segredo Lusitano')}&body=${_TEXTO_LOCAL_ENC}%20${_URL_LOCAL_ENC}` },
+  { id:'whatsapp',  nome:'WhatsApp',  icon:'fab fa-whatsapp',       cor:'#25d366', url:() => `https://api.whatsapp.com/send?text=${_TEXTO_LOCAL_ENC}%20${_URL_LOCAL_ENC}` },
+  { id:'instagram', nome:'Instagram', icon:'fab fa-instagram',       cor:'#e1306c', url:null },
+  { id:'facebook',  nome:'Facebook',  icon:'fab fa-facebook-f',      cor:'#1877f2', url:() => `https://www.facebook.com/sharer/sharer.php?u=${_URL_LOCAL_ENC}` },
+  { id:'twitter',   nome:'X',         icon:'fab fa-x-twitter',       cor:'#000',    url:() => `https://twitter.com/intent/tweet?url=${_URL_LOCAL_ENC}&text=${_TEXTO_LOCAL_ENC}` },
+  { id:'discord',   nome:'Discord',   icon:'fab fa-discord',         cor:'#5865f2', url:null },
+  { id:'telegram',  nome:'Telegram',  icon:'fab fa-telegram-plane',  cor:'#2ca5e0', url:() => `https://t.me/share/url?url=${_URL_LOCAL_ENC}&text=${_TEXTO_LOCAL_ENC}` },
+  { id:'reddit',    nome:'Reddit',    icon:'fab fa-reddit-alien',    cor:'#ff4500', url:() => `https://reddit.com/submit?url=${_URL_LOCAL_ENC}&title=${encodeURIComponent(_NOME_LOCAL)}` },
+  { id:'linkedin',  nome:'LinkedIn',  icon:'fab fa-linkedin-in',     cor:'#0a66c2', url:() => `https://www.linkedin.com/sharing/share-offsite/?url=${_URL_LOCAL_ENC}` },
+  { id:'email',     nome:'Email',     icon:'fas fa-envelope',        cor:'#666',    url:() => `mailto:?subject=${encodeURIComponent(_NOME_LOCAL+' — Segredo Lusitano')}&body=${_TEXTO_LOCAL_ENC}%20${_URL_LOCAL_ENC}` },
 ];
-const _APPS_DEFAULT = ['whatsapp','twitter','discord'];
+const _APPS_DEFAULT = ['whatsapp','instagram','facebook'];
+const _SHARE_VER    = '3';
 let _appsAtivas;
 
 function _carregarApps() {
-  try { _appsAtivas = JSON.parse(localStorage.getItem('sl_share_apps')); } catch(e) {}
+  try {
+    if (localStorage.getItem('sl_share_ver') !== _SHARE_VER) {
+      localStorage.removeItem('sl_share_apps');
+      localStorage.setItem('sl_share_ver', _SHARE_VER);
+    }
+    _appsAtivas = JSON.parse(localStorage.getItem('sl_share_apps'));
+  } catch(e) {}
   if (!Array.isArray(_appsAtivas) || !_appsAtivas.length) _appsAtivas = [..._APPS_DEFAULT];
+  _appsAtivas = [...new Set(_appsAtivas)]; // eliminar duplicados
 }
 function _guardarApps() { localStorage.setItem('sl_share_apps', JSON.stringify(_appsAtivas)); }
 
@@ -895,7 +904,7 @@ function _renderGrelha() {
     const icon = `<span style="width:42px;height:42px;border-radius:50%;background:${app.cor};display:flex;align-items:center;justify-content:center;"><i class="${app.icon}" style="color:#fff;font-size:1.15rem;"></i></span>`;
     const label = `<span style="font-size:.7rem;font-weight:600;color:var(--texto);" id="share-lbl-${app.id}">${app.nome}</span>`;
     if (app.url) {
-      html += `<a href="${app.url()}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="${itemStyle}text-decoration:none;" onmouseover="${hoverOn}" onmouseout="${hoverOff}">${icon}${label}</a>`;
+      html += `<button onclick="_abrirApp('${app.url()}')" style="${itemStyle}border:none;background:none;cursor:pointer;" onmouseover="${hoverOn}" onmouseout="${hoverOff}">${icon}${label}</button>`;
     } else {
       html += `<button onclick="_acaoAppShare('${app.id}')" style="${itemStyle}border:none;background:none;cursor:pointer;" onmouseover="${hoverOn}" onmouseout="${hoverOff}">${icon}${label}</button>`;
     }
@@ -931,6 +940,11 @@ function _renderMaisApps() {
   }).join('');
 }
 
+function _abrirApp(url) {
+  fecharDropPartilhar();
+  window.open(url, '_blank');
+}
+
 function _nativeShare() {
   navigator.share({
     title: _NOME_LOCAL + ' — Segredo Lusitano',
@@ -940,13 +954,34 @@ function _nativeShare() {
 }
 
 function _acaoAppShare(id) {
-  if (id === 'discord') {
+  if (id === 'instagram') {
+    // Instagram não tem URL de partilha — usa o share nativo do dispositivo
+    if (navigator.share) {
+      fecharDropPartilhar();
+      navigator.share({
+        title: _NOME_LOCAL + ' — Segredo Lusitano',
+        text: 'Descobre este local incrível em Portugal! 📍 ' + _NOME_LOCAL,
+        url: _URL_LOCAL
+      }).catch(() => {});
+    } else {
+      navigator.clipboard.writeText(_URL_LOCAL).then(() => {
+        const lbl = document.getElementById('share-lbl-instagram');
+        if (!lbl) return;
+        const o = lbl.textContent; lbl.textContent = 'Copiado!';
+        setTimeout(() => lbl.textContent = o, 2000);
+      }).catch(() => {});
+    }
+  } else if (id === 'discord') {
     navigator.clipboard.writeText(_URL_LOCAL).then(() => {
+      window.open('https://discord.com/channels/@me', '_blank');
       const lbl = document.getElementById('share-lbl-discord');
       if (!lbl) return;
-      const o = lbl.textContent; lbl.textContent = 'Copiado!';
-      setTimeout(() => lbl.textContent = o, 1800);
-    }).catch(() => {});
+      const o = lbl.textContent;
+      lbl.textContent = 'Copiado!';
+      setTimeout(() => lbl.textContent = o, 2500);
+    }).catch(() => {
+      window.open('https://discord.com/channels/@me', '_blank');
+    });
   }
 }
 
