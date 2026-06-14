@@ -895,7 +895,8 @@ function _renderGrelha() {
     const icon = `<span style="width:42px;height:42px;border-radius:50%;background:${app.cor};display:flex;align-items:center;justify-content:center;"><i class="${app.icon}" style="color:#fff;font-size:1.15rem;"></i></span>`;
     const label = `<span style="font-size:.7rem;font-weight:600;color:var(--texto);" id="share-lbl-${app.id}">${app.nome}</span>`;
     if (app.url) {
-      html += `<a href="${app.url()}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="${itemStyle}text-decoration:none;" onmouseover="${hoverOn}" onmouseout="${hoverOff}">${icon}${label}</a>`;
+      const urlStr = JSON.stringify(app.url());
+      html += `<button onclick="_abrirApp(${urlStr})" style="${itemStyle}border:none;background:none;cursor:pointer;" onmouseover="${hoverOn}" onmouseout="${hoverOff}">${icon}${label}</button>`;
     } else {
       html += `<button onclick="_acaoAppShare('${app.id}')" style="${itemStyle}border:none;background:none;cursor:pointer;" onmouseover="${hoverOn}" onmouseout="${hoverOff}">${icon}${label}</button>`;
     }
@@ -929,6 +930,11 @@ function _renderMaisApps() {
       <button id="share-toggle-${app.id}" onclick="_toggleApp('${app.id}')" style="${btnStyle}">${ativa ? 'Remover' : 'Adicionar'}</button>
     </div>`;
   }).join('');
+}
+
+function _abrirApp(url) {
+  fecharDropPartilhar();
+  window.open(url, '_blank');
 }
 
 function _nativeShare() {
