@@ -54,7 +54,10 @@
       "PowerShell(& \"C:\\\\wamp64\\\\bin\\\\php\\\\php8.2.28\\\\php.exe\" -l \"c:\\\\wamp64\\\\www\\\\Segredo-Lusitano\\\\includes\\\\functions.php\")",
       "PowerShell($php = \"C:\\\\wamp64\\\\bin\\\\php\\\\php8.2.29\\\\php.exe\"; & $php -l \"c:\\\\wamp64\\\\www\\\\Segredo-Lusitano\\\\pages\\\\explorar.php\")",
       "PowerShell($php = \"C:\\\\wamp64\\\\bin\\\\php\\\\php8.2.29\\\\php.exe\"; & $php -l \"c:\\\\wamp64\\\\www\\\\Segredo-Lusitano\\\\pages\\\\local.php\")",
-      "PowerShell($php = \"C:\\\\wamp64\\\\bin\\\\php\\\\php8.2.29\\\\php.exe\"; & $php -l \"c:\\\\wamp64\\\\www\\\\Segredo-Lusitano\\\\pages\\\\perfil.php\")"
+      "PowerShell($php = \"C:\\\\wamp64\\\\bin\\\\php\\\\php8.2.29\\\\php.exe\"; & $php -l \"c:\\\\wamp64\\\\www\\\\Segredo-Lusitano\\\\pages\\\\perfil.php\")",
+      "Bash(mysql -u root -p123456 segredo_lusitano -e \"SELECT id, username, nome FROM utilizadores WHERE username LIKE 'username_%' ORDER BY id;\")",
+      "PowerShell(& \"C:\\\\wamp64\\\\bin\\\\mysql\\\\mysql8.0.31\\\\bin\\\\mysql.exe\" -u root -p123456 segredo_lusitano -e \"SELECT id, username, nome FROM utilizadores WHERE username LIKE 'username_%' ORDER BY id;\")",
+      "PowerShell(& \"C:\\\\wamp64\\\\bin\\\\mysql\\\\mysql8.4.7\\\\bin\\\\mysql.exe\" -u root -p123456 segredo_lusitano -e \"SELECT id, username, nome FROM utilizadores WHERE username LIKE 'username_%' ORDER BY id;\")"
     ]
   }
 }
