@@ -666,7 +666,7 @@ function add_story(int $user_id, string $texto, ?int $local_id, ?string $foto): 
     _migrar_stories();
     $st = db()->prepare(
         'INSERT INTO stories (utilizador_id, local_id, texto, foto, expira_em)
-         VALUES (?, ?, ?, ?, DATE_ADD(NOW(), INTERVAL 7 DAY))'
+         VALUES (?, ?, ?, ?, DATE_ADD(NOW(), INTERVAL 24 HOUR))'
     );
     $st->execute([$user_id, $local_id, $texto, $foto]);
     return (int)db()->lastInsertId();

@@ -223,6 +223,24 @@ $extra_head = '<style>
   .story-reacao-btn.ativo { border-color:var(--dourado); background:rgba(212,175,55,.12); color:var(--texto); }
   .story-reacao-btn:hover { border-color:var(--verde); }
 
+  .emoji-picker-popup {
+    position:fixed;background:#1e1e1e;border:1px solid #383838;border-radius:14px;
+    padding:.5rem;display:grid;grid-template-columns:repeat(8,1fr);gap:.2rem;
+    z-index:10010;box-shadow:0 8px 28px rgba(0,0,0,.6);
+  }
+  .emoji-picker-popup button {
+    background:none;border:none;cursor:pointer;font-size:1.3rem;
+    padding:.25rem;border-radius:8px;line-height:1;transition:background .1s;
+  }
+  .emoji-picker-popup button:hover { background:#333; }
+  .story-picker-btn {
+    background:var(--creme);border:1.5px solid var(--creme-escuro);border-radius:50px;
+    padding:.2rem .55rem;font-size:.85rem;cursor:pointer;color:var(--texto-muted);
+    line-height:1;display:inline-flex;align-items:center;transition:all .15s;
+  }
+  .story-picker-btn:hover { border-color:var(--verde); }
+  .story-picker-btn.modal-dark { background:#222;border-color:#444;color:#aaa; }
+
   .story-comentario { display:flex; gap:.5rem; margin-bottom:.5rem; font-size:.82rem; }
   .story-comentario .sc-avatar {
     width:26px; height:26px; border-radius:50%; background:var(--verde-escuro);
@@ -631,7 +649,7 @@ include dirname(__DIR__) . '/includes/header.php';
 
           <!-- Barra de reações -->
           <div class="story-reacoes-bar" style="display:flex;align-items:center;gap:.35rem;margin-top:.65rem;flex-wrap:wrap;">
-            <?php foreach (['❤️','👍','😮','🔥'] as $emoji): ?>
+            <?php foreach (['❤️','🔥','😂','👍'] as $emoji): ?>
             <button class="story-reacao-btn <?= $s['minha_reacao'] === $emoji ? 'ativo' : '' ?>"
                     data-story="<?= $s['id'] ?>" data-emoji="<?= h($emoji) ?>"
                     onclick="reagir(this)">
@@ -641,6 +659,7 @@ include dirname(__DIR__) . '/includes/header.php';
               </span>
             </button>
             <?php endforeach; ?>
+            <button class="story-picker-btn" onclick="_abrirEmojiPicker(this,<?= $s['id'] ?>)" title="Mais emojis">+</button>
             <!-- Comentários toggle -->
             <button class="story-comentarios-toggle" data-story="<?= $s['id'] ?>"
                     onclick="toggleComentarios(this)"
@@ -828,14 +847,20 @@ document.getElementById('story-texto')?.addEventListener('input', function() {
 const STORY_DUR = 5000;
 let _modalTimer = null;
 
-function _stopTimer() { if (_modalTimer) { clearTimeout(_modalTimer); _modalTimer = null; } }
+
+function _avançar() {
+  if (!document.getElementById('story-modal').classList.contains('aberto')) return;
+  if (modalIdx < modalStories.length - 1) { modalIdx++; renderModalStory('next'); }
+  else fecharModal();
+}
 
 function _startTimer() {
   _stopTimer();
-  _modalTimer = setTimeout(() => {
-    if (modalIdx < modalStories.length - 1) { modalIdx++; renderModalStory('next'); }
-    else fecharModal();
-  }, STORY_DUR);
+  _modalTimer = setTimeout(_avançar, STORY_DUR);
+}
+
+function _stopTimer() {
+  if (_modalTimer) { clearTimeout(_modalTimer); _modalTimer = null; }
 }
 
 async function abrirModalStories(userId) {
@@ -874,11 +899,11 @@ function renderModalStory(dir) {
     ? `<img src="${SITE_URL}/uploads/stories/${escHtml(s.foto)}" alt="" class="modal-story-foto" loading="lazy">`
     : '';
 
-  const reacoesBtns = ['❤️','👍','😮','🔥'].map(e => {
+  const reacoesBtns = ['❤️','🔥','😂','👍'].map(e => {
     const cnt = (s.reacoes || []).find(r => r.emoji === e);
     const ativo = s.minha_reacao === e ? 'ativo' : '';
     return `<button class="story-reacao-btn ${ativo}" data-story="${s.id}" data-emoji="${e}" onclick="reagir(this)" style="border-color:#444;background:#222;color:#ddd;">${e}<span class="reacao-count">${cnt ? cnt.total : ''}</span></button>`;
-  }).join('');
+  }).join('') + `<button class="story-picker-btn modal-dark" onclick="_abrirEmojiPicker(this,${s.id})" title="Mais emojis">+</button>`;
 
   const slideClass = dir === 'next' ? 'slide-from-bottom' : 'slide-from-top';
 
@@ -901,7 +926,7 @@ function renderModalStory(dir) {
         </div>
         ${s.texto ? `<p style="margin:0 0 .75rem;font-size:.92rem;line-height:1.7;color:#e0e0e0;word-break:break-word;">${escHtml(s.texto).replace(/\n/g,'<br>')}</p>` : ''}
         ${s.local_nome ? `<div style="font-size:.78rem;color:var(--dourado);margin-bottom:.75rem;"><i class="fas fa-map-marker-alt"></i> ${escHtml(s.local_nome)}</div>` : ''}
-        <div style="display:flex;gap:.35rem;flex-wrap:wrap;">${reacoesBtns}</div>
+        <div class="story-reacoes-bar" style="display:flex;gap:.35rem;flex-wrap:wrap;">${reacoesBtns}</div>
       </div>
     </div>`;
 
@@ -922,14 +947,23 @@ function fecharModal() {
   modalStories = [];
 }
 
-// Fechar ao clicar no backdrop
+// Fechar ao clicar fora do card (backdrop)
 document.getElementById('story-modal').addEventListener('click', function(e) {
-  if (e.target === this) fecharModal();
+  const inner = document.getElementById('story-modal-inner');
+  if (!inner.contains(e.target)) fecharModal();
 });
 
-// Scroll do rato → navegar (baixo = próximo, cima = anterior)
+// Toque no card: metade esquerda = anterior, metade direita = próximo
+document.getElementById('story-modal-inner').addEventListener('click', e => {
+  if (e.target.closest('button, a')) return;
+  const r = document.getElementById('story-modal-inner').getBoundingClientRect();
+  modalNav(e.clientX - r.left < r.width / 2 ? -1 : 1);
+});
+
+// Scroll do rato → navegar (no document, só quando modal aberto)
 let _wheelCooldown = false;
-document.getElementById('story-modal').addEventListener('wheel', e => {
+document.addEventListener('wheel', e => {
+  if (!document.getElementById('story-modal').classList.contains('aberto')) return;
   e.preventDefault();
   if (_wheelCooldown) return;
   _wheelCooldown = true;
@@ -945,15 +979,20 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape') fecharModal();
 });
 
-// Touch swipe vertical no modal
+// Touch swipe vertical no modal (no document para não ser bloqueado pelo conteúdo)
 (function() {
-  let startY = 0;
-  const el = document.getElementById('story-modal');
-  el.addEventListener('touchstart', e => { startY = e.touches[0].clientY; }, { passive:true });
-  el.addEventListener('touchend', e => {
+  let startY = 0, startT = 0;
+  document.addEventListener('touchstart', e => {
+    if (!document.getElementById('story-modal').classList.contains('aberto')) return;
+    startY = e.touches[0].clientY;
+    startT = Date.now();
+  }, { passive: true });
+  document.addEventListener('touchend', e => {
+    if (!document.getElementById('story-modal').classList.contains('aberto')) return;
     const diff = startY - e.changedTouches[0].clientY;
-    if (Math.abs(diff) > 40) modalNav(diff > 0 ? 1 : -1);
-  }, { passive:true });
+    const dt   = Date.now() - startT;
+    if (Math.abs(diff) > 40 && dt < 600) modalNav(diff > 0 ? 1 : -1);
+  }, { passive: true });
 })();
 
 // ── Reações ──────────────────────────────────────────────────
@@ -982,6 +1021,95 @@ async function reagir(btn) {
   // Actualizar no array do modal
   const ms = modalStories.find(s => s.id == storyId);
   if (ms) { ms.reacoes = d.reacoes; ms.minha_reacao = d.emoji; }
+}
+
+// ── Emoji Picker ──────────────────────────────────────────────
+const _EMOJIS_PICKER = [
+  '❤️','🧡','💛','💚','💙','💜','🖤','🤍',
+  '🔥','⭐','✨','💯','🎉','🥳','🎊','💥',
+  '😂','😍','😮','😱','🥹','🤩','😎','😜',
+  '👍','👏','🙌','💪','🫶','🤝','😭','🥰',
+];
+let _emojiPickerEl = null;
+
+function _fecharPicker() {
+  if (!_emojiPickerEl) return;
+  _emojiPickerEl.popup.remove();
+  _emojiPickerEl.overlay.remove();
+  _emojiPickerEl = null;
+  if (document.getElementById('story-modal').classList.contains('aberto')) _startTimer();
+}
+
+function _abrirEmojiPicker(btn, storyId) {
+  if (_emojiPickerEl) { _fecharPicker(); return; }
+  _stopTimer();
+
+  // Overlay transparente que fecha o picker ao clicar fora
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:10009;';
+  overlay.onclick = _fecharPicker;
+
+  const popup = document.createElement('div');
+  popup.className = 'emoji-picker-popup';
+  _EMOJIS_PICKER.forEach(e => {
+    const b = document.createElement('button');
+    b.textContent = e;
+    b.onclick = () => { _fecharPicker(); _reagirEmoji(storyId, e, btn); };
+    popup.appendChild(b);
+  });
+
+  document.body.appendChild(overlay);
+  document.body.appendChild(popup);
+  _emojiPickerEl = { popup, overlay };
+
+  const rect = btn.getBoundingClientRect();
+  const popH = 210;
+  let top = rect.top - popH - 8;
+  if (top < 8) top = rect.bottom + 8;
+  popup.style.top  = top + 'px';
+  popup.style.left = Math.max(8, Math.min(rect.left, window.innerWidth - 276)) + 'px';
+}
+
+async function _reagirEmoji(storyId, emoji, pickerBtn) {
+  if (!USER_LOGADO) { mostrarAvisoLogin('Inicia sessão para reagir.', `${SITE_URL}/pages/login.php`); return; }
+  const form = new FormData();
+  form.append('story_id', storyId);
+  form.append('emoji', emoji);
+  const r = await fetch(`${SITE_URL}/pages/stories_api.php?acao=reagir`, {
+    method: 'POST',
+    headers: { 'X-CSRF-Token': CSRF_TOKEN },
+    body: form
+  });
+  const d = await r.json();
+  if (!d.ok) return;
+
+  // Atualizar quick buttons existentes
+  document.querySelectorAll(`.story-reacao-btn[data-story="${storyId}"]`).forEach(b => {
+    b.classList.remove('ativo');
+    const cnt = (d.reacoes || []).find(re => re.emoji === b.dataset.emoji);
+    if (b.querySelector('.reacao-count')) b.querySelector('.reacao-count').textContent = cnt ? cnt.total : '';
+    if (d.reagiu && d.emoji === b.dataset.emoji) b.classList.add('ativo');
+  });
+
+  // Se o emoji escolhido não está na barra, inserir um botão temporário
+  if (d.reagiu) {
+    const bar = pickerBtn ? pickerBtn.closest('.story-reacoes-bar') : null;
+    if (bar && !bar.querySelector(`.story-reacao-btn[data-emoji="${emoji}"]`)) {
+      const nb = document.createElement('button');
+      nb.className = 'story-reacao-btn ativo';
+      nb.dataset.story = storyId;
+      nb.dataset.emoji = emoji;
+      nb.onclick = function() { reagir(this); };
+      const cnt = (d.reacoes || []).find(re => re.emoji === emoji);
+      const isDark = pickerBtn.classList.contains('modal-dark');
+      if (isDark) nb.style.cssText = 'border-color:#444;background:#222;color:#ddd;border:1.5px solid var(--dourado);background:rgba(212,175,55,.12);';
+      nb.innerHTML = `${emoji}<span class="reacao-count">${cnt ? cnt.total : ''}</span>`;
+      pickerBtn.before(nb);
+    }
+  }
+
+  const ms = modalStories.find(s => s.id == storyId);
+  if (ms) { ms.reacoes = d.reacoes; ms.minha_reacao = d.reagiu ? d.emoji : null; }
 }
 
 // ── Comentários ──────────────────────────────────────────────
@@ -1101,11 +1229,11 @@ function buildStoryCard(s) {
     ? `<img src="${SITE_URL}/uploads/stories/${escHtml(s.foto)}" alt="" class="story-foto" loading="lazy" onclick="abrirModalStoriesPorId(${s.id},${s.utilizador_id})" style="cursor:pointer;">`
     : '';
 
-  const reacoesBtns = ['❤️','👍','😮','🔥'].map(e => {
+  const reacoesBtns = ['❤️','🔥','😂','👍'].map(e => {
     const cnt = (s.reacoes||[]).find(r=>r.emoji===e);
     const ativo = s.minha_reacao === e ? 'ativo' : '';
     return `<button class="story-reacao-btn ${ativo}" data-story="${s.id}" data-emoji="${e}" onclick="reagir(this)">${e}<span class="reacao-count">${cnt?cnt.total:''}</span></button>`;
-  }).join('');
+  }).join('') + `<button class="story-picker-btn" onclick="_abrirEmojiPicker(this,${s.id})" title="Mais emojis">+</button>`;
 
   wrap.innerHTML = `
     <div class="story-card-header">
