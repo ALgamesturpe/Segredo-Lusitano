@@ -61,6 +61,7 @@ define('TWILIO_PHONE',          '+12345678901');     // ← Seu número Twilio
 
 // Migração: adicionar colunas de localização de registo
 function _migrar_localizacao(): void {
+    // Adiciona as colunas de localização à tabela de utilizadores, só corre uma vez.
     static $done = false;
     if ($done) return;
     $done = true;
@@ -71,6 +72,7 @@ function _migrar_localizacao(): void {
 }
 
 function db(): PDO {
+    // Devolve a ligação à base de dados. Se ainda não existir, cria uma.
     static $pdo = null;
     if ($pdo === null) {
         $dsn = 'mysql:host=' . DB_HOST . ';dbname=' . DB_NAME . ';charset=utf8mb4';

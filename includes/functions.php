@@ -5,6 +5,7 @@ require_once __DIR__ . '/auth.php';
 
 // ---------- GEOLOCALIZAÇÃO ----------
 function get_client_ip(): string {
+    // Descobre o IP real do visitante, mesmo quando vem atrás de um proxy.
     $locais = ['127.0.0.1', '::1', 'localhost'];
     foreach (['HTTP_X_FORWARDED_FOR', 'HTTP_X_REAL_IP', 'REMOTE_ADDR'] as $key) {
         if (!empty($_SERVER[$key])) {
@@ -19,6 +20,7 @@ function get_client_ip(): string {
 }
 
 function geolocate_ip(string $ip): array {
+    // Usa uma API externa para descobrir o país, região e cidade a partir de um endereço IP.
     $vazio = ['pais' => null, 'regiao' => null, 'cidade' => null];
     if (!$ip || in_array($ip, ['127.0.0.1', '::1'], true)) return $vazio;
     try {
@@ -32,6 +34,7 @@ function geolocate_ip(string $ip): array {
 }
 
 function guardar_localizacao_registo(int $user_id): void {
+    // Guarda o país, região e cidade do utilizador no momento do registo, com base no IP.
     _migrar_localizacao();
     $geo = geolocate_ip(get_client_ip());
     if ($geo['pais']) {
@@ -42,6 +45,7 @@ function guardar_localizacao_registo(int $user_id): void {
 
 // ---------- DENUNCIAS / MODERACAO ----------
 function motivos_denuncia(): array {
+    // Devolve a lista de motivos disponíveis para denunciar conteúdo.
     return [
         'spam' => 'Spam',
         'discurso_ofensivo' => 'Discurso ofensivo',
@@ -51,27 +55,33 @@ function motivos_denuncia(): array {
 }
 
 function motivo_denuncia_label(string $motivo): string {
+    // Converte o código do motivo (ex: "spam") para o texto legível (ex: "Spam").
     $motivos = motivos_denuncia();
     return $motivos[$motivo] ?? $motivo;
 }
 
 function local_nome_publico(array $local): string {
+    // Devolve o nome do local para mostrar ao público.
     return (string)$local['nome'];
 }
 
 function local_descricao_publica(array $local): string {
+    // Devolve a descrição do local para mostrar ao público.
     return (string)$local['descricao'];
 }
 
 function comentario_autor_publico(array $comentario): string {
+    // Devolve o nome do autor do comentário. Se foi denunciado, mostra [removed] em vez do nome.
     return ((int)($comentario['denunciado'] ?? 0) === 1) ? '[removed]' : (string)$comentario['autor_nome'];
 }
 
 function comentario_texto_publico(array $comentario): string {
+    // Devolve o texto do comentário. Se foi denunciado, mostra [removed] em vez do conteúdo.
     return ((int)($comentario['denunciado'] ?? 0) === 1) ? '[removed]' : (string)$comentario['texto'];
 }
 
 function apagar_upload_local(string $ficheiro): void {
+    // Apaga um ficheiro da pasta de uploads, se existir.
     if ($ficheiro === '') return;
     $path = UPLOAD_DIR . $ficheiro;
     if (is_file($path)) {
@@ -80,6 +90,7 @@ function apagar_upload_local(string $ficheiro): void {
 }
 
 function limpar_imagens_local(int $local_id): void {
+    // Apaga todas as imagens de um local — a foto de capa e as da galeria — e remove os registos da BD.
     $stCapa = db()->prepare('SELECT foto_capa FROM locais WHERE id = ?');
     $stCapa->execute([$local_id]);
     $capa = $stCapa->fetchColumn();
@@ -98,6 +109,7 @@ function limpar_imagens_local(int $local_id): void {
 }
 
 function local_bloqueado(int $local_id): bool {
+    // Verifica se um local está bloqueado pelo administrador.
     $st = db()->prepare('SELECT bloqueado FROM locais WHERE id = ?');
     $st->execute([$local_id]);
     $val = $st->fetchColumn();
@@ -105,6 +117,7 @@ function local_bloqueado(int $local_id): bool {
 }
 
 function local_bloqueado_deve_ser_eliminado(int $local_id): bool {
+    // Verifica se um local bloqueado já não tem comentários ativos e pode ser eliminado de vez.
     $st = db()->prepare(
         'SELECT
             COUNT(*) AS total,
@@ -119,6 +132,7 @@ function local_bloqueado_deve_ser_eliminado(int $local_id): bool {
 }
 
 function resolver_denuncias_local_e_comentarios(int $local_id): void {
+    // Marca como resolvidas todas as denúncias abertas de um local e dos seus comentários.
     db()->prepare('UPDATE denuncias SET resolvida=1 WHERE tipo="local" AND referencia_id=? AND resolvida=0')->execute([$local_id]);
     db()->prepare(
         'UPDATE denuncias
@@ -130,6 +144,7 @@ function resolver_denuncias_local_e_comentarios(int $local_id): void {
 }
 
 function ensure_moderacao_schema(): void {
+    // Garante que a base de dados tem todas as colunas e índices necessários para a moderação. Só corre uma vez.
     static $checked = false;
     if ($checked) return;
     $checked = true;
@@ -195,6 +210,7 @@ ensure_moderacao_schema();
 
 // ---------- LOCAIS ----------
 function get_locais(array $filtros = [], int $limite = 12, int $offset = 0): array {
+    // Vai buscar à BD os locais aprovados. Aceita filtros de região, categoria, dificuldade e pesquisa, com paginação.
     $where = ['l.estado = "aprovado"', 'l.bloqueado = 0', 'l.apagado_em IS NULL'];
     $params = [];
     if (!empty($filtros['regiao'])) { $where[] = 'l.regiao_id = ?'; $params[] = $filtros['regiao']; }
@@ -232,6 +248,7 @@ function get_locais(array $filtros = [], int $limite = 12, int $offset = 0): arr
 }
 
 function get_local(int $id): ?array {
+    // Vai buscar os dados completos de um local pelo ID. Devolve null se não existir.
     $st = db()->prepare(
         'SELECT l.*, c.nome AS categoria_nome, c.icone AS categoria_icone,
                 r.nome AS regiao_nome, u.username, u.nome AS autor_nome, u.avatar,
@@ -248,6 +265,7 @@ function get_local(int $id): ?array {
 }
 
 function save_local(array $data, ?int $id = null): int|false {
+    // Guarda um local na base de dados. Se tiver ID, atualiza; se não tiver, cria um novo.
     if ($id) {
         $st = db()->prepare(
             'UPDATE locais SET nome=?, descricao=?, categoria_id=?, regiao_id=?,
@@ -276,10 +294,12 @@ function save_local(array $data, ?int $id = null): int|false {
 }
 
 function delete_local(int $id): void {
+    // Marca um local como apagado com a data atual, sem o remover fisicamente da base de dados.
     db()->prepare('UPDATE locais SET apagado_em = NOW() WHERE id = ?')->execute([$id]);
 }
 
 function incrementar_vistas(int $local_id): void {
+    // Aumenta o contador de visitas de um local, mas só conta uma vez por sessão.
     if (session_status() === PHP_SESSION_NONE) session_start();
     $key = 'viewed_' . $local_id;
     if (!isset($_SESSION[$key])) {
@@ -290,6 +310,7 @@ function incrementar_vistas(int $local_id): void {
 
 // ---------- LIKES ----------
 function toggle_like(int $local_id, int $user_id): array {
+    // Dá ou retira um like a um local. Atualiza os pontos do dono conforme o resultado.
     $st = db()->prepare('SELECT id FROM likes WHERE local_id=? AND utilizador_id=?');
     $st->execute([$local_id, $user_id]);
 
@@ -312,6 +333,7 @@ function toggle_like(int $local_id, int $user_id): array {
 }
 
 function user_liked(int $local_id, int $user_id): bool {
+    // Verifica se um utilizador já deu like a um local específico.
     $st = db()->prepare('SELECT id FROM likes WHERE local_id=? AND utilizador_id=?');
     $st->execute([$local_id, $user_id]);
     return (bool)$st->fetch();
@@ -319,6 +341,7 @@ function user_liked(int $local_id, int $user_id): bool {
 
 // ---------- COMENTÁRIOS ----------
 function get_comentarios(int $local_id): array {
+    // Vai buscar todos os comentários de um local, ordenados do mais antigo para o mais recente.
     $st = db()->prepare(
         'SELECT cm.*, u.username, u.nome AS autor_nome, u.avatar
          FROM comentarios cm
@@ -331,6 +354,7 @@ function get_comentarios(int $local_id): array {
 }
 
 function add_comentario(int $local_id, int $user_id, string $texto, ?string $ficheiro = null): int {
+    // Adiciona um comentário a um local e dá pontos ao dono do local. Não faz nada se o local estiver bloqueado.
     if (local_bloqueado($local_id)) {
         return 0;
     }
@@ -347,12 +371,14 @@ function add_comentario(int $local_id, int $user_id, string $texto, ?string $fic
 
 // ---------- FOTOS ----------
 function get_fotos(int $local_id): array {
+    // Vai buscar as fotos de um local que não foram denunciadas.
     $st = db()->prepare('SELECT * FROM fotos WHERE local_id = ? AND denunciada = 0 ORDER BY criado_em ASC');
     $st->execute([$local_id]);
     return $st->fetchAll();
 }
 
 function upload_foto(array $file, int $local_id, int $user_id): string|false {
+    // Faz o upload de uma foto para um local, valida o tipo de ficheiro e guarda o registo na BD.
     if (local_bloqueado($local_id)) return false;
     $allowed = ['image/jpeg','image/png','image/webp'];
     if (!in_array($file['type'], $allowed)) return false;
@@ -366,6 +392,7 @@ function upload_foto(array $file, int $local_id, int $user_id): string|false {
 
 // ---------- RANKING ----------
 function get_ranking(int $limite = 10): array {
+    // Vai buscar os utilizadores com mais pontos para o ranking.
     $st = db()->prepare(
         'SELECT u.id, u.username, u.nome, u.avatar, u.pontos,
                 (SELECT COUNT(*) FROM locais WHERE utilizador_id = u.id AND estado = "aprovado") AS total_locais,
@@ -379,6 +406,7 @@ function get_ranking(int $limite = 10): array {
 
 // ---------- MODERAÇÃO ----------
 function get_pendentes(): array {
+    // Vai buscar os locais que estão à espera de aprovação pelo administrador.
     $st = db()->prepare(
         'SELECT l.*, u.username, c.nome AS categoria_nome, r.nome AS regiao_nome
          FROM locais l JOIN utilizadores u ON u.id = l.utilizador_id
@@ -391,6 +419,7 @@ function get_pendentes(): array {
 }
 
 function moderar_local(int $id, string $estado): void {
+    // Aprova ou rejeita um local. Se for aprovado, dá pontos ao utilizador que o criou.
     db()->prepare('UPDATE locais SET estado=? WHERE id=?')->execute([$estado, $id]);
     if ($estado === 'aprovado') {
         $st = db()->prepare('SELECT utilizador_id FROM locais WHERE id=?');
@@ -401,6 +430,7 @@ function moderar_local(int $id, string $estado): void {
 }
 
 function get_denuncias(): array {
+    // Vai buscar todas as denúncias ainda por resolver, com informação detalhada sobre o conteúdo denunciado.
     $st = db()->prepare(
         'SELECT d.*, u.username AS denunciante_username,
                 CASE
@@ -469,6 +499,7 @@ function get_denuncias(): array {
 }
 
 function reportar(string $tipo, int $ref_id, int $user_id, string $motivo): bool {
+    // Submete uma denúncia contra um local, comentário ou foto. Não permite denunciar o próprio conteúdo nem duplicar denúncias.
     $tipos_validos = ['local', 'comentario', 'foto'];
     if (!in_array($tipo, $tipos_validos, true)) return false;
 
@@ -500,6 +531,7 @@ function reportar(string $tipo, int $ref_id, int $user_id, string $motivo): bool
 }
 
 function moderar_denuncias_item(string $tipo, int $ref_id, bool $bloquear): bool {
+    // Bloqueia ou desbloqueia um item denunciado (local, comentário ou foto) e resolve as denúncias associadas.
     if (!in_array($tipo, ['local', 'comentario', 'foto'], true)) return false;
 
     if ($tipo === 'local') {
@@ -553,16 +585,19 @@ function moderar_denuncias_item(string $tipo, int $ref_id, bool $bloquear): bool
 
 // ---------- LISTAS ----------
 function get_categorias(): array {
+    // Devolve todas as categorias disponíveis, ordenadas por nome.
     $st = db()->query('SELECT * FROM categorias ORDER BY nome');
     return $st->fetchAll();
 }
 
 function get_regioes(): array {
+    // Devolve todas as regiões disponíveis, ordenadas por nome.
     $st = db()->query('SELECT * FROM regioes ORDER BY nome');
     return $st->fetchAll();
 }
 
 function count_locais(array $filtros = []): int {
+    // Conta quantos locais existem com os filtros aplicados, usado para calcular a paginação.
     $where = ['l.estado = "aprovado"'];
     $params = [];
     if (!empty($filtros['regiao']))     { $where[] = 'l.regiao_id = ?';    $params[] = $filtros['regiao']; }
