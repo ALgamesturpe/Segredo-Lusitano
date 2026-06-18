@@ -159,7 +159,6 @@ function render_top_user(?array $u, string $valor_label): string {
       <a href="<?= SITE_URL ?>/admin/index.php" class="active"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
       <a href="<?= SITE_URL ?>/admin/locais.php"><i class="fa-solid fa-location-dot"></i> Locais</a>
       <a href="<?= SITE_URL ?>/admin/utilizadores.php"><i class="fas fa-users"></i> Utilizadores</a>
-      <a href="<?= SITE_URL ?>/admin/estatisticas.php"><i class="fas fa-chart-bar"></i> Estatísticas</a>
       <div class="nav-section">Moderação</div>
       <a href="#denuncias">
         <i class="fas fa-flag"></i> Denúncias
@@ -238,10 +237,6 @@ function render_top_user(?array $u, string $valor_label): string {
           <?= render_top_user($top_likes ?? null, 'likes') ?>
         </div>
 
-        <!-- Link estatísticas -->
-        <a href="<?= SITE_URL ?>/admin/estatisticas.php" class="btn btn-sm btn-verde" style="justify-content:center;margin-top:auto;">
-          <i class="fas fa-chart-bar"></i> Estatísticas Completas
-        </a>
       </div>
     </div>
     <!-- CARDS DE ESTATÍSTICAS + CHARTS -->
