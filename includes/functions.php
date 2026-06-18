@@ -499,7 +499,8 @@ function get_denuncias(): array {
 }
 
 function reportar(string $tipo, int $ref_id, int $user_id, string $motivo): bool {
-    // Submete uma denúncia contra um local, comentário ou foto. Não permite denunciar o próprio conteúdo nem duplicar denúncias.
+    // Submete uma denúncia contra um local, comentário ou foto.
+    // Não permite denunciar o próprio conteúdo nem duplicar denúncias.
     $tipos_validos = ['local', 'comentario', 'foto'];
     if (!in_array($tipo, $tipos_validos, true)) return false;
 
