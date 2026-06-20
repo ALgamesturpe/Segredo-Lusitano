@@ -58,7 +58,8 @@
       "Bash(mysql -u root -p123456 segredo_lusitano -e \"SELECT id, username, nome FROM utilizadores WHERE username LIKE 'username_%' ORDER BY id;\")",
       "PowerShell(& \"C:\\\\wamp64\\\\bin\\\\mysql\\\\mysql8.0.31\\\\bin\\\\mysql.exe\" -u root -p123456 segredo_lusitano -e \"SELECT id, username, nome FROM utilizadores WHERE username LIKE 'username_%' ORDER BY id;\")",
       "PowerShell(& \"C:\\\\wamp64\\\\bin\\\\mysql\\\\mysql8.4.7\\\\bin\\\\mysql.exe\" -u root -p123456 segredo_lusitano -e \"SELECT id, username, nome FROM utilizadores WHERE username LIKE 'username_%' ORDER BY id;\")",
-      "PowerShell(cd c:\\\\wamp64\\\\www\\\\Segredo-Lusitano; $lines = git show segredolusitano.pt:pages/local.php; for \\($i=0; $i -lt $lines.Count; $i++\\) { if \\($lines[$i] -match \"_abrirApp|window\\\\.open\"\\) { Write-Host \"$\\($i+1\\): $\\($lines[$i]\\)\" } })"
+      "PowerShell(cd c:\\\\wamp64\\\\www\\\\Segredo-Lusitano; $lines = git show segredolusitano.pt:pages/local.php; for \\($i=0; $i -lt $lines.Count; $i++\\) { if \\($lines[$i] -match \"_abrirApp|window\\\\.open\"\\) { Write-Host \"$\\($i+1\\): $\\($lines[$i]\\)\" } })",
+      "Bash(git restore *)"
     ]
   }
 }
