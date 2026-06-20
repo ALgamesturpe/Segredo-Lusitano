@@ -35,7 +35,8 @@
       "Bash(Get-ChildItem -Path \"C:\\\\wamp64\\\\www\\\\Segredo-Lusitano\" -Recurse -Filter \"*.js\" -ErrorAction SilentlyContinue)",
       "WebFetch(domain:fonts.googleapis.com)",
       "Bash(curl -s -A \"Mozilla/5.0 \\(Windows NT 10.0; Win64; x64\\) AppleWebKit/537.36 \\(KHTML, like Gecko\\) Chrome/120.0.0.0 Safari/537.36\" \"https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=Outfit:wght@300;400;600&family=Inter:wght@300;400;600&display=block\")",
-      "Bash(rm \"c:/wamp64/www/Segredo-Lusitano/admin/estatisticas.php\")"
+      "Bash(rm \"c:/wamp64/www/Segredo-Lusitano/admin/estatisticas.php\")",
+      "Bash(git -C \"c:/wamp64/www/Segredo-Lusitano\" branch)"
     ],
     "additionalDirectories": [
       "c:\\wamp64\\www\\Segredo-Lusitano\\admin"
