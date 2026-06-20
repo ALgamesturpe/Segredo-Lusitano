@@ -3,8 +3,16 @@ CREATE DATABASE IF NOT EXISTS segredo_lusitano CHARACTER SET utf8mb4 COLLATE utf
 
 USE segredo_lusitano;
 
--- Limpar tabelas existentes (ordem inversa por causa das FK)
+-- Limpar TODAS as tabelas (incluindo de outras branches)
 SET FOREIGN_KEY_CHECKS = 0;
+DROP TABLE IF EXISTS story_comentarios;
+DROP TABLE IF EXISTS story_reacoes;
+DROP TABLE IF EXISTS stories;
+DROP TABLE IF EXISTS checkins;
+DROP TABLE IF EXISTS atualizacoes_locais;
+DROP TABLE IF EXISTS comentario_fotos;
+DROP TABLE IF EXISTS notificacoes;
+DROP TABLE IF EXISTS favoritos;
 DROP TABLE IF EXISTS banidos;
 DROP TABLE IF EXISTS denuncias;
 DROP TABLE IF EXISTS comentarios;
@@ -234,6 +242,20 @@ CREATE TABLE app_meta (
 ) ENGINE=InnoDB;
 
 INSERT INTO app_meta (nome, valor) VALUES ('reset_token', UUID());
+
+-- ============================================================
+-- TABELA: favoritos
+-- Locais guardados pelos utilizadores
+-- ============================================================
+CREATE TABLE favoritos (
+    id            INT AUTO_INCREMENT PRIMARY KEY,
+    utilizador_id INT NOT NULL,
+    local_id      INT NOT NULL,
+    criado_em     DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY unique_fav (utilizador_id, local_id),
+    FOREIGN KEY (utilizador_id) REFERENCES utilizadores(id) ON DELETE CASCADE,
+    FOREIGN KEY (local_id)      REFERENCES locais(id)       ON DELETE CASCADE
+) ENGINE=InnoDB;
 
 -- ============================================================
 -- DADOS INICIAIS

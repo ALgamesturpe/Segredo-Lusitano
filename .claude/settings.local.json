@@ -55,7 +55,18 @@
       "PowerShell($php = \"C:\\\\wamp64\\\\bin\\\\php\\\\php8.2.29\\\\php.exe\"; & $php -l \"c:\\\\wamp64\\\\www\\\\Segredo-Lusitano\\\\pages\\\\explorar.php\")",
       "PowerShell($php = \"C:\\\\wamp64\\\\bin\\\\php\\\\php8.2.29\\\\php.exe\"; & $php -l \"c:\\\\wamp64\\\\www\\\\Segredo-Lusitano\\\\pages\\\\local.php\")",
       "PowerShell($php = \"C:\\\\wamp64\\\\bin\\\\php\\\\php8.2.29\\\\php.exe\"; & $php -l \"c:\\\\wamp64\\\\www\\\\Segredo-Lusitano\\\\pages\\\\perfil.php\")",
-      "PowerShell(cd c:\\\\wamp64\\\\www\\\\Segredo-Lusitano; $lines = git show segredolusitano.pt:pages/local.php; $result = for \\($i=0; $i -lt $lines.Count; $i++\\) { if \\($lines[$i] -match \"<script|_SHARE_APPS|_renderGrelha|_carregarApps\"\\) { \"$\\($i+1\\): $\\($lines[$i]\\)\" } }; $result | Select-Object -First 30)"
+      "PowerShell(cd c:\\\\wamp64\\\\www\\\\Segredo-Lusitano; $lines = git show segredolusitano.pt:pages/local.php; $result = for \\($i=0; $i -lt $lines.Count; $i++\\) { if \\($lines[$i] -match \"<script|_SHARE_APPS|_renderGrelha|_carregarApps\"\\) { \"$\\($i+1\\): $\\($lines[$i]\\)\" } }; $result | Select-Object -First 30)",
+      "Bash(php -l \"c:\\\\wamp64\\\\www\\\\Segredo-Lusitano\\\\includes\\\\functions.php\")",
+      "PowerShell(& \"C:\\\\wamp64\\\\bin\\\\php\\\\php8.2.0\\\\php.exe\" -l \"C:\\\\wamp64\\\\www\\\\Segredo-Lusitano\\\\includes\\\\functions.php\" 2>&1)",
+      "PowerShell(& \"C:\\\\wamp64\\\\bin\\\\php\\\\php8.2.29\\\\php.exe\" -l \"C:\\\\wamp64\\\\www\\\\Segredo-Lusitano\\\\includes\\\\functions.php\" 2>&1)",
+      "PowerShell(& \"C:\\\\wamp64\\\\bin\\\\php\\\\php8.2.29\\\\php.exe\" -l \"C:\\\\wamp64\\\\www\\\\Segredo-Lusitano\\\\includes\\\\auth.php\" 2>&1)",
+      "PowerShell(& \"C:\\\\wamp64\\\\bin\\\\php\\\\php8.2.29\\\\php.exe\" -l \"C:\\\\wamp64\\\\www\\\\Segredo-Lusitano\\\\includes\\\\config.php\" 2>&1)",
+      "PowerShell(& \"C:\\\\wamp64\\\\bin\\\\php\\\\php8.2.29\\\\php.exe\" -l \"C:\\\\wamp64\\\\www\\\\Segredo-Lusitano\\\\pages\\\\explorar.php\" 2>&1)",
+      "Bash(git show *)",
+      "Bash(php -l)"
+    ],
+    "additionalDirectories": [
+      "\\tmp"
     ]
   }
 }

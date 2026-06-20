@@ -1018,6 +1018,11 @@ async function reagir(btn) {
     b.querySelector('.reacao-count').textContent = cnt ? cnt.total : '';
     if (d.reagiu && d.emoji === b.dataset.emoji) b.classList.add('ativo');
   });
+  // Remover botões dinâmicos do picker que ficaram com 0 reações
+  document.querySelectorAll(`.story-reacao-btn[data-story="${storyId}"][data-dynamic]`).forEach(b => {
+    const cnt = (d.reacoes || []).find(re => re.emoji === b.dataset.emoji);
+    if (!cnt || parseInt(cnt.total) === 0) b.remove();
+  });
   // Actualizar no array do modal
   const ms = modalStories.find(s => s.id == storyId);
   if (ms) { ms.reacoes = d.reacoes; ms.minha_reacao = d.emoji; }
@@ -1090,8 +1095,13 @@ async function _reagirEmoji(storyId, emoji, pickerBtn) {
     if (b.querySelector('.reacao-count')) b.querySelector('.reacao-count').textContent = cnt ? cnt.total : '';
     if (d.reagiu && d.emoji === b.dataset.emoji) b.classList.add('ativo');
   });
+  // Remover botões dinâmicos do picker que ficaram com 0 reações
+  document.querySelectorAll(`.story-reacao-btn[data-story="${storyId}"][data-dynamic]`).forEach(b => {
+    const cnt = (d.reacoes || []).find(re => re.emoji === b.dataset.emoji);
+    if (!cnt || parseInt(cnt.total) === 0) b.remove();
+  });
 
-  // Se o emoji escolhido não está na barra, inserir um botão temporário
+  // Se o emoji escolhido não está na barra, inserir um botão
   if (d.reagiu) {
     const bar = pickerBtn ? pickerBtn.closest('.story-reacoes-bar') : null;
     if (bar && !bar.querySelector(`.story-reacao-btn[data-emoji="${emoji}"]`)) {
@@ -1099,6 +1109,7 @@ async function _reagirEmoji(storyId, emoji, pickerBtn) {
       nb.className = 'story-reacao-btn ativo';
       nb.dataset.story = storyId;
       nb.dataset.emoji = emoji;
+      nb.dataset.dynamic = '1';
       nb.onclick = function() { reagir(this); };
       const cnt = (d.reacoes || []).find(re => re.emoji === emoji);
       const isDark = pickerBtn.classList.contains('modal-dark');
