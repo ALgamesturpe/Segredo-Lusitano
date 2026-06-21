@@ -202,33 +202,53 @@ function get_locais(array $filtros = [], int $limite = 12, int $offset = 0): arr
     if (!empty($filtros['dificuldade'])) { $where[] = 'l.dificuldade = ?'; $params[] = $filtros['dificuldade']; }
     if (!empty($filtros['pesquisa'])) { $where[] = 'l.nome LIKE ?'; $params[] = '%' . $filtros['pesquisa'] . '%'; }
 
-    // Whitelist allowed ordering options to prevent SQL injection
-    $ordem_input = $filtros['ordem'] ?? 'recente';
-    $ordem_permitida = ['likes', 'vistas', 'recente', 'antigo'];
-    if (!in_array($ordem_input, $ordem_permitida, true)) {
-        $ordem_input = 'recente';
+    $dist_select = '';
+    $dist_having = '';
+    $dist_params = [];
+
+    $lat = (float)($filtros['lat'] ?? 0);
+    $lng = (float)($filtros['lng'] ?? 0);
+    if ($lat != 0 || $lng != 0) {
+        $raio = (int)($filtros['raio'] ?? 50);
+        if (!in_array($raio, [10, 25, 50, 100, 200], true)) $raio = 50;
+        $haversine = '(6371 * ACOS(LEAST(1, GREATEST(-1,
+            COS(RADIANS(?)) * COS(RADIANS(l.latitude)) *
+            COS(RADIANS(l.longitude) - RADIANS(?)) +
+            SIN(RADIANS(?)) * SIN(RADIANS(l.latitude))
+        ))))';
+        $dist_select = ', ' . $haversine . ' AS distancia';
+        $dist_having = ' HAVING distancia <= ' . $raio;
+        $dist_params = [$lat, $lng, $lat];
+        $order = 'distancia ASC';
+    } else {
+        $ordem_input = $filtros['ordem'] ?? 'recente';
+        if (!in_array($ordem_input, ['likes', 'vistas', 'recente', 'antigo'], true)) {
+            $ordem_input = 'recente';
+        }
+        $order = match($ordem_input) {
+            'likes'  => '(SELECT COUNT(*) FROM likes WHERE local_id = l.id) DESC',
+            'vistas' => 'l.vistas DESC',
+            'antigo' => 'l.criado_em ASC',
+            default  => 'l.criado_em DESC'
+        };
     }
 
-    $order = match($ordem_input) {
-        'likes'  => '(SELECT COUNT(*) FROM likes WHERE local_id = l.id) DESC',
-        'vistas' => 'l.vistas DESC',
-        'antigo' => 'l.criado_em ASC',
-        default  => 'l.criado_em DESC'
-    };
     $sql = 'SELECT l.*, c.nome AS categoria_nome, c.icone AS categoria_icone,
                    r.nome AS regiao_nome, u.username, u.nome AS autor_nome,
                    (SELECT COUNT(*) FROM likes WHERE local_id = l.id) AS total_likes,
                    (SELECT COUNT(*) FROM comentarios WHERE local_id = l.id) AS total_comentarios,
-                   (SELECT COUNT(*) FROM favoritos WHERE local_id = l.id) AS total_guardados
-            FROM locais l
+                   (SELECT COUNT(*) FROM favoritos WHERE local_id = l.id) AS total_guardados'
+         . $dist_select .
+          ' FROM locais l
             JOIN categorias c ON c.id = l.categoria_id
             JOIN regioes r    ON r.id = l.regiao_id
             JOIN utilizadores u ON u.id = l.utilizador_id
             WHERE ' . implode(' AND ', $where) .
+            $dist_having .
            ' ORDER BY ' . $order .
            ' LIMIT ' . (int)$limite . ' OFFSET ' . (int)$offset;
     $st = db()->prepare($sql);
-    $st->execute($params);
+    $st->execute(array_merge($dist_params, $params));
     return $st->fetchAll();
 }
 
@@ -939,13 +959,28 @@ function get_total_checkins(int $user_id): int {
 
 // ---------- LISTAS ----------
 function count_locais(array $filtros = []): int {
-    $where = ['l.estado = "aprovado"'];
+    $where = ['l.estado = "aprovado"', 'l.bloqueado = 0', 'l.apagado_em IS NULL'];
     $params = [];
     if (!empty($filtros['regiao']))     { $where[] = 'l.regiao_id = ?';    $params[] = $filtros['regiao']; }
     if (!empty($filtros['categoria']))  { $where[] = 'l.categoria_id = ?'; $params[] = $filtros['categoria']; }
     if (!empty($filtros['dificuldade'])){ $where[] = 'l.dificuldade = ?';  $params[] = $filtros['dificuldade']; }
     if (!empty($filtros['pesquisa']))   { $where[] = 'l.nome LIKE ?';      $params[] = '%' . $filtros['pesquisa'] . '%'; }
+
+    $dist_params = [];
+    $lat = (float)($filtros['lat'] ?? 0);
+    $lng = (float)($filtros['lng'] ?? 0);
+    if ($lat != 0 || $lng != 0) {
+        $raio = (int)($filtros['raio'] ?? 50);
+        if (!in_array($raio, [10, 25, 50, 100, 200], true)) $raio = 50;
+        $where[] = '(6371 * ACOS(LEAST(1, GREATEST(-1,
+            COS(RADIANS(?)) * COS(RADIANS(l.latitude)) *
+            COS(RADIANS(l.longitude) - RADIANS(?)) +
+            SIN(RADIANS(?)) * SIN(RADIANS(l.latitude))
+        )))) <= ' . $raio;
+        $dist_params = [$lat, $lng, $lat];
+    }
+
     $st = db()->prepare('SELECT COUNT(*) FROM locais l WHERE ' . implode(' AND ', $where));
-    $st->execute($params);
+    $st->execute(array_merge($params, $dist_params));
     return (int)$st->fetchColumn();
 }
