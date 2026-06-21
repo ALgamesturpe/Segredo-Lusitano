@@ -202,23 +202,26 @@ function get_locais(array $filtros = [], int $limite = 12, int $offset = 0): arr
     if (!empty($filtros['dificuldade'])) { $where[] = 'l.dificuldade = ?'; $params[] = $filtros['dificuldade']; }
     if (!empty($filtros['pesquisa'])) { $where[] = 'l.nome LIKE ?'; $params[] = '%' . $filtros['pesquisa'] . '%'; }
 
-    $dist_select = '';
-    $dist_having = '';
-    $dist_params = [];
+    $dist_select       = '';
+    $dist_params_pre   = [];
+    $dist_params_post  = [];
 
     $lat = (float)($filtros['lat'] ?? 0);
     $lng = (float)($filtros['lng'] ?? 0);
     if ($lat != 0 || $lng != 0) {
         $raio = (int)($filtros['raio'] ?? 50);
         if (!in_array($raio, [10, 25, 50, 100, 200], true)) $raio = 50;
-        $haversine = '(6371 * ACOS(LEAST(1, GREATEST(-1,
+        $formula = '(6371 * ACOS(LEAST(1, GREATEST(-1,
             COS(RADIANS(?)) * COS(RADIANS(l.latitude)) *
             COS(RADIANS(l.longitude) - RADIANS(?)) +
             SIN(RADIANS(?)) * SIN(RADIANS(l.latitude))
         ))))';
-        $dist_select = ', ' . $haversine . ' AS distancia';
-        $dist_having = ' HAVING distancia <= ' . $raio;
-        $dist_params = [$lat, $lng, $lat];
+        // Alias no SELECT para poder usar no ORDER BY (compatível com MariaDB)
+        $dist_select = ', ' . $formula . ' AS distancia';
+        $dist_params_pre = [$lat, $lng, $lat];
+        // Filtro de raio directamente no WHERE (evita HAVING que o MariaDB antigo não suporta)
+        $where[] = $formula . ' <= ' . $raio;
+        $dist_params_post = [$lat, $lng, $lat];
         $order = 'distancia ASC';
     } else {
         $ordem_input = $filtros['ordem'] ?? 'recente';
@@ -244,11 +247,11 @@ function get_locais(array $filtros = [], int $limite = 12, int $offset = 0): arr
             JOIN regioes r    ON r.id = l.regiao_id
             JOIN utilizadores u ON u.id = l.utilizador_id
             WHERE ' . implode(' AND ', $where) .
-            $dist_having .
            ' ORDER BY ' . $order .
            ' LIMIT ' . (int)$limite . ' OFFSET ' . (int)$offset;
     $st = db()->prepare($sql);
-    $st->execute(array_merge($dist_params, $params));
+    // Ordem dos params: [haversine SELECT] + [WHERE filters] + [haversine WHERE]
+    $st->execute(array_merge($dist_params_pre, $params, $dist_params_post));
     return $st->fetchAll();
 }
 
@@ -686,7 +689,7 @@ function add_story(int $user_id, string $texto, ?int $local_id, ?string $foto): 
     _migrar_stories();
     $st = db()->prepare(
         'INSERT INTO stories (utilizador_id, local_id, texto, foto, expira_em)
-         VALUES (?, ?, ?, ?, DATE_ADD(NOW(), INTERVAL 24 HOUR))'
+         VALUES (?, ?, ?, ?, DATE_ADD(NOW(), INTERVAL 7 DAY))'
     );
     $st->execute([$user_id, $local_id, $texto, $foto]);
     return (int)db()->lastInsertId();
