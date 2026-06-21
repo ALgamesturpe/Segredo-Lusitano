@@ -455,7 +455,7 @@ include dirname(__DIR__) . '/includes/header.php';
                   class="btn" style="border:1.5px solid var(--verde);color:var(--verde);background:transparent;white-space:nowrap;<?= $filtro_lat ? 'background:var(--verde);color:#fff;' : '' ?>">
             <i class="fas fa-location-crosshairs"></i> Perto de mim
           </button>
-          <div class="filtro-group" style="min-width:90px;">
+          <div id="raio-wrap" class="filtro-group" style="min-width:90px;<?= $filtro_lat ? '' : 'display:none;' ?>">
             <label for="raio" style="font-size:.75rem;">Raio</label>
             <select id="raio" name="raio">
               <option value="10"  <?= $filtro_raio===10  ? 'selected':'' ?>>10 km</option>
@@ -718,6 +718,7 @@ function filtrarPertoDeMim() {
       }
       document.getElementById('hidden-lat').value = latitude;
       document.getElementById('hidden-lng').value = longitude;
+      document.getElementById('raio-wrap').style.display = '';
       btn.closest('form').submit();
     },
     () => {
