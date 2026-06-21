@@ -209,7 +209,8 @@ function get_locais(array $filtros = [], int $limite = 12, int $offset = 0): arr
     $lat = (float)($filtros['lat'] ?? 0);
     $lng = (float)($filtros['lng'] ?? 0);
     if ($lat != 0 || $lng != 0) {
-        $raio = 50;
+        $raio = (int)($filtros['raio'] ?? 50);
+        if (!in_array($raio, [10, 25, 50, 100, 200], true)) $raio = 50;
         $haversine = '(6371 * ACOS(LEAST(1, GREATEST(-1,
             COS(RADIANS(?)) * COS(RADIANS(l.latitude)) *
             COS(RADIANS(l.longitude) - RADIANS(?)) +
@@ -969,7 +970,8 @@ function count_locais(array $filtros = []): int {
     $lat = (float)($filtros['lat'] ?? 0);
     $lng = (float)($filtros['lng'] ?? 0);
     if ($lat != 0 || $lng != 0) {
-        $raio = 50;
+        $raio = (int)($filtros['raio'] ?? 50);
+        if (!in_array($raio, [10, 25, 50, 100, 200], true)) $raio = 50;
         $where[] = '(6371 * ACOS(LEAST(1, GREATEST(-1,
             COS(RADIANS(?)) * COS(RADIANS(l.latitude)) *
             COS(RADIANS(l.longitude) - RADIANS(?)) +

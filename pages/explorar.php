@@ -63,8 +63,10 @@ $pagina     = max(1, (int)($_GET['pagina'] ?? 1));
 $offset     = ($pagina - 1) * $por_pagina;
 $stories    = [];
 
-$filtro_lat = (float)($_GET['lat'] ?? 0);
-$filtro_lng = (float)($_GET['lng'] ?? 0);
+$filtro_lat  = (float)($_GET['lat']  ?? 0);
+$filtro_lng  = (float)($_GET['lng']  ?? 0);
+$filtro_raio = (int)($_GET['raio'] ?? 50);
+if (!in_array($filtro_raio, [10, 25, 50, 100, 200], true)) $filtro_raio = 50;
 
 if ($tipo === 'utilizadores') {
     if (!$auth_user) { header('Location: ' . SITE_URL . '/pages/login.php'); exit; }
@@ -119,6 +121,7 @@ if ($tipo === 'utilizadores') {
         'ordem'       => $_GET['ordem']       ?? 'recente',
         'lat'         => $filtro_lat,
         'lng'         => $filtro_lng,
+        'raio'        => $filtro_raio,
     ];
 
     $locais     = get_locais($filtros, $por_pagina, $offset);
@@ -416,6 +419,8 @@ include dirname(__DIR__) . '/includes/header.php';
     <div class="filtros-bar">
       <form class="filtros-form" method="GET">
         <input type="hidden" name="tipo" value="locais">
+        <input type="hidden" name="lat"  id="hidden-lat"  value="<?= $filtro_lat  ?: '' ?>">
+        <input type="hidden" name="lng"  id="hidden-lng"  value="<?= $filtro_lng  ?: '' ?>">
         <div class="filtro-group filtro-pesquisa">
           <label for="pesquisa">Pesquisa</label>
           <input type="search" id="pesquisa" name="pesquisa" placeholder="Nome do local..."
@@ -468,6 +473,16 @@ include dirname(__DIR__) . '/includes/header.php';
                   class="btn" style="border:1.5px solid var(--verde);color:var(--verde);background:transparent;white-space:nowrap;<?= $filtro_lat ? 'background:var(--verde);color:#fff;' : '' ?>">
             <i class="fas fa-location-crosshairs"></i> Perto de mim
           </button>
+          <div class="filtro-group" style="min-width:90px;">
+            <label for="raio" style="font-size:.75rem;">Raio</label>
+            <select id="raio" name="raio">
+              <option value="10"  <?= $filtro_raio===10  ? 'selected':'' ?>>10 km</option>
+              <option value="25"  <?= $filtro_raio===25  ? 'selected':'' ?>>25 km</option>
+              <option value="50"  <?= $filtro_raio===50  ? 'selected':'' ?>>50 km</option>
+              <option value="100" <?= $filtro_raio===100 ? 'selected':'' ?>>100 km</option>
+              <option value="200" <?= $filtro_raio===200 ? 'selected':'' ?>>200 km</option>
+            </select>
+          </div>
           <button type="submit" class="btn btn-verde" style="border:1.5px solid transparent;justify-content:center;"><i class="fas fa-search"></i> Filtrar</button>
           <a href="<?= SITE_URL ?>/pages/explorar.php" class="btn" style="border:1.5px solid var(--creme-escuro);color:var(--texto-muted);background:transparent;justify-content:center;padding:.6rem 1.75rem;font-size:.9rem;">Limpar</a>
         </div>
@@ -477,7 +492,7 @@ include dirname(__DIR__) . '/includes/header.php';
     <?php if ($filtro_lat && $filtro_lng): ?>
     <div style="display:flex;align-items:center;gap:.6rem;padding:.65rem 1rem;background:rgba(45,106,79,.08);border:1.5px solid var(--verde-claro);border-radius:var(--radius);margin-bottom:1rem;font-size:.88rem;color:var(--verde-escuro);">
       <i class="fas fa-location-crosshairs"></i>
-      <span>A mostrar <strong><?= $total ?></strong> locais num raio de 50 km à tua volta, ordenados por distância.</span>
+      <span>A mostrar <strong><?= $total ?></strong> locais num raio de <strong><?= $filtro_raio ?> km</strong> à tua volta, ordenados por distância.</span>
       <a href="<?= SITE_URL ?>/pages/explorar.php?tipo=locais" style="margin-left:auto;color:var(--texto-muted);font-size:.8rem;text-decoration:none;white-space:nowrap;"><i class="fas fa-times"></i> Limpar</a>
     </div>
     <?php endif; ?>
@@ -720,7 +735,9 @@ function filtrarPertoDeMim() {
         btn.innerHTML = '<i class="fas fa-location-crosshairs"></i> Perto de mim';
         return;
       }
-      window.location.href = '<?= SITE_URL ?>/pages/explorar.php?tipo=locais&lat=' + latitude + '&lng=' + longitude;
+      document.getElementById('hidden-lat').value = latitude;
+      document.getElementById('hidden-lng').value = longitude;
+      btn.closest('form').submit();
     },
     () => {
       alert('Ativa o GPS e tenta novamente.');
