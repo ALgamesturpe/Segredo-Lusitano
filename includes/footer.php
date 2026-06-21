@@ -9,7 +9,7 @@
       <img src="<?= SITE_URL ?>/assets/images/logo_icon.png" alt="Segredo Lusitano" style="height:36px;width:36px;object-fit:contain;filter:drop-shadow(0 0 6px rgba(201,168,76,.4));">
       <span style="font-family:'Playfair Display',serif;color:var(--creme);font-size:1rem;">Segredo <strong style="color:var(--dourado);">Lusitano</strong></span>
     </div>
-    <p class="footer-tagline">Descobre o Portugal de forma fácil!</p>
+    <p class="footer-tagline">Descobre Portugal de forma fácil!</p>
     <nav class="footer-links">
       <a href="<?= SITE_URL ?>/index.php">Início</a>
       <a href="<?= SITE_URL ?>/pages/explorar.php">Explorar</a>
@@ -17,7 +17,7 @@
       <a href="<?= SITE_URL ?>/pages/ranking.php">Ranking</a>
       <a href="<?= SITE_URL ?>/pages/sobre.php">Sobre</a>
     </nav>
-    <p class="footer-copy">&copy; <?= date('Y') ?> Segredo Lusitano &mdash; Projeto PAP &mdash; Gonçalo Teixeira</p>
+    <p class="footer-copy">&copy; <?= date('Y') ?> Segredo Lusitano &mdash; Gonçalo Teixeira</p>
   </div>
 </footer>
 
