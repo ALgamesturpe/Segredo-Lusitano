@@ -63,7 +63,10 @@
       "PowerShell(& \"C:\\\\wamp64\\\\bin\\\\php\\\\php8.2.29\\\\php.exe\" -l \"C:\\\\wamp64\\\\www\\\\Segredo-Lusitano\\\\includes\\\\config.php\" 2>&1)",
       "PowerShell(& \"C:\\\\wamp64\\\\bin\\\\php\\\\php8.2.29\\\\php.exe\" -l \"C:\\\\wamp64\\\\www\\\\Segredo-Lusitano\\\\pages\\\\explorar.php\" 2>&1)",
       "Bash(git show *)",
-      "Bash(php -l)"
+      "Bash(php -l)",
+      "Bash(\"C:/wamp64/bin/mysql/mysql8.0.31/bin/mysql.exe\" -u root -e \"USE segredo_lusitano; CREATE TABLE IF NOT EXISTS favoritos \\(id INT AUTO_INCREMENT PRIMARY KEY, utilizador_id INT NOT NULL, local_id INT NOT NULL, criado_em DATETIME DEFAULT CURRENT_TIMESTAMP, UNIQUE KEY unique_fav \\(utilizador_id, local_id\\), FOREIGN KEY \\(utilizador_id\\) REFERENCES utilizadores\\(id\\) ON DELETE CASCADE, FOREIGN KEY \\(local_id\\) REFERENCES locais\\(id\\) ON DELETE CASCADE\\) ENGINE=InnoDB;\")",
+      "PowerShell(& \"C:\\\\wamp64\\\\bin\\\\mysql\\\\mysql8.4.7\\\\bin\\\\mysql.exe\" -u root -e \"USE segredo_lusitano; CREATE TABLE IF NOT EXISTS favoritos \\(id INT AUTO_INCREMENT PRIMARY KEY, utilizador_id INT NOT NULL, local_id INT NOT NULL, criado_em DATETIME DEFAULT CURRENT_TIMESTAMP, UNIQUE KEY unique_fav \\(utilizador_id, local_id\\), FOREIGN KEY \\(utilizador_id\\) REFERENCES utilizadores\\(id\\) ON DELETE CASCADE, FOREIGN KEY \\(local_id\\) REFERENCES locais\\(id\\) ON DELETE CASCADE\\) ENGINE=InnoDB;\")",
+      "PowerShell(& \"C:\\\\wamp64\\\\bin\\\\mysql\\\\mysql8.4.7\\\\bin\\\\mysql.exe\" -u root -p123456 -e \"USE segredo_lusitano; CREATE TABLE IF NOT EXISTS favoritos \\(id INT AUTO_INCREMENT PRIMARY KEY, utilizador_id INT NOT NULL, local_id INT NOT NULL, criado_em DATETIME DEFAULT CURRENT_TIMESTAMP, UNIQUE KEY unique_fav \\(utilizador_id, local_id\\), FOREIGN KEY \\(utilizador_id\\) REFERENCES utilizadores\\(id\\) ON DELETE CASCADE, FOREIGN KEY \\(local_id\\) REFERENCES locais\\(id\\) ON DELETE CASCADE\\) ENGINE=InnoDB; SHOW TABLES LIKE 'favoritos';\")"
     ],
     "additionalDirectories": [
       "\\tmp"
