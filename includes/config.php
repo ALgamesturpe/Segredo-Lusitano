@@ -10,7 +10,7 @@ define('SITE_NAME', 'Segredo Lusitano');
 define('GITHUB_CLIENT_ID', 'Ov23lioKbY34xSU0fQK1');
 define('GITHUB_CLIENT_SECRET', 'd4f7b6551d3a966a27f4c22358d5df4a08afafb0');
 
-// Automatically detect SITE_URL based on current script location
+// Deteta automaticamente a SITE_URL baseada no script location corrente
 if (!defined('SITE_URL')) {
     // Detetar HTTPS — inclui o caso do ngrok que envia X-Forwarded-Proto
     $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
@@ -20,7 +20,7 @@ if (!defined('SITE_URL')) {
     $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
     $scriptPath = dirname($_SERVER['SCRIPT_NAME']);
 
-    // Remove trailing subdirectories (includes, pages, admin) to get project root
+    // Remove trailing subdirectories (includes, pages, admin) para obtero o root do projeto
     $basePath = $scriptPath;
     $basePath = preg_replace('#/(includes|pages|admin)$#', '', $basePath);
 
@@ -61,7 +61,6 @@ define('TWILIO_PHONE',          '+12345678901');     // ← Seu número Twilio
 
 // Migração: adicionar colunas de localização de registo
 function _migrar_localizacao(): void {
-    // Adiciona as colunas de localização à tabela de utilizadores, só corre uma vez.
     static $done = false;
     if ($done) return;
     $done = true;
@@ -72,7 +71,6 @@ function _migrar_localizacao(): void {
 }
 
 function db(): PDO {
-    // Devolve a ligação à base de dados. Se ainda não existir, cria uma.
     static $pdo = null;
     if ($pdo === null) {
         $dsn = 'mysql:host=' . DB_HOST . ';dbname=' . DB_NAME . ';charset=utf8mb4';
