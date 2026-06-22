@@ -24,7 +24,7 @@ if (isset($_GET['apagar'])) {
     exit;
 }
 
-// ── Restaurar local da lixeira ────────────────────────────
+// ── Restaurar local do lixo ────────────────────────────
 if (isset($_GET['restaurar_apagado'])) {
     db()->prepare('UPDATE locais SET apagado_em = NULL WHERE id = ?')->execute([(int)$_GET['restaurar_apagado']]);
     flash('success', 'Local restaurado da lixeira.');
@@ -32,7 +32,7 @@ if (isset($_GET['restaurar_apagado'])) {
     exit;
 }
 
-// ── Purgar local definitivamente ──────────────────────────
+// ── Eliminar local definitivamente ──────────────────────────
 if (isset($_GET['purgar'])) {
     $pid = (int)$_GET['purgar'];
     limpar_imagens_local($pid);
