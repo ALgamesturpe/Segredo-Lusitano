@@ -364,8 +364,6 @@ include dirname(__DIR__) . '/includes/header.php';
                       </div>
                     <?php endif; ?>
                     <?php if (!$bloqueada && $foto_propria && $user && !is_admin()): ?>
-                      <span style="position:absolute;top:.35rem;left:.35rem;background:var(--verde);color:#fff;
-                                   border-radius:0;padding:.15rem .45rem;font-size:.7rem;font-weight:700;z-index:5;">Minha</span>
                       <div class="foto-eliminar-overlay"
                            style="display:none;position:absolute;inset:0;background:rgba(192,57,43,.55);
                                   border:3px solid #c0392b;border-radius:var(--radius);
