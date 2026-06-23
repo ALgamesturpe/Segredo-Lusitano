@@ -7,38 +7,65 @@ require_once dirname(__DIR__) . '/includes/mailer.php';
 
 if (auth_user()) { header('Location: ' . SITE_URL . '/index.php'); exit; }
 
-// Precisa de ter um utilizador pendente na sessão
-if (empty($_SESSION['verificar_id']) || empty($_SESSION['verificar_tipo'])) {
+if (empty($_SESSION['verificar_tipo'])) {
     header('Location: ' . SITE_URL . '/pages/login.php');
     exit;
 }
 
-$uid  = (int) $_SESSION['verificar_id'];
 $tipo = $_SESSION['verificar_tipo'];
+$uid  = 0;
 $erro = '';
 $sucesso = false;
 
-$_check = db()->prepare('SELECT id FROM utilizadores WHERE id = ?');
-$_check->execute([$uid]);
-if (!$_check->fetch()) {
-    unset($_SESSION['verificar_id'], $_SESSION['verificar_tipo']);
-    header('Location: ' . SITE_URL . '/pages/login.php');
-    exit;
+if ($tipo === 'registo_pendente') {
+    // Registo pendente — utilizador ainda não existe na BD
+    if (empty($_SESSION['pending_registo'])) {
+        unset($_SESSION['verificar_tipo']);
+        header('Location: ' . SITE_URL . '/pages/registo.php');
+        exit;
+    }
+} else {
+    // login / recuperar — utilizador já existe na BD
+    if (empty($_SESSION['verificar_id'])) {
+        header('Location: ' . SITE_URL . '/pages/login.php');
+        exit;
+    }
+    $uid = (int) $_SESSION['verificar_id'];
+    $_check = db()->prepare('SELECT id FROM utilizadores WHERE id = ?');
+    $_check->execute([$uid]);
+    if (!$_check->fetch()) {
+        unset($_SESSION['verificar_id'], $_SESSION['verificar_tipo']);
+        header('Location: ' . SITE_URL . '/pages/login.php');
+        exit;
+    }
 }
 
 // Reenviar código
 if (isset($_POST['reenviar'])) {
     verificar_csrf();
-    $st = db()->prepare('SELECT nome, email FROM utilizadores WHERE id = ?');
-    $st->execute([$uid]);
-    $u = $st->fetch();
-    if ($u) {
-        $novo_codigo = gerar_e_guardar_codigo($uid, $tipo);
-        $enviado = enviar_codigo_verificacao($u['email'], $u['nome'], $novo_codigo, $tipo);
+    if ($tipo === 'registo_pendente') {
+        $pending = $_SESSION['pending_registo'];
+        $novo_codigo = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+        $_SESSION['pending_registo']['codigo']    = $novo_codigo;
+        $_SESSION['pending_registo']['expira_em'] = time() + 900;
+        $enviado = enviar_codigo_verificacao($pending['email'], $pending['nome'], $novo_codigo, 'registo');
         if ($enviado) {
             flash('success', 'Novo código enviado para o teu email!');
         } else {
-            $erro = 'Erro ao enviar email. Verifica as configurações SMTP.';
+            flash('error', 'Erro ao enviar email. Verifica as configurações SMTP.');
+        }
+    } else {
+        $st = db()->prepare('SELECT nome, email FROM utilizadores WHERE id = ?');
+        $st->execute([$uid]);
+        $u = $st->fetch();
+        if ($u) {
+            $novo_codigo = gerar_e_guardar_codigo($uid, $tipo);
+            $enviado = enviar_codigo_verificacao($u['email'], $u['nome'], $novo_codigo, $tipo);
+            if ($enviado) {
+                flash('success', 'Novo código enviado para o teu email!');
+            } else {
+                flash('error', 'Erro ao enviar email. Verifica as configurações SMTP.');
+            }
         }
     }
     header('Location: ' . SITE_URL . '/pages/verificar.php');
@@ -52,35 +79,50 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['codigo'])) {
 
     if (strlen($codigo) !== 6) {
         $erro = 'O código deve ter 6 dígitos.';
+    } elseif ($tipo === 'registo_pendente') {
+        $pending = $_SESSION['pending_registo'];
+        if ($codigo !== $pending['codigo'] || time() > $pending['expira_em']) {
+            $erro = 'Código inválido ou expirado. Pede um novo código.';
+        } else {
+            // Código correto — inserir utilizador na BD agora
+            $res = finalizar_registo_pendente($pending);
+            if (!$res['ok']) {
+                $erro = $res['msg'];
+            } else {
+                session_regenerate_id(true);
+                $_SESSION['user_id'] = $res['id'];
+                unset($_SESSION['pending_registo'], $_SESSION['verificar_tipo']);
+                flash('success', 'Bem-vindo à comunidade Segredo Lusitano!');
+                header('Location: ' . SITE_URL . '/index.php');
+                exit;
+            }
+        }
     } elseif (!verificar_codigo($uid, $codigo, $tipo)) {
         $erro = 'Código inválido ou expirado. Pede um novo código.';
     } else {
-        // Código correto!
-        if ($tipo === 'registo') {
-            // Marcar conta como verificada
-            db()->prepare('UPDATE utilizadores SET verificado = 1 WHERE id = ?')->execute([$uid]);
-        }
-        // Iniciar sessão
+        // Iniciar sessão (login / recuperar)
         session_regenerate_id(true);
         $_SESSION['user_id'] = $uid;
         unset($_SESSION['verificar_id'], $_SESSION['verificar_tipo']);
-
-        $msg = $tipo === 'registo'
-            ? 'Bem-vindo à comunidade Segredo Lusitano!'
-            : 'Bem-vindo de volta!';
-        flash('success', $msg);
+        flash('success', 'Bem-vindo de volta!');
         header('Location: ' . SITE_URL . '/index.php');
         exit;
     }
 }
 
 // Obter email mascarado para mostrar ao utilizador
-$st = db()->prepare('SELECT email FROM utilizadores WHERE id = ?');
-$st->execute([$uid]);
-$u = $st->fetch();
+$email_bruto = '';
+if ($tipo === 'registo_pendente') {
+    $email_bruto = $_SESSION['pending_registo']['email'] ?? '';
+} else {
+    $st = db()->prepare('SELECT email FROM utilizadores WHERE id = ?');
+    $st->execute([$uid]);
+    $u = $st->fetch();
+    $email_bruto = $u ? $u['email'] : '';
+}
 $email_mask = '';
-if ($u) {
-    [$local, $domain] = explode('@', $u['email']);
+if ($email_bruto && str_contains($email_bruto, '@')) {
+    [$local, $domain] = explode('@', $email_bruto, 2);
     $email_mask = substr($local, 0, 2) . str_repeat('*', max(0, strlen($local)-2)) . '@' . $domain;
 }
 

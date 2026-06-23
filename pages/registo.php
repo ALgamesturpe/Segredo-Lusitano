@@ -76,44 +76,75 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $termos_em = date('Y-m-d H:i:s');
         }
 
-        $res = register($nome, $username, $email, $password, $termos_em);
-        if (!$res['ok']) {
-            $erros['email'] = $res['msg'];
-        } else {
-            // Gerar e enviar código de verificação
-            require_once dirname(__DIR__) . '/includes/mailer.php';
+        // Verificar unicidade de email e username ANTES de criar qualquer registo
+        $st_email = db()->prepare('SELECT id, verificado FROM utilizadores WHERE email = ?');
+        $st_email->execute([$email]);
+        $existing_email = $st_email->fetch();
+        if ($existing_email && $existing_email['verificado']) {
+            $erros['email'] = 'Email já registado.';
+        }
 
-            // Verificar se PHPMailer está disponível
-            if (!class_exists('PHPMailer\PHPMailer\PHPMailer')) {
-                // PHPMailer não instalado - auto-verificar e fazer login direto
+        if (!$erros) {
+            $st_user = db()->prepare('SELECT id FROM utilizadores WHERE username = ?');
+            $st_user->execute([$username]);
+            if ($st_user->fetch()) {
+                $erros['username'] = 'Username já registado.';
+            }
+        }
+    }
+
+    if (!$erros) {
+        require_once dirname(__DIR__) . '/includes/mailer.php';
+
+        // PHPMailer não disponível — inserir diretamente como verificado
+        if (!class_exists('PHPMailer\PHPMailer\PHPMailer')) {
+            $res = register($nome, $username, $email, $password, $termos_em);
+            if (!$res['ok']) {
+                $erros['email'] = $res['msg'];
+            } else {
                 db()->prepare('UPDATE utilizadores SET verificado = 1 WHERE id = ?')->execute([$res['id']]);
                 session_regenerate_id(true);
                 $_SESSION['user_id'] = $res['id'];
-                flash('success', 'Conta criada com sucesso! Bem-vindo ao Segredo Lusitano! 🎉 (Email não configurado - conta verificada automaticamente)');
+                flash('success', 'Conta criada com sucesso! Bem-vindo ao Segredo Lusitano! (Email não configurado - conta verificada automaticamente)');
                 header('Location: ' . SITE_URL . '/index.php');
                 exit;
             }
+        }
+    }
 
-            $codigo = gerar_e_guardar_codigo($res['id'], 'registo');
-            $enviado = enviar_codigo_verificacao($email, $nome, $codigo, 'registo');
+    if (!$erros) {
+        // Guardar dados na sessão — o utilizador só é inserido na BD após verificar o email
+        $codigo = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+        $_SESSION['pending_registo'] = [
+            'nome'          => $nome,
+            'username'      => $username,
+            'email'         => $email,
+            'password_hash' => password_hash($password, PASSWORD_BCRYPT, ['cost' => 12]),
+            'termos_em'     => $termos_em,
+            'codigo'        => $codigo,
+            'expira_em'     => time() + 900,
+        ];
+        $_SESSION['verificar_tipo'] = 'registo_pendente';
+        unset($_SESSION['verificar_id']);
 
-            // Guardar ID na sessão para a página de verificação
-            $_SESSION['verificar_id']   = $res['id'];
-            $_SESSION['verificar_tipo'] = 'registo';
+        $enviado = enviar_codigo_verificacao($email, $nome, $codigo, 'registo');
 
-            if (!$enviado) {
-                // Falha no envio - auto-verificar também
+        if (!$enviado) {
+            // Falha SMTP — inserir e verificar diretamente sem exigir código
+            $res = register($nome, $username, $email, $password, $termos_em);
+            if ($res['ok']) {
                 db()->prepare('UPDATE utilizadores SET verificado = 1 WHERE id = ?')->execute([$res['id']]);
                 session_regenerate_id(true);
                 $_SESSION['user_id'] = $res['id'];
+                unset($_SESSION['pending_registo'], $_SESSION['verificar_tipo']);
                 flash('success', 'Conta criada! Email não enviado (erro SMTP) - conta verificada automaticamente.');
                 header('Location: ' . SITE_URL . '/index.php');
                 exit;
             }
-
-            header('Location: ' . SITE_URL . '/pages/verificar.php');
-            exit;
         }
+
+        header('Location: ' . SITE_URL . '/pages/verificar.php');
+        exit;
     }
 }
 

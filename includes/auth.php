@@ -149,6 +149,32 @@ function register(string $nome, string $username, string $email, string $passwor
     return ['ok' => true, 'id' => $new_id];
 }
 
+function finalizar_registo_pendente(array $dados): array {
+    // Insere o utilizador na BD após verificação de email bem-sucedida. Já entra com verificado=1.
+    $st = db()->prepare('SELECT id, verificado FROM utilizadores WHERE email = ?');
+    $st->execute([$dados['email']]);
+    $existing = $st->fetch();
+    if ($existing) {
+        if ($existing['verificado']) {
+            return ['ok' => false, 'msg' => 'Email já registado.'];
+        }
+        db()->prepare('DELETE FROM codigos_verificacao WHERE utilizador_id = ?')->execute([$existing['id']]);
+        db()->prepare('DELETE FROM utilizadores WHERE id = ?')->execute([$existing['id']]);
+    }
+
+    $st = db()->prepare('SELECT id FROM utilizadores WHERE username = ?');
+    $st->execute([$dados['username']]);
+    if ($st->fetch()) {
+        return ['ok' => false, 'msg' => 'Username já registado.'];
+    }
+
+    $st = db()->prepare('INSERT INTO utilizadores (nome, username, email, password, verificado, pontos, termos_aceites_em) VALUES (?,?,?,?,1,0,?)');
+    $st->execute([$dados['nome'], $dados['username'], $dados['email'], $dados['password_hash'], $dados['termos_em']]);
+    $new_id = (int) db()->lastInsertId();
+    guardar_localizacao_registo($new_id);
+    return ['ok' => true, 'id' => $new_id];
+}
+
 function add_pontos(int $user_id, int $pontos): void {
     db()->prepare('UPDATE utilizadores SET pontos = pontos + ? WHERE id = ?')
          ->execute([$pontos, $user_id]);
