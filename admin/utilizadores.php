@@ -272,12 +272,6 @@ include dirname(__DIR__) . '/includes/header.php';
                 <i class="fas fa-eye"></i>
               </a>
               <?php if ($u['role'] !== 'admin'): ?>
-                <!-- Suspender (se ativo) ou Reativar (se suspenso) conta -->
-                <a href="?toggle=<?= $u['id'] ?>&filtro=<?= h($filtro) ?><?= $pesquisa ? '&q=' . urlencode($pesquisa) : '' ?>"
-                   class="btn btn-sm <?= $u['ativo'] ? 'btn-danger' : 'btn-primary' ?>"
-                   title="<?= $u['ativo'] ? 'Suspender conta' : 'Reativar conta' ?>">
-                  <i class="fas fa-<?= $u['ativo'] ? 'ban' : 'check' ?>"></i>
-                </a>
                 <!-- Banir utilizador permanentemente — abre modal para escolher motivo -->
                 <button onclick="abrirModalBan(<?= $u['id'] ?>, '<?= h($u['nome']) ?>')"
                         class="btn btn-sm"
