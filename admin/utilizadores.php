@@ -272,13 +272,19 @@ include dirname(__DIR__) . '/includes/header.php';
                 <i class="fas fa-eye"></i>
               </a>
               <?php if ($u['role'] !== 'admin'): ?>
+                <!-- Suspender / Reativar conta -->
+                <a href="?toggle=<?= $u['id'] ?>"
+                   class="btn btn-sm"
+                   title="<?= $u['ativo'] ? 'Suspender conta' : 'Reativar conta' ?>"
+                   onclick="return confirm('<?= $u['ativo'] ? 'Suspender a conta de ' . h($u['nome']) . '?' : 'Reativar a conta de ' . h($u['nome']) . '?' ?>')"
+                   style="background:<?= $u['ativo'] ? '#e74c3c' : '#27ae60' ?>;color:#fff;display:inline-flex;align-items:center;justify-content:center;">
+                  <i class="fas <?= $u['ativo'] ? 'fa-ban' : 'fa-user-check' ?>"></i>
+                </a>
                 <!-- Banir utilizador permanentemente — abre modal para escolher motivo -->
                 <button onclick="abrirModalBan(<?= $u['id'] ?>, '<?= h($u['nome']) ?>')"
                         class="btn btn-sm"
                         title="Banir utilizador"
                         style="background:#7d0000;color:#fff;display:inline-flex;align-items:center;justify-content:center;">
-
-
                   <i class="fas fa-user-alt-slash"></i>
                 </button>
               <?php endif; ?>
